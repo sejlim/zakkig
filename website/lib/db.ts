@@ -15,7 +15,7 @@ const client = new Client()
   .setKey(apiKey);
 
 export const db = new Databases(client);
-export const WEBSITE_DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID;
+export const WEBSITE_DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID as string;
 
 if (!WEBSITE_DB_ID) {
   throw new Error('NEXT_PUBLIC_APPWRITE_DATABASE_ID environment variable is missing');
