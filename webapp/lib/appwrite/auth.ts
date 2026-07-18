@@ -30,12 +30,12 @@ async function createPublicClient() {
 export async function signUp(email: string, password: string, name: string): Promise<any> {
   const { account } = await createPublicClient()
 
-  return await account.create({
-    userId: ID.unique(),
+  return await account.create(
+    ID.unique(),
     email,
     password,
-    name,
-  })
+    name
+  )
 }
 
 /**
@@ -85,10 +85,10 @@ export async function sendEmailOtp(userId: string, email: string) {
     
   const account = new Account(client)
   
-  return await account.createEmailToken({
+  return await account.createEmailToken(
     userId,
-    email,
-  })
+    email
+  )
 }
 
 /**
@@ -142,7 +142,7 @@ export async function signOut() {
       }
 
       const sessionAccount = new Account(sessionClient)
-      await sessionAccount.deleteSession({ sessionId: 'current' })
+      await sessionAccount.deleteSession('current')
     } catch {
       // Session may already be invalid — that's fine
     }
@@ -157,10 +157,10 @@ export async function signOut() {
 export async function resetPassword(email: string) {
   const { account } = await createPublicClient()
 
-  await account.createRecovery({
+  await account.createRecovery(
     email,
-    url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password/confirm`,
-  })
+    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password/confirm`
+  )
 }
 
 /**
@@ -169,9 +169,9 @@ export async function resetPassword(email: string) {
 export async function confirmPasswordReset(userId: string, secret: string, password: string) {
   const { account } = await createPublicClient()
 
-  await account.updateRecovery({
+  await account.updateRecovery(
     userId,
     secret,
-    password,
-  })
+    password
+  )
 }

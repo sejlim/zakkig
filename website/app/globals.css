@@ -14,6 +14,8 @@
 .default,
 [data-theme="light"],
 [data-theme="default"] {
+  color-scheme: light;
+
   /* Theme Colors (Light Mode) */
   --accent: oklch(29.22% 0.0156 264.30);
   --accent-foreground: oklch(99.11% 0 0);
@@ -52,14 +54,12 @@
   --field-radius: 1rem;
 
   /* Font Family */
-  /* Make sure to load Poppins font in your app */
   --font-sans: "Poppins", sans-serif;
 }
 
-/* 
-  Der Dark Mode Block ist für Fallback-Zwecke im Code hinterlegt, 
-  wird aber aufgrund der "Light Mode Only"-Philosophie im Frontend nicht aktiv angeboten.
-*/
+/* Dark mode CSS-Variablen sind bewusst vorhanden,
+   werden aber niemals aktiviert, da der ThemeProvider
+   forcedTheme="light" setzt. */
 
 .dark,
 [data-theme="dark"] {
@@ -97,3 +97,4 @@
   --warning: oklch(82.03% 0.1388 77.60);
   --warning-foreground: oklch(21.03% 0.0059 77.60);
 }
+

@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from 'react'
 import { Plus, PencilSimple, Trash, Eye, EyeSlash } from '@phosphor-icons/react'
-import { toast, Card, CardHeader, div as CardContent, Button, Chip as Badge, Input, TextArea, Separator as Separator, Modal as Dialog, ModalContent as DialogContent, ModalHeader as DialogHeader, ModalBody, ModalFooter as DialogFooter } from "@heroui/react"
+import { toast, Card,   Button, Chip as Badge, Input, TextArea, Separator as Separator, Modal as Dialog, ModalContent as DialogContent, ModalHeader as DialogHeader, ModalBody, ModalFooter as DialogFooter } from "@heroui/react"
 
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import {
@@ -92,9 +92,9 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
 
       {categories.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
+          <Card.Content className="py-12 text-center text-muted-foreground">
             {t('noCategories')}
-          </CardContent>
+          </Card.Content>
         </Card>
       ) : (
         <div className="flex flex-col gap-6">
@@ -102,7 +102,7 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
             const categoryItems = getItemsByCategory(category.$id)
             return (
               <Card key={category.$id}>
-                <CardHeader className="flex-col items-start gap-2">
+                <Card.Header className="flex-col items-start gap-2">
                   <div className="flex items-center justify-between w-full">
                     <h3 className="text-lg font-semibold">{category.name}</h3>
                     <div className="flex items-center gap-2">
@@ -133,8 +133,8 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
                       </Button>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
+                </Card.Header>
+                <Card.Content>
                   {categoryItems.length === 0 ? (
                     <p className="text-sm text-muted-foreground">{t('noItems')}</p>
                   ) : (
@@ -187,7 +187,7 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
                       ))}
                     </div>
                   )}
-                </CardContent>
+                </Card.Content>
               </Card>
             )
           })}

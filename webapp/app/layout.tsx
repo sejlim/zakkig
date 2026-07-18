@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 
 import "./globals.css"
 import { cn } from "@/lib/utils"
-import { ToastProvider } from "@/components/toast-provider"
+import { Toast } from "@heroui/react"
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -36,11 +36,11 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={cn("antialiased", fontMono.variable, "font-sans", poppins.variable)}
+      className={cn("light antialiased", fontMono.variable, "font-sans", poppins.variable)}
     >
       <body className="bg-background text-foreground">
         {children}
-        <ToastProvider />
+        <Toast.Provider placement="top" />
       </body>
     </html>
   )

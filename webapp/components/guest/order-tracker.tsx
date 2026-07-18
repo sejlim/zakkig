@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, div, Badge, Button } from '@heroui/react'
+import { Card, Chip as Badge, Button } from '@heroui/react'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useTranslation } from '@/lib/i18n'
 import { subscribeToOrder } from '@/lib/appwrite/realtime'
@@ -30,14 +30,14 @@ export function OrderTracker({ orderId, organization, initialOrder }: OrderTrack
     if (!initialOrder) setError(true)
 
     // Realtime subscription
-    const subPromise = subscribeToOrder(orderId, (response) => {
+    const unsubscribe = subscribeToOrder(orderId, (response) => {
       if (response.events.includes('databases.*.collections.*.documents.*.update')) {
         setOrder(response.payload as unknown as Order)
       }
     })
 
     return () => {
-      subPromise.then(sub => sub.unsubscribe())
+      unsubscribe()
     }
   }, [orderId, initialOrder])
 

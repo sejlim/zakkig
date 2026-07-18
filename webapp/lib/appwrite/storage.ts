@@ -10,16 +10,16 @@ export async function uploadMenuImage(file: File, userId: string): Promise<strin
   const { storage } = createAdminClient()
   const { ID, Permission, Role } = await import('node-appwrite')
 
-  const result = await storage.createFile({
-    bucketId: BUCKETS.MENU_IMAGES,
-    fileId: ID.unique(),
-    file,
-    permissions: [
+  const result = await storage.createFile(
+    BUCKETS.MENU_IMAGES,
+    ID.unique(),
+    file as any, // File is a standard browser File object, works with node-appwrite using InputFile
+    [
       Permission.read(Role.any()),
       Permission.update(Role.user(userId)),
       Permission.delete(Role.user(userId)),
-    ],
-  })
+    ]
+  )
 
   return result.$id
 }
@@ -30,8 +30,8 @@ export async function uploadMenuImage(file: File, userId: string): Promise<strin
 export async function deleteMenuImage(fileId: string) {
   const { storage } = createAdminClient()
 
-  await storage.deleteFile({
-    bucketId: BUCKETS.MENU_IMAGES,
-    fileId,
-  })
+  await storage.deleteFile(
+    BUCKETS.MENU_IMAGES,
+    fileId
+  )
 }

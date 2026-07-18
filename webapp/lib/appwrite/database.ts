@@ -20,25 +20,25 @@ import type {
 export async function getOrganizationByOwner(ownerId: string): Promise<Organization | null> {
   const { tablesDB } = createAdminClient()
 
-  const result = await tablesDB.listRows({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.ORGANIZATIONS,
-    queries: [Query.equal('ownerId', ownerId), Query.limit(1)],
-  })
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.ORGANIZATIONS,
+    [Query.equal('ownerId', ownerId), Query.limit(1)]
+  )
 
-  return (result.rows[0] as unknown as Organization) ?? null
+  return (result.documents[0] as unknown as Organization) ?? null
 }
 
 export async function getOrganization(id: string): Promise<Organization | null> {
   const { tablesDB } = createAdminClient()
 
   try {
-    const row = await tablesDB.getRow({
-      databaseId: DATABASE_ID,
-      tableId: COLLECTIONS.ORGANIZATIONS,
-      rowId: id,
-    })
-    return row as unknown as Organization
+    const doc = await tablesDB.getDocument(
+      DATABASE_ID,
+      COLLECTIONS.ORGANIZATIONS,
+      id
+    )
+    return doc as unknown as Organization
   } catch {
     return null
   }
@@ -47,36 +47,42 @@ export async function getOrganization(id: string): Promise<Organization | null> 
 export async function createOrganization(data: CreateOrganizationData): Promise<Organization> {
   const { tablesDB } = createAdminClient()
 
-  const row = await tablesDB.createRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.ORGANIZATIONS,
-    rowId: ID.unique(),
-    data: {
+  const doc = await tablesDB.createDocument(
+    DATABASE_ID,
+    COLLECTIONS.ORGANIZATIONS,
+    ID.unique(),
+    {
       name: data.name,
       address: data.address ?? '',
       logoFileId: data.logoFileId ?? '',
       ownerId: data.ownerId,
       stripeAccountId: '',
+      isToGoEnabled: false,
+      isToStayEnabled: false,
+      legalName: data.legalName ?? '',
+      taxId: data.taxId ?? '',
+      currency: data.currency ?? 'EUR',
+      deletionRequested: false
     },
-    permissions: [
+    [
       Permission.read(Role.user(data.ownerId)),
       Permission.update(Role.user(data.ownerId)),
       Permission.delete(Role.user(data.ownerId)),
-    ],
-  })
+    ]
+  )
 
-  return row as unknown as Organization
+  return doc as unknown as Organization
 }
 
-export async function updateOrganization(id: string, data: Partial<import('../types').Organization>) {
+export async function updateOrganization(id: string, data: Partial<Organization>) {
   const { tablesDB } = createAdminClient()
 
-  return tablesDB.updateRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.ORGANIZATIONS,
-    rowId: id,
-    data,
-  })
+  return tablesDB.updateDocument(
+    DATABASE_ID,
+    COLLECTIONS.ORGANIZATIONS,
+    id,
+    data
+  )
 }
 
 // ─── Menu Categories ────────────────────────────────────────────
@@ -84,62 +90,62 @@ export async function updateOrganization(id: string, data: Partial<import('../ty
 export async function getMenuCategories(organizationId: string): Promise<MenuCategory[]> {
   const { tablesDB } = createAdminClient()
 
-  const result = await tablesDB.listRows({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_CATEGORIES,
-    queries: [
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.MENU_CATEGORIES,
+    [
       Query.equal('organizationId', organizationId),
       Query.orderAsc('sortOrder'),
       Query.limit(100),
-    ],
-  })
+    ]
+  )
 
-  return result.rows as unknown as MenuCategory[]
+  return result.documents as unknown as MenuCategory[]
 }
 
 export async function createMenuCategory(data: CreateMenuCategoryData): Promise<MenuCategory> {
   const { tablesDB } = createAdminClient()
 
-  const row = await tablesDB.createRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_CATEGORIES,
-    rowId: ID.unique(),
-    data: {
+  const doc = await tablesDB.createDocument(
+    DATABASE_ID,
+    COLLECTIONS.MENU_CATEGORIES,
+    ID.unique(),
+    {
       organizationId: data.organizationId,
       name: data.name,
       sortOrder: data.sortOrder ?? 0,
     },
-    permissions: [
+    [
       Permission.read(Role.any()),
       Permission.update(Role.user(data.ownerId)),
       Permission.delete(Role.user(data.ownerId)),
-    ],
-  })
+    ]
+  )
 
-  return row as unknown as MenuCategory
+  return doc as unknown as MenuCategory
 }
 
 export async function updateMenuCategory(id: string, data: { name?: string; sortOrder?: number }) {
   const sessionClient = await createSessionClient()
   if (!sessionClient) throw new Error('Not authenticated')
 
-  return sessionClient.tablesDB.updateRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_CATEGORIES,
-    rowId: id,
-    data,
-  })
+  return sessionClient.tablesDB.updateDocument(
+    DATABASE_ID,
+    COLLECTIONS.MENU_CATEGORIES,
+    id,
+    data
+  )
 }
 
 export async function deleteMenuCategory(id: string) {
   const sessionClient = await createSessionClient()
   if (!sessionClient) throw new Error('Not authenticated')
 
-  return sessionClient.tablesDB.deleteRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_CATEGORIES,
-    rowId: id,
-  })
+  return sessionClient.tablesDB.deleteDocument(
+    DATABASE_ID,
+    COLLECTIONS.MENU_CATEGORIES,
+    id
+  )
 }
 
 // ─── Menu Items ─────────────────────────────────────────────────
@@ -147,44 +153,44 @@ export async function deleteMenuCategory(id: string) {
 export async function getMenuItems(organizationId: string): Promise<MenuItem[]> {
   const { tablesDB } = createAdminClient()
 
-  const result = await tablesDB.listRows({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_ITEMS,
-    queries: [
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.MENU_ITEMS,
+    [
       Query.equal('organizationId', organizationId),
       Query.orderAsc('sortOrder'),
       Query.limit(100),
-    ],
-  })
+    ]
+  )
 
-  return result.rows as unknown as MenuItem[]
+  return result.documents as unknown as MenuItem[]
 }
 
 export async function getAvailableMenuItems(organizationId: string): Promise<MenuItem[]> {
   const { tablesDB } = createAdminClient()
 
-  const result = await tablesDB.listRows({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_ITEMS,
-    queries: [
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.MENU_ITEMS,
+    [
       Query.equal('organizationId', organizationId),
       Query.equal('available', true),
       Query.orderAsc('sortOrder'),
       Query.limit(100),
-    ],
-  })
+    ]
+  )
 
-  return result.rows as unknown as MenuItem[]
+  return result.documents as unknown as MenuItem[]
 }
 
 export async function createMenuItem(data: CreateMenuItemData): Promise<MenuItem> {
   const { tablesDB } = createAdminClient()
 
-  const row = await tablesDB.createRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_ITEMS,
-    rowId: ID.unique(),
-    data: {
+  const doc = await tablesDB.createDocument(
+    DATABASE_ID,
+    COLLECTIONS.MENU_ITEMS,
+    ID.unique(),
+    {
       organizationId: data.organizationId,
       categoryId: data.categoryId,
       name: data.name,
@@ -193,38 +199,39 @@ export async function createMenuItem(data: CreateMenuItemData): Promise<MenuItem
       imageId: data.imageId ?? '',
       available: data.available ?? true,
       sortOrder: data.sortOrder ?? 0,
+      taxRate: data.taxRate ?? 19.0
     },
-    permissions: [
+    [
       Permission.read(Role.any()),
       Permission.update(Role.user(data.ownerId)),
       Permission.delete(Role.user(data.ownerId)),
-    ],
-  })
+    ]
+  )
 
-  return row as unknown as MenuItem
+  return doc as unknown as MenuItem
 }
 
 export async function updateMenuItem(id: string, data: Partial<CreateMenuItemData>) {
   const sessionClient = await createSessionClient()
   if (!sessionClient) throw new Error('Not authenticated')
 
-  return sessionClient.tablesDB.updateRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_ITEMS,
-    rowId: id,
-    data,
-  })
+  return sessionClient.tablesDB.updateDocument(
+    DATABASE_ID,
+    COLLECTIONS.MENU_ITEMS,
+    id,
+    data
+  )
 }
 
 export async function deleteMenuItem(id: string) {
   const sessionClient = await createSessionClient()
   if (!sessionClient) throw new Error('Not authenticated')
 
-  return sessionClient.tablesDB.deleteRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.MENU_ITEMS,
-    rowId: id,
-  })
+  return sessionClient.tablesDB.deleteDocument(
+    DATABASE_ID,
+    COLLECTIONS.MENU_ITEMS,
+    id
+  )
 }
 
 // ─── Orders ─────────────────────────────────────────────────────
@@ -242,25 +249,25 @@ export async function getOrders(organizationId: string, status?: string): Promis
     queries.push(Query.equal('status', status))
   }
 
-  const result = await tablesDB.listRows({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.ORDERS,
-    queries,
-  })
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.ORDERS,
+    queries
+  )
 
-  return result.rows as unknown as Order[]
+  return result.documents as unknown as Order[]
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
   const { tablesDB } = createAdminClient()
 
   try {
-    const row = await tablesDB.getRow({
-      databaseId: DATABASE_ID,
-      tableId: COLLECTIONS.ORDERS,
-      rowId: id,
-    })
-    return row as unknown as Order
+    const doc = await tablesDB.getDocument(
+      DATABASE_ID,
+      COLLECTIONS.ORDERS,
+      id
+    )
+    return doc as unknown as Order
   } catch {
     return null
   }
@@ -271,11 +278,11 @@ export async function createOrder(data: CreateOrderData): Promise<Order> {
 
   const orderNumber = `Z-${Date.now().toString(36).toUpperCase()}`
 
-  const row = await tablesDB.createRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.ORDERS,
-    rowId: ID.unique(),
-    data: {
+  const doc = await tablesDB.createDocument(
+    DATABASE_ID,
+    COLLECTIONS.ORDERS,
+    ID.unique(),
+    {
       organizationId: data.organizationId,
       tableNumber: data.tableNumber ?? '',
       type: data.type,
@@ -285,25 +292,29 @@ export async function createOrder(data: CreateOrderData): Promise<Order> {
       email: data.email,
       orderNumber,
       stripePaymentId: data.stripePaymentId ?? '',
+      zakkigFee: data.zakkigFee,
+      stripeFee: data.stripeFee,
+      netAmount: data.netAmount,
+      currency: data.currency ?? 'EUR'
     },
-    permissions: [
+    [
       Permission.read(Role.any()),
       Permission.update(Role.any()),
-    ],
-  })
+    ]
+  )
 
-  return row as unknown as Order
+  return doc as unknown as Order
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
   const { tablesDB } = createAdminClient()
 
-  return tablesDB.updateRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.ORDERS,
-    rowId: orderId,
-    data: { status },
-  })
+  return tablesDB.updateDocument(
+    DATABASE_ID,
+    COLLECTIONS.ORDERS,
+    orderId,
+    { status }
+  )
 }
 
 // ─── Kitchen Sessions ───────────────────────────────────────────
@@ -311,17 +322,17 @@ export async function updateOrderStatus(orderId: string, status: string) {
 export async function getKitchenSessions(organizationId: string): Promise<KitchenSession[]> {
   const { tablesDB } = createAdminClient()
 
-  const result = await tablesDB.listRows({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.KITCHEN_SESSIONS,
-    queries: [
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.KITCHEN_SESSIONS,
+    [
       Query.equal('organizationId', organizationId),
       Query.orderDesc('$createdAt'),
       Query.limit(10),
-    ],
-  })
+    ]
+  )
 
-  return result.rows as unknown as KitchenSession[]
+  return result.documents as unknown as KitchenSession[]
 }
 
 export async function createKitchenSession(organizationId: string, ownerId: string): Promise<KitchenSession> {
@@ -329,32 +340,32 @@ export async function createKitchenSession(organizationId: string, ownerId: stri
 
   const token = crypto.randomUUID()
 
-  const row = await tablesDB.createRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.KITCHEN_SESSIONS,
-    rowId: ID.unique(),
-    data: {
+  const doc = await tablesDB.createDocument(
+    DATABASE_ID,
+    COLLECTIONS.KITCHEN_SESSIONS,
+    ID.unique(),
+    {
       organizationId,
       token,
       expiresAt: null,
     },
-    permissions: [
+    [
       Permission.read(Role.user(ownerId)),
       Permission.update(Role.user(ownerId)),
       Permission.delete(Role.user(ownerId)),
-    ],
-  })
+    ]
+  )
 
-  return row as unknown as KitchenSession
+  return doc as unknown as KitchenSession
 }
 
 export async function deleteKitchenSession(id: string) {
   const sessionClient = await createSessionClient()
   if (!sessionClient) throw new Error('Not authenticated')
 
-  return sessionClient.tablesDB.deleteRow({
-    databaseId: DATABASE_ID,
-    tableId: COLLECTIONS.KITCHEN_SESSIONS,
-    rowId: id,
-  })
+  return sessionClient.tablesDB.deleteDocument(
+    DATABASE_ID,
+    COLLECTIONS.KITCHEN_SESSIONS,
+    id
+  )
 }

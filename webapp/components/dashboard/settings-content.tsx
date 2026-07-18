@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
-import { toast, Card, CardHeader, div as CardContent, Button, Input, TextArea, Separator as Separator, Chip as Badge, Alert } from "@heroui/react"
+import { useActionState, useEffect } from 'react'
+import { toast, Card,   Button, Input, TextArea, Separator, Chip as Badge, Alert } from "@heroui/react"
 import { WarningCircle } from '@phosphor-icons/react'
 import { useTranslation } from '@/lib/i18n'
 import { updateBusinessAction, requestAccountDeletionAction } from '@/actions/settings-actions'
@@ -21,9 +21,11 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
     {},
   )
 
-  if (businessState.success) {
-    toast({ title: t('saved'), color: "success" })
-  }
+  useEffect(() => {
+    if (businessState.success) {
+      toast({ title: t('saved') as string, color: "success" })
+    }
+  }, [businessState.success, t])
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
@@ -31,30 +33,30 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
       {/* Account Settings */}
       <Card>
-        <CardHeader className="flex-col items-start">
+        <Card.Header className="flex-col items-start">
           <h3 className="text-lg font-semibold">{t('accountSettings')}</h3>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('name')}</label>
-            <Input value={user.name || ''} disabled />
+            <Input value={user.name || ''} isDisabled />
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('email')}</label>
-            <Input value={user.email} disabled />
+            <Input value={user.email} isDisabled />
           </div>
           <p className="text-sm text-muted-foreground">
             Account-Daten können derzeit über das Appwrite Dashboard geändert werden.
           </p>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       {/* Business Settings */}
       <Card>
-        <CardHeader className="flex-col items-start">
+        <Card.Header className="flex-col items-start">
           <h3 className="text-lg font-semibold">{t('businessSettings')}</h3>
-        </CardHeader>
-        <CardContent>
+        </Card.Header>
+        <Card.Content>
           <form action={businessAction} className="flex flex-col gap-4">
             <input type="hidden" name="organizationId" value={organization.$id} />
             <input type="hidden" name="existingLogoId" value={organization.logoFileId} />
@@ -83,41 +85,41 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             {businessState.error && (
               <p className="text-sm text-danger">{businessState.error}</p>
             )}
-            <Button type="submit" disabled={isBusinessPending} color="primary">
+            <Button type="submit" isDisabled={isBusinessPending} color="primary">
               {t('save')}
             </Button>
           </form>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       {/* Stripe Settings (Placeholder) */}
       <Card>
-        <CardHeader className="flex-col items-start">
+        <Card.Header className="flex-col items-start">
           <h3 className="text-lg font-semibold">{t('stripeSettings')}</h3>
           <p className="text-sm text-muted-foreground">Stripe Connect</p>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Badge color="secondary">{t('stripeNotConnected')}</Badge>
+            <Badge color="default">{t('stripeNotConnected')}</Badge>
           </div>
           <Button
-            variant="bordered"
-            onPress={() => toast({ title: t('comingSoon'), color: "default" })}
+            variant="outline"
+            onPress={() => toast({ title: t('comingSoon') as string })}
           >
             {t('connectStripe')}
           </Button>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Separator />
 
       {/* Danger Zone */}
       <Card className="border-danger/50 border">
-        <CardHeader className="flex-col items-start">
+        <Card.Header className="flex-col items-start">
           <h3 className="text-lg font-semibold text-danger">{t('deleteAccount')}</h3>
           <p className="text-sm text-muted-foreground">{t('deleteAccountDescription')}</p>
-        </CardHeader>
-        <CardContent>
+        </Card.Header>
+        <Card.Content>
           <Button
             color="danger"
             onPress={async () => {
@@ -128,7 +130,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             <WarningCircle data-icon="inline-start" />
             {t('requestDeletion')}
           </Button>
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   )

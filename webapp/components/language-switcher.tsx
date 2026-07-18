@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 export function LanguageSwitcher({ 
   className,
   variant = "outline",
-  size = "default",
+  size = "md",
 }: { 
   className?: string
   variant?: React.ComponentProps<typeof Button>["variant"]
@@ -27,9 +27,9 @@ export function LanguageSwitcher({
 
   if (!mounted) {
     return (
-      <Button variant={variant} size={size} className={`gap-2 ${className || ''}`} disabled>
-        <Globe data-icon="inline-start" weight="regular" className={size === 'icon-sm' ? 'w-4 h-4' : ''} />
-        <span>{locale === 'de' ? 'EN' : 'DE'}</span>
+      <Button variant={variant} size={size} className={`gap-2 ${className || ''}`} isDisabled>
+        <Globe data-icon="inline-start" weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
+        <span>{locale.toUpperCase()}</span>
       </Button>
     )
   }
@@ -41,8 +41,8 @@ export function LanguageSwitcher({
       className={`gap-2 ${className || ''}`} 
       onClick={toggleLanguage}
     >
-      <Globe data-icon="inline-start" weight="regular" className={size === 'icon-sm' ? 'w-4 h-4' : ''} />
-      <span>{locale === 'de' ? 'EN' : 'DE'}</span>
+      <Globe data-icon="inline-start" weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
+      <span>{locale.toUpperCase()}</span>
     </Button>
   )
 }

@@ -19,6 +19,10 @@ export interface Organization extends AppwriteDocument {
   stripeAccountId: string
   isToGoEnabled: boolean
   isToStayEnabled: boolean
+  legalName: string
+  taxId: string
+  currency: string
+  deletionRequested: boolean
 }
 
 export interface CreateOrganizationData {
@@ -26,6 +30,9 @@ export interface CreateOrganizationData {
   address?: string
   logoFileId?: string
   ownerId: string
+  legalName?: string
+  taxId?: string
+  currency?: string
 }
 
 // ─── Menu Categories ────────────────────────────────────────────
@@ -54,6 +61,7 @@ export interface MenuItem extends AppwriteDocument {
   imageId: string
   available: boolean
   sortOrder: number
+  taxRate: number
 }
 
 export interface CreateMenuItemData {
@@ -66,6 +74,7 @@ export interface CreateMenuItemData {
   available?: boolean
   sortOrder?: number
   ownerId: string
+  taxRate?: number
 }
 
 // ─── Orders ─────────────────────────────────────────────────────
@@ -87,6 +96,10 @@ export interface Order extends AppwriteDocument {
   email: string
   orderNumber: string
   stripePaymentId: string
+  zakkigFee: number // in cents
+  stripeFee: number // in cents
+  netAmount: number // in cents
+  currency: string
 }
 
 export interface CreateOrderData {
@@ -97,6 +110,10 @@ export interface CreateOrderData {
   total: number
   email: string
   stripePaymentId?: string
+  zakkigFee: number
+  stripeFee: number
+  netAmount: number
+  currency?: string
 }
 
 // ─── Kitchen Sessions ───────────────────────────────────────────

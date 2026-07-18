@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
 };
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { Toast } from "@heroui/react"
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -55,15 +55,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      suppressHydrationWarning
-      className={`antialiased ${fontMono.variable} font-sans ${poppins.variable}`}
+      lang="de"
+      className={`light antialiased ${fontMono.variable} font-sans ${poppins.variable}`}
     >
       <body>
-        <ThemeProvider>
-          <Header />
-          {children}
-        </ThemeProvider>
+        <Toast.Provider placement="top" />
+        <Header />
+        {children}
       </body>
     </html>
   )

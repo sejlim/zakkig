@@ -55,7 +55,6 @@ const translations = {
     emailPlaceholder: 'name@beispiel.de',
     showPassword: 'Passwort anzeigen',
     hidePassword: 'Passwort verbergen',
-    hidePassword: 'Passwort verbergen',
     backToSignIn: 'Zurück zur Anmeldung',
     resendCode: 'Code erneut senden',
     resendIn: 'Erneut senden in {time}s',

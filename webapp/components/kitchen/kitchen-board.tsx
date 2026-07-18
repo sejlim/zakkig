@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Check, X, Clock } from '@phosphor-icons/react'
-import { Card, div, CardHeader, Badge, Button, ScrollShadow } from '@heroui/react'
+import { Card, CardHeader, Chip as Badge, Button, ScrollShadow } from '@heroui/react'
 import { useTranslation } from '@/lib/i18n'
 import { subscribeToOrders } from '@/lib/appwrite/realtime'
 import { updateOrderStatusAction } from '@/actions/order-actions'
@@ -47,7 +47,7 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
 
   // Realtime subscription
   useEffect(() => {
-    const subPromise = subscribeToOrders(organization.$id, (response) => {
+    const unsubscribe = subscribeToOrders(organization.$id, (response) => {
       if (response.events.includes('databases.*.collections.*.documents.*.create')) {
         setOrders((prev) => [response.payload as unknown as Order, ...prev])
       } else if (response.events.includes('databases.*.collections.*.documents.*.update')) {
@@ -60,7 +60,7 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
     })
 
     return () => {
-      subPromise.then(sub => sub.unsubscribe())
+      unsubscribe()
     }
   }, [organization.$id])
 
@@ -103,7 +103,7 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
         <div className="flex flex-1 flex-col rounded-xl border bg-background shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="font-semibold text-lg">{t('inProgress')}</h2>
-            <Badge color="primary">{activeOrders.length}</Badge>
+            <Badge color="default">{activeOrders.length}</Badge>
           </div>
           <ScrollShadow className="flex-1 p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,7 +134,7 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
         <div className="flex w-1/3 flex-col rounded-xl border bg-background shadow-sm overflow-hidden opacity-70">
           <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="font-semibold text-lg">{t('done')}</h2>
-            <Badge color="secondary">{completedOrders.length}</Badge>
+            <Badge color="default">{completedOrders.length}</Badge>
           </div>
           <ScrollShadow className="flex-1 p-4">
             <div className="flex flex-col gap-4">
@@ -166,14 +166,14 @@ function OrderCard({ order, items, age, actionButton }: { order: Order, items: O
   
   return (
     <Card className={isUrgent ? 'border-primary/50 shadow-md' : 'shadow-sm'}>
-      <CardHeader className="pb-2">
+      <Card.Header className="pb-2">
         <div className="flex items-start justify-between">
           <div>
             <div className="text-xl font-bold">{order.orderNumber}</div>
             <div className="flex items-center gap-2 mt-1">
               <Badge color="default">{order.type === 'dine-in' ? t('dineIn') : t('takeaway')}</Badge>
               {order.tableNumber && (
-                <Badge color="secondary" className="font-mono text-sm">Tisch {order.tableNumber}</Badge>
+                <Badge color="default" className="font-mono text-sm">Tisch {order.tableNumber}</Badge>
               )}
             </div>
           </div>
@@ -182,7 +182,7 @@ function OrderCard({ order, items, age, actionButton }: { order: Order, items: O
             {age}
           </div>
         </div>
-      </CardHeader>
+      </Card.Header>
       <div>
         <ul className="space-y-2 mt-2">
           {items.map((item) => (

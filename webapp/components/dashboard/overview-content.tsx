@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useTransition } from 'react'
 import { Copy, Plus, Trash, LinkSimple, ChartLineUp, ShoppingBag, Printer, Scissors } from '@phosphor-icons/react'
-import { toast, Card, CardHeader, div as CardContent, Button, Chip as Badge, Separator as Separator, Input, Tabs, Tab, Switch } from "@heroui/react"
+import { toast, Card,   Button, Chip as Badge, Separator, Input, Tabs, Tab, Switch } from "@heroui/react"
 import Image from 'next/image'
 import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { useTranslation, formatPrice } from '@/lib/i18n'
@@ -204,15 +204,19 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
       </div>
 
       <Card>
-        <CardHeader>
+        <Card.Header>
           <h3 className="text-lg font-semibold">Statistik</h3>
-        </CardHeader>
-        <CardContent className="p-6 pt-0">
+        </Card.Header>
+        <Card.Content className="p-6 pt-0">
           <div className="flex flex-col gap-6">
             <Tabs selectedKey={period} onSelectionChange={(k) => setPeriod(k as TimePeriod)} className="w-full sm:w-fit">
-              <Tab key="24h" title={<><span className="hidden sm:inline">{t('last24h')}</span><span className="sm:hidden">24h</span></>} />
-              <Tab key="30d" title={<><span className="hidden sm:inline">{t('last30d')}</span><span className="sm:hidden">30d</span></>} />
-              <Tab key="90d" title={<><span className="hidden sm:inline">{t('last90d')}</span><span className="sm:hidden">90d</span></>} />
+              <Tabs.ListContainer>
+                <Tabs.List>
+                  <Tabs.Tab id="24h" title={<><span className="hidden sm:inline">{t('last24h')}</span><span className="sm:hidden">24h</span><Tabs.Indicator /></>} />
+                  <Tabs.Tab id="30d" title={<><span className="hidden sm:inline">{t('last30d')}</span><span className="sm:hidden">30d</span><Tabs.Indicator /></>} />
+                  <Tabs.Tab id="90d" title={<><span className="hidden sm:inline">{t('last90d')}</span><span className="sm:hidden">90d</span><Tabs.Indicator /></>} />
+                </Tabs.List>
+              </Tabs.ListContainer>
             </Tabs>
             
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -282,24 +286,24 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
               </div>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
+          <Card.Header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
             <div className="flex flex-col gap-1.5">
               <h3 className="text-lg font-semibold">{t('qrCodeGenerator')}</h3>
               <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
                 {qrType === 'to-go' ? t('qrCodeAdminDescToGo') : t('qrCodeAdminDescToStay')}
               </p>
             </div>
-            <Button onPress={handlePrint} variant="bordered" className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto h-10 px-5 rounded-3xl gap-2">
+            <Button onPress={handlePrint} variant="outline" className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto h-10 px-5 rounded-3xl gap-2">
               <Printer />
               {t('printQrCode')}
             </Button>
-          </CardHeader>
-          <CardContent>
+          </Card.Header>
+          <Card.Content>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 min-h-[36px]">
                 <Tabs
@@ -307,8 +311,12 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                   onSelectionChange={(k) => setQrType(k as 'to-go' | 'to-stay')}
                   className="w-full sm:w-auto"
                 >
-                  <Tab key="to-go" title={t('toGo')} />
-                  <Tab key="to-stay" title={t('toStay')} />
+                  <Tabs.ListContainer>
+                    <Tabs.List>
+                      <Tabs.Tab id="to-go" title={<>{t('toGo')}<Tabs.Indicator /></>} />
+                      <Tabs.Tab id="to-stay" title={<>{t('toStay')}<Tabs.Indicator /></>} />
+                    </Tabs.List>
+                  </Tabs.ListContainer>
                 </Tabs>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
@@ -329,7 +337,6 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                         placeholder="1"
                         maxLength={4}
                         className="w-16 h-7 text-center rounded-3xl"
-                        size="sm"
                       />
                     </div>
                   )}
@@ -341,11 +348,16 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                     <Switch
                       id="feature-toggle"
                       isSelected={qrType === 'to-go' ? isToGo : isToStay}
-                      onValueChange={(checked) => handleToggleFeature(qrType, checked)}
-                      disabled={isPending}
-                      className="cursor-pointer"
+                      onChange={(checked: boolean) => handleToggleFeature(qrType, checked)}
+                      isDisabled={isPending}
                       size="sm"
-                    />
+                    >
+                      <Switch.Content className="cursor-pointer">
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
+                      </Switch.Content>
+                    </Switch>
                   </div>
                 </div>
               </div>
@@ -378,11 +390,11 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                 </div>
               </Card>
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
+          <Card.Header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
             <div className="flex flex-col gap-1.5">
               <h3 className="text-lg font-semibold">{t('kitchenSessions')}</h3>
               <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
@@ -393,8 +405,8 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
               <Plus data-icon="inline-start" />
               {t('createSession')}
             </Button>
-          </CardHeader>
-          <CardContent>
+          </Card.Header>
+          <Card.Content>
             {sessions.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('noActiveOrders')}</p>
             ) : (
@@ -412,7 +424,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
-                        variant="light"
+                        variant="ghost"
                         size="sm"
                         onPress={() => copyKitchenLink(session.token)}
                       >
@@ -420,10 +432,9 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                         {t('copyLink')}
                       </Button>
                       <Button
-                        variant="light"
+                        variant="danger-soft"
                         size="sm"
                         isIconOnly
-                        color="danger"
                         onPress={() => handleDeleteSession(session.$id)}
                       >
                         <Trash />
@@ -433,7 +444,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                 ))}
               </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
     </div>

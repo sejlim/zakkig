@@ -1,7 +1,7 @@
 'use client'
 
-import { Channel, type RealtimeResponseEvent } from 'appwrite'
-import { realtime } from './client'
+import { type RealtimeResponseEvent } from 'appwrite'
+import { client } from './client'
 import { DATABASE_ID, COLLECTIONS } from '@/lib/constants'
 
 /**
@@ -12,14 +12,12 @@ export function subscribeToOrders(
   organizationId: string,
   callback: (event: RealtimeResponseEvent<Record<string, unknown>>) => void,
 ) {
-  const channel = Channel.tablesdb(DATABASE_ID)
-    .table(COLLECTIONS.ORDERS)
-    .row()
+  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORDERS}.documents`
 
-  const subscription = realtime.subscribe(channel, (response) => {
+  const subscription = client.subscribe(channel, (response) => {
     const payload = response.payload as Record<string, unknown>
     if (payload.organizationId === organizationId) {
-      callback(response)
+      callback(response as RealtimeResponseEvent<Record<string, unknown>>)
     }
   })
 
@@ -33,9 +31,7 @@ export function subscribeToOrder(
   orderId: string,
   callback: (event: RealtimeResponseEvent<Record<string, unknown>>) => void,
 ) {
-  const channel = Channel.tablesdb(DATABASE_ID)
-    .table(COLLECTIONS.ORDERS)
-    .row(orderId)
+  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORDERS}.documents.${orderId}`
 
-  return realtime.subscribe(channel, callback)
+  return client.subscribe(channel, callback as (event: RealtimeResponseEvent<unknown>) => void)
 }
