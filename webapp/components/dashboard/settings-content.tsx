@@ -23,7 +23,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
   useEffect(() => {
     if (businessState.success) {
-      toast({ title: t('saved') as string, color: "success" })
+      toast.success(t('saved') as string)
     }
   }, [businessState.success, t])
 
@@ -39,11 +39,11 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
         <Card.Content className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('name')}</label>
-            <Input value={user.name || ''} isDisabled />
+            <Input value={user.name || ''} disabled />
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('email')}</label>
-            <Input value={user.email} isDisabled />
+            <Input value={user.email} disabled />
           </div>
           <p className="text-sm text-muted-foreground">
             Account-Daten können derzeit über das Appwrite Dashboard geändert werden.
@@ -85,7 +85,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             {businessState.error && (
               <p className="text-sm text-danger">{businessState.error}</p>
             )}
-            <Button type="submit" isDisabled={isBusinessPending} color="primary">
+            <Button type="submit" isDisabled={isBusinessPending} variant="primary">
               {t('save')}
             </Button>
           </form>
@@ -100,11 +100,11 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Badge color="default">{t('stripeNotConnected')}</Badge>
+            <Badge variant="soft">{t('stripeNotConnected')}</Badge>
           </div>
           <Button
             variant="outline"
-            onPress={() => toast({ title: t('comingSoon') as string })}
+            onPress={() => toast(t('comingSoon') as string)}
           >
             {t('connectStripe')}
           </Button>
@@ -121,10 +121,10 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
         </Card.Header>
         <Card.Content>
           <Button
-            color="danger"
+            variant="danger"
             onPress={async () => {
               await requestAccountDeletionAction()
-              toast({ title: 'Löschanfrage gesendet.', color: "success" })
+              toast.success('Löschanfrage gesendet.')
             }}
           >
             <WarningCircle data-icon="inline-start" />

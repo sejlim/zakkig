@@ -25,7 +25,7 @@ import { getImagePreviewUrl } from '@/lib/appwrite/client'
 import { signOutAction } from '@/actions/auth-actions'
 
 interface DashboardShellProps {
-  organization: Organization
+  organization: Organization | null
   user: Models.User<Models.Preferences>
   children: React.ReactNode
 }
@@ -42,22 +42,22 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
   const navItems = [
     {
       label: t('overview'),
-      href: `/dashboard/${organization.$id}/overview`,
+      href: `/dashboard/${organization?.$id ?? 'new'}/overview`,
       icon: ChartBar,
     },
     {
       label: t('orders'),
-      href: `/dashboard/${organization.$id}/orders`,
+      href: `/dashboard/${organization?.$id ?? 'new'}/orders`,
       icon: ClipboardText,
     },
     {
       label: t('menu'),
-      href: `/dashboard/${organization.$id}/menu`,
+      href: `/dashboard/${organization?.$id ?? 'new'}/menu`,
       icon: ForkKnife,
     },
     {
       label: t('settings'),
-      href: `/dashboard/${organization.$id}/settings`,
+      href: `/dashboard/${organization?.$id ?? 'new'}/settings`,
       icon: Gear,
     },
   ]
@@ -91,7 +91,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
             </Link>
           )}
           <Button
-            variant="light"
+            variant="tertiary"
             size="sm"
             isIconOnly
             className="hidden md:flex ml-auto"
@@ -132,14 +132,13 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
 
         <div className="border-t p-4 flex flex-col gap-4 shrink-0">
           <div className={cn("flex items-center gap-3", !isExpanded && "justify-center")}>
-            <Avatar 
-              src={organization.logoFileId ? getImagePreviewUrl(organization.logoFileId) : undefined}
-              name={organization.name.charAt(0)}
-              className="h-10 w-10 shrink-0"
-            />
+            <Avatar className="h-10 w-10 shrink-0">
+              <Avatar.Image src={organization?.logoFileId ? getImagePreviewUrl(organization.logoFileId) : undefined} alt={organization?.name ?? 'Z'} />
+              <Avatar.Fallback>{organization?.name?.charAt(0) ?? 'Z'}</Avatar.Fallback>
+            </Avatar>
             {isExpanded && (
               <div className="flex flex-col flex-1 overflow-hidden">
-                <span className="truncate font-semibold text-sm">{organization.name}</span>
+                <span className="truncate font-semibold text-sm">{organization?.name ?? 'Zakkig'}</span>
                 <span className="truncate text-xs text-muted-foreground">{user.name || user.email}</span>
               </div>
             )}
@@ -147,13 +146,13 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
           
           <div className={cn("flex items-center gap-2", !isExpanded ? "flex-col" : "justify-between")}>
             <form action={signOutAction} className={cn(!isExpanded && "w-full flex justify-center")}>
-              <Button type="submit" variant="light" size="sm" isIconOnly={!isExpanded} className={cn(isExpanded && "w-full justify-start")}>
+              <Button type="submit" variant="tertiary" size="sm" isIconOnly={!isExpanded} className={cn(isExpanded && "w-full justify-start")}>
                 <SignOut />
                 {isExpanded && <span className="ml-2">{t('signOut')}</span>}
               </Button>
             </form>
             <Button 
-              variant="light" 
+              variant="tertiary" 
               size="sm" 
               isIconOnly={!isExpanded}
               onPress={() => setLocale(locale === 'de' ? 'en' : 'de')}
@@ -171,7 +170,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
           <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer">
             <Image src="/full.svg" alt="Zakkig" width={110} height={28} className="h-7 w-auto" />
           </Link>
-          <Button variant="light" isIconOnly onPress={() => setIsMobileOpen(true)}>
+          <Button variant="tertiary" isIconOnly onPress={() => setIsMobileOpen(true)}>
             <List className="h-6 w-6" />
           </Button>
         </header>

@@ -36,7 +36,7 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
     const email = formData.get('email') as string
     
     if (!email) {
-      toast({ title: t('error'), color: "danger" })
+      toast.danger(t('error'))
       return
     }
 
@@ -52,7 +52,7 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
       if (result.success && result.orderId && result.orderNumber) {
         onOrderSuccess(result.orderId, result.orderNumber)
       } else {
-        toast({ title: result.error || t('error'), color: "danger" })
+        toast.danger(result.error || t('error'))
       }
     })
   }
@@ -113,7 +113,7 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
                 <p><strong>{t('buyingFrom')}</strong> {organization.name}</p>
               </div>
 
-              <Button type="submit" className="w-full h-14 text-lg" isLoading={isPending} color="primary">
+              <Button type="submit" className="w-full h-14 text-lg" isPending={isPending} variant="primary">
                 {isPending ? t('loading') : t('placeOrder')}
               </Button>
               

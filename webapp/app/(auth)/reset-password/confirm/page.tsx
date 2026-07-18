@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { cn } from "@/lib/utils"
 import { confirmPasswordResetAction } from "@/actions/auth-actions"
-import { Button, Card, CardHeader, div, CardFooter, Input, Separator } from "@heroui/react"
+import { Button, Card, Input, Separator, InputGroup } from "@heroui/react"
 import { useTranslation } from "@/lib/i18n"
 import { Eye, EyeSlash, Check, X, FloppyDisk, CircleNotch } from "@phosphor-icons/react"
 
@@ -109,15 +109,17 @@ function ResetPasswordConfirmForm() {
           <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-danger" : ""}`}>
             {locale === 'de' ? 'Neues Passwort' : 'New Password'} <span className="text-danger">*</span>
           </label>
-          <Input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="new-password"
-            value={passwordValue}
-            onChange={(e) => setPasswordValue(e.target.value)}
-            isInvalid={!!fieldErrors.password}
-            endContent={
+          <InputGroup>
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={passwordValue}
+              onChange={(e) => setPasswordValue(e.target.value)}
+              className={fieldErrors.password ? "border-danger" : ""}
+            />
+            <InputGroup.Suffix>
               <button
                 className="focus:outline-none"
                 type="button"
@@ -126,8 +128,8 @@ function ResetPasswordConfirmForm() {
               >
                 {showPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
               </button>
-            }
-          />
+            </InputGroup.Suffix>
+          </InputGroup>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1">
             <div className="flex items-start gap-2 text-xs mt-1">
@@ -155,13 +157,15 @@ function ResetPasswordConfirmForm() {
           <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-danger" : ""}`}>
             {t('confirmPassword')} <span className="text-danger">*</span>
           </label>
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            autoComplete="new-password"
-            isInvalid={!!fieldErrors.confirmPassword}
-            endContent={
+          <InputGroup>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              className={fieldErrors.confirmPassword ? "border-danger" : ""}
+            />
+            <InputGroup.Suffix>
               <button
                 className="focus:outline-none"
                 type="button"
@@ -170,13 +174,13 @@ function ResetPasswordConfirmForm() {
               >
                 {showConfirmPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
               </button>
-            }
-          />
+            </InputGroup.Suffix>
+          </InputGroup>
           {fieldErrors.confirmPassword && <span className="text-xs text-red-500">{fieldErrors.confirmPassword}</span>}
         </div>
       </div>
 
-      <Button type="submit" className="w-full mt-4 gap-2" disabled={isPending}>
+      <Button type="submit" className="w-full mt-4 gap-2" isDisabled={isPending}>
         {isPending ? (
           <>
             <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -212,7 +216,7 @@ export default function ResetPasswordConfirmPage() {
         <LanguageSwitcher />
       </div>
       <Separator />
-      <CardHeader className="flex-col items-start gap-1">
+      <Card.Header className="flex-col items-start gap-1">
         <h1 className="text-xl font-semibold">
           {locale === 'de' ? 'Passwort zurücksetzen' : 'Reset Password'}
         </h1>
@@ -221,7 +225,7 @@ export default function ResetPasswordConfirmPage() {
             ? 'Bitte gib dein neues Passwort ein.' 
             : 'Please enter your new password.'}
         </p>
-      </CardHeader>
+      </Card.Header>
 
       <div>
         <Suspense fallback={<div className="h-40 flex items-center justify-center">Loading...</div>}>
@@ -231,7 +235,7 @@ export default function ResetPasswordConfirmPage() {
 
       <Separator />
 
-      <CardFooter className="justify-center mt-6">
+      <Card.Footer className="justify-center mt-6">
         <p className="text-sm text-muted-foreground">
           <Link
             href="/sign-in"
@@ -240,7 +244,7 @@ export default function ResetPasswordConfirmPage() {
             {locale === 'de' ? 'Zurück zur Anmeldung' : 'Back to sign in'}
           </Link>
         </p>
-      </CardFooter>
+      </Card.Footer>
     </Card>
   )
 }

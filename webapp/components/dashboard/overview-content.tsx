@@ -51,8 +51,10 @@ function StyledQRCode({ value, size }: { value: string, size: number }) {
         }
       })
       
-      if (ref.current) ref.current.innerHTML = ''
-      qrCode.append(ref.current)
+      if (ref.current) {
+        ref.current.innerHTML = ''
+        qrCode.append(ref.current)
+      }
     })
   }, [value, size])
   
@@ -94,11 +96,11 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
     startTransition(async () => {
       const result = await toggleFeatureAction(organization.$id, type, checked)
       if (result.error) {
-        toast({ title: result.error, color: "danger" })
+        toast.danger(result.error as string)
         if (type === 'to-go') setIsToGo(!checked)
         else setIsToStay(!checked)
       } else {
-        toast({ title: checked ? 'Funktion aktiviert' : 'Funktion deaktiviert', color: "success" })
+        toast.success(checked ? 'Funktion aktiviert' : 'Funktion deaktiviert')
       }
     })
   }
@@ -172,7 +174,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
     const result = await createKitchenSessionAction(organization.$id)
     if (result.success && result.session) {
       setSessions((prev) => [result.session as KitchenSession, ...prev])
-      toast({ title: t('linkCopied'), color: "success" })
+      toast.success(t('linkCopied'))
     }
   }
 
@@ -184,7 +186,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
   function copyKitchenLink(token: string) {
     const link = `${baseUrl}/orders/${organization.$id}?token=${token}`
     navigator.clipboard.writeText(link)
-    toast({ title: t('linkCopied'), color: "success" })
+    toast.success(t('linkCopied'))
   }
 
   function handlePrint() {
@@ -212,9 +214,9 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
             <Tabs selectedKey={period} onSelectionChange={(k) => setPeriod(k as TimePeriod)} className="w-full sm:w-fit">
               <Tabs.ListContainer>
                 <Tabs.List>
-                  <Tabs.Tab id="24h" title={<><span className="hidden sm:inline">{t('last24h')}</span><span className="sm:hidden">24h</span><Tabs.Indicator /></>} />
-                  <Tabs.Tab id="30d" title={<><span className="hidden sm:inline">{t('last30d')}</span><span className="sm:hidden">30d</span><Tabs.Indicator /></>} />
-                  <Tabs.Tab id="90d" title={<><span className="hidden sm:inline">{t('last90d')}</span><span className="sm:hidden">90d</span><Tabs.Indicator /></>} />
+                  <Tabs.Tab id="24h"><span className="hidden sm:inline">{t('last24h')}</span><span className="sm:hidden">24h</span><Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="30d"><span className="hidden sm:inline">{t('last30d')}</span><span className="sm:hidden">30d</span><Tabs.Indicator /></Tabs.Tab>
+                  <Tabs.Tab id="90d"><span className="hidden sm:inline">{t('last90d')}</span><span className="sm:hidden">90d</span><Tabs.Indicator /></Tabs.Tab>
                 </Tabs.List>
               </Tabs.ListContainer>
             </Tabs>
@@ -313,8 +315,8 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                 >
                   <Tabs.ListContainer>
                     <Tabs.List>
-                      <Tabs.Tab id="to-go" title={<>{t('toGo')}<Tabs.Indicator /></>} />
-                      <Tabs.Tab id="to-stay" title={<>{t('toStay')}<Tabs.Indicator /></>} />
+                      <Tabs.Tab id="to-go">{t('toGo')}<Tabs.Indicator /></Tabs.Tab>
+                      <Tabs.Tab id="to-stay">{t('toStay')}<Tabs.Indicator /></Tabs.Tab>
                     </Tabs.List>
                   </Tabs.ListContainer>
                 </Tabs>
@@ -328,7 +330,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                       <Input
                         id="table-number"
                         value={tableNum}
-                        onValueChange={setTableNum}
+                        onChange={(e) => setTableNum(e.target.value)}
                         onBlur={() => {
                           if (!tableNum || tableNum.trim() === '') {
                             setTableNum('1')

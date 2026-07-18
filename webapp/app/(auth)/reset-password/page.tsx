@@ -7,7 +7,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { resetPasswordAction } from "@/actions/auth-actions"
 import { useTranslation } from "@/lib/i18n"
 import { PaperPlaneRight, CircleNotch } from "@phosphor-icons/react"
-import { Button, Card, CardHeader, div, CardFooter, Input, Separator } from "@heroui/react"
+import { Button, Card, Input, Separator } from "@heroui/react"
 
 export default function ResetPasswordPage() {
   const [state, formAction, isPending] = useActionState(
@@ -56,12 +56,12 @@ export default function ResetPasswordPage() {
         <LanguageSwitcher />
       </div>
       <Separator />
-      <CardHeader className="flex-col items-start gap-1">
+      <Card.Header className="flex-col items-start gap-1">
         <h1 className="text-xl font-semibold">{t('resetPassword')}</h1>
         <p className="text-sm text-default-500">
           {t('resetPasswordDescription')}
         </p>
-      </CardHeader>
+      </Card.Header>
 
       <div>
         {state.success ? (
@@ -69,9 +69,11 @@ export default function ResetPasswordPage() {
             <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
               {t('resetPasswordSent')}
             </div>
-            <Button as={Link} href="/sign-in" variant="bordered" className="w-full">
-              {t('backToSignIn')}
-            </Button>
+            <Link href="/sign-in" className="w-full">
+              <Button variant="outline" className="w-full">
+                {t('backToSignIn')}
+              </Button>
+            </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -89,12 +91,12 @@ export default function ResetPasswordPage() {
                 type="email"
                 placeholder={t('emailPlaceholder')}
                 autoComplete="email"
-                isInvalid={!!fieldErrors.email}
-                errorMessage={fieldErrors.email}
+                className={fieldErrors.email ? "border-danger" : ""}
               />
+              {fieldErrors.email && <span className="text-xs text-danger">{fieldErrors.email}</span>}
             </div>
 
-            <Button type="submit" className="w-full gap-2" disabled={isPending}>
+            <Button type="submit" className="w-full gap-2" isDisabled={isPending}>
               {isPending ? (
                 <>
                   <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -114,7 +116,7 @@ export default function ResetPasswordPage() {
       {!state.success && (
         <>
           <Separator />
-          <CardFooter className="justify-center">
+          <Card.Footer className="justify-center">
             <p className="text-sm text-muted-foreground">
               {t('hasAccount')}{" "}
               <Link
@@ -124,7 +126,7 @@ export default function ResetPasswordPage() {
                 {t('signIn')}
               </Link>
             </p>
-          </CardFooter>
+          </Card.Footer>
         </>
       )}
     </Card>

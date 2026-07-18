@@ -10,7 +10,7 @@ export function SignOutButton() {
   
   return (
     <form action={signOutAction}>
-      <Button variant="light" size="sm" type="submit">
+      <Button variant="tertiary" size="sm" type="submit">
         <SignOut weight="bold" className="mr-2" />
         {t('signOut')}
       </Button>

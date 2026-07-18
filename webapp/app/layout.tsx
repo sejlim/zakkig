@@ -21,7 +21,26 @@ export const metadata: Metadata = {
     default: "zakkig",
     template: "zakkig: %s",
   },
-  description: "Smartes Bestell- und Bezahlsystem für die Gastronomie.",
+  description: "Digitales Bestell- und Bezahlsystem für die Gastronomie.",
+  icons: {
+    icon: 'https://www.zakkig.de/icon.png',
+    apple: 'https://www.zakkig.de/icon.png',
+  },
+  openGraph: {
+    title: "zakkig",
+    description: "Digitales Bestell- und Bezahlsystem für die Gastronomie.",
+    url: 'https://app.zakkig.de',
+    siteName: 'zakkig',
+    images: ['https://www.zakkig.de/og_image.png'],
+    locale: 'de_DE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "zakkig",
+    description: "Digitales Bestell- und Bezahlsystem für die Gastronomie.",
+    images: ['https://www.zakkig.de/og_image.png'],
+  },
   robots: {
     index: false,
     follow: false,

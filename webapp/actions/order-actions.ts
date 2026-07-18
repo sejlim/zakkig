@@ -53,6 +53,11 @@ export async function placeOrderAction(
       return { error: 'Zahlung fehlgeschlagen.' }
     }
 
+    const brutto = total / 100
+    const zakkigFee = Math.round(brutto * 0.01 * 100)
+    const stripeFee = Math.round((brutto * 0.015 + 0.25) * 100)
+    const netAmount = total - zakkigFee - stripeFee
+
     const order = await createOrder({
       organizationId,
       type,
@@ -61,6 +66,9 @@ export async function placeOrderAction(
       total,
       email,
       stripePaymentId: payment.paymentId,
+      zakkigFee,
+      stripeFee,
+      netAmount,
     })
 
     return {
