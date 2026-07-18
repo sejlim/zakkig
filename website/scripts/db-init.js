@@ -47,7 +47,6 @@ async function init() {
         
         console.log(`Creating attributes for 'leads'...`);
         await db.createEmailAttribute(databaseId, 'leads', 'email', true);
-        await db.createDatetimeAttribute(databaseId, 'leads', 'created_at', true);
         
         // Wait for attributes to be available before creating an index
         console.log(`Waiting for attributes to be created...`);

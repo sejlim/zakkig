@@ -32,8 +32,7 @@ export async function addToWaitlist(data: { email: string }): Promise<WaitlistRe
     }
 
     await db.createDocument(WEBSITE_DB_ID, 'leads', ID.unique(), {
-      email,
-      created_at: new Date().toISOString()
+      email
     });
 
     return { success: true };
