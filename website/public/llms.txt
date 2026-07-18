@@ -1,0 +1,37 @@
+# zakkig
+
+zakkig ist ein modernes, digitales Bestell- und Bezahlsystem für die Gastronomie. 
+Das übergeordnete Ziel des Projekts ist es, eine nahtlose, app-lose Lösung für Gäste zu schaffen, um per QR-Code direkt zum Mitnehmen oder am Tisch zu bestellen und zu bezahlen.
+
+## Vision & Produkt
+
+- **Fokus:** Keine App-Downloads, extrem schnelle Ladezeiten, einfache intuitive Bedienung.
+- **Mehrwert für Gastronomen:** Das Personal wird entlastet, gewinnt Zeit für das Wesentliche (den Service am Gast) und der Umsatz kann durch effizientere Bestellabläufe gesteigert werden.
+- **Mehrwert für Gäste:** Nie wieder auf die Speisekarte oder die Rechnung warten.
+
+## Aktueller Status: Landingpage & Warteliste
+
+Aktuell befindet sich das Projekt in der Pre-Launch-Phase. Die bestehende Landingpage unter `https://zakkig.de` dient derzeit folgendem Zweck:
+1. Das Konzept und den Mehrwert von zakkig frühzeitig zu präsentieren.
+2. Interessierten Gastronomen die Möglichkeit zu geben, sich in eine Warteliste einzutragen, um bei Release als einer der Ersten exklusiven Vorab-Zugriff auf das System zu erhalten.
+
+## Architektur & Technischer Stack (Monorepo)
+
+Das Projekt ist als skalierbares Turborepo (Monorepo) aufgebaut, um Code und UI-Komponenten zwischen der Website (Landingpage), der zukünftigen Webapp (für Gastronomen und Gäste) und eventuellen weiteren Diensten effizient zu teilen.
+
+**Technologien:**
+- **Framework:** Next.js (App Router) & React
+- **Architektur:** Turborepo Monorepo
+- **Styling:** Tailwind CSS v4 & shadcn/ui
+- **Sprachen:** TypeScript
+- **Datenhaltung (Warteliste):** better-sqlite3
+- **Formulare:** React Hook Form + Zod
+
+## Wichtige URLs (Website)
+
+- Startseite (DE): https://zakkig.de/
+- Homepage (EN): https://zakkig.de/en
+- Impressum (DE): https://zakkig.de/impressum
+- Datenschutz (DE): https://zakkig.de/datenschutz
+- Legal Notice (EN): https://zakkig.de/en/legal
+- Privacy Policy (EN): https://zakkig.de/en/privacy
