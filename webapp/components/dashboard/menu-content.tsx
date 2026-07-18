@@ -3,6 +3,7 @@
 import { useState, useActionState } from 'react'
 import { Plus, PencilSimple, Trash, Eye, EyeSlash } from '@phosphor-icons/react'
 import { toast, Card,   Button, Chip as Badge, Input, TextArea, Separator as Separator, Modal } from "@heroui/react"
+import { PageHeader } from './page-header'
 
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import {
@@ -82,13 +83,12 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t('menu')}</h1>
+      <PageHeader title={t('menu')}>
         <Button onPress={openNewCategory} variant="primary">
           <Plus data-icon="inline-start" />
           {t('addCategory')}
         </Button>
-      </div>
+      </PageHeader>
 
       {categories.length === 0 ? (
         <Card>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   ChartBar,
   ClipboardText,
@@ -10,14 +10,13 @@ import {
   Gear,
   SignOut,
   Globe,
-  CaretLeft,
-  CaretRight,
   List
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button, Avatar, Separator as Separator } from "@heroui/react"
 import { useTranslation } from '@/lib/i18n'
 import { useLanguageStore } from '@/store/language-store'
+import { useSidebarStore } from '@/store/sidebar-store'
 import type { Organization } from '@/lib/types'
 import type { Models } from 'node-appwrite'
 import Image from 'next/image'
@@ -32,9 +31,10 @@ interface DashboardShellProps {
 
 export function DashboardShell({ organization, user, children }: DashboardShellProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const { t } = useTranslation()
   const { locale, setLocale } = useLanguageStore()
-  const [isExpanded, setIsExpanded] = useState(true)
+  const { isExpanded } = useSidebarStore()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
   const zakkigUrl = locale === 'de' ? 'https://www.zakkig.de' : 'https://www.zakkig.de/en'
@@ -75,55 +75,50 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-background transition-all duration-300 md:relative print:hidden",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-background md:relative print:hidden",
           isExpanded ? "w-64" : "w-16",
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="flex h-16 items-center justify-between px-4 border-b shrink-0">
+        <div className={cn("flex h-16 items-center px-4 border-b shrink-0", (isExpanded || isMobileOpen) ? "justify-between" : "justify-center")}>
           {(isExpanded || isMobileOpen) ? (
             <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer" className="overflow-hidden">
-              <Image src="/full.svg" alt="zakkig logo" width={100} height={24} className="h-6 w-auto" />
+              <Image src="https://www.zakkig.de/full.svg" alt="zakkig logo" width={100} height={24} className="h-6 w-auto" />
             </Link>
           ) : (
             <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer" className="mx-auto">
-              <Image src="/icon.svg" alt="zakkig icon" width={24} height={24} className="h-6 w-6" />
+              <Image src="https://www.zakkig.de/icon.svg" alt="zakkig icon" width={24} height={24} className="h-6 w-6" />
             </Link>
           )}
-          <Button
-            variant="tertiary"
-            size="sm"
-            isIconOnly
-            className="hidden md:flex ml-auto"
-            onPress={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? <CaretLeft /> : <CaretRight />}
-          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-2">
           <div className="px-3">
-            <p className={cn("text-xs font-medium text-muted-foreground mb-2", !isExpanded && "text-center")}>
-              {isExpanded ? t('dashboard') : "..."}
-            </p>
+            {isExpanded && (
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                {t('dashboard')}
+              </p>
+            )}
             <nav className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
-                  <Link
+                  <Button
                     key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileOpen(false)}
+                    variant={isActive ? "secondary" : "ghost"}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground",
-                      !isExpanded && "justify-center px-0"
+                      isExpanded ? "w-full justify-start" : "mx-auto"
                     )}
-                    title={!isExpanded ? item.label : undefined}
+                    isIconOnly={!isExpanded}
+                    aria-label={!isExpanded ? item.label : undefined}
+                    onPress={() => {
+                      setIsMobileOpen(false)
+                      router.push(item.href)
+                    }}
                   >
                     <item.icon weight={isActive ? 'fill' : 'regular'} className="h-5 w-5 shrink-0" />
-                    {isExpanded && <span>{item.label}</span>}
-                  </Link>
+                    {isExpanded && <span className="ml-2">{item.label}</span>}
+                  </Button>
                 )
               })}
             </nav>
@@ -146,19 +141,19 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
           
           <div className={cn("flex items-center gap-2", !isExpanded ? "flex-col" : "justify-between")}>
             <form action={signOutAction} className={cn(!isExpanded && "w-full flex justify-center")}>
-              <Button type="submit" variant="tertiary" size="sm" isIconOnly={!isExpanded} className={cn(isExpanded && "w-full justify-start")}>
+              <Button type="submit" variant="ghost" size="sm" isIconOnly={!isExpanded} className={cn(isExpanded && "w-full justify-start")}>
                 <SignOut />
                 {isExpanded && <span className="ml-2">{t('signOut')}</span>}
               </Button>
             </form>
             <Button 
-              variant="tertiary" 
+              variant="ghost" 
               size="sm" 
               isIconOnly={!isExpanded}
               onPress={() => setLocale(locale === 'de' ? 'en' : 'de')}
             >
               <Globe />
-              {isExpanded && <span className="ml-2">{locale === 'de' ? 'EN' : 'DE'}</span>}
+              {isExpanded && <span className="ml-2">{locale.toUpperCase()}</span>}
             </Button>
           </div>
         </div>
@@ -168,9 +163,9 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:hidden print:hidden">
           <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer">
-            <Image src="/full.svg" alt="Zakkig" width={110} height={28} className="h-7 w-auto" />
+            <Image src="https://www.zakkig.de/full.svg" alt="Zakkig" width={110} height={28} className="h-7 w-auto" />
           </Link>
-          <Button variant="tertiary" isIconOnly onPress={() => setIsMobileOpen(true)}>
+          <Button variant="ghost" isIconOnly onPress={() => setIsMobileOpen(true)}>
             <List className="h-6 w-6" />
           </Button>
         </header>

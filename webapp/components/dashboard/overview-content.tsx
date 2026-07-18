@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef, useTransition } from 'react'
-import { Copy, Plus, Trash, LinkSimple, ChartLineUp, ShoppingBag, Printer, Scissors } from '@phosphor-icons/react'
-import { toast, Card,   Button, Chip as Badge, Separator, Input, Tabs, Tab, Switch } from "@heroui/react"
+import { Copy, Plus, Trash, LinkSimple, ChartLineUp, ShoppingBag, Printer, Scissors, CaretDown, ClipboardText, ForkKnife, Gear } from '@phosphor-icons/react'
+import { toast, Card,   Button, Chip as Badge, Separator, Input, Dropdown, Label, Switch, Tabs } from "@heroui/react"
+import Link from 'next/link'
 import Image from 'next/image'
-import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { createKitchenSessionAction, deleteKitchenSessionAction } from '@/actions/order-actions'
 import { toggleFeatureAction } from '@/actions/settings-actions'
+import { PageHeader } from './page-header'
 import type { Organization, Order, KitchenSession } from '@/lib/types'
 
 interface OverviewContentProps {
@@ -198,101 +200,135 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
   return (
     <>
     <div className="flex flex-col gap-6 print:hidden">
-      <div>
-        <h1 className="text-2xl font-semibold">{t('overview')}</h1>
-        {organization.address && (
-          <p className="text-sm text-muted-foreground mt-1">{organization.address}</p>
-        )}
-      </div>
+      <PageHeader 
+        title={t('overview')} 
+        description={organization.address || undefined} 
+      />
 
-      <Card>
-        <Card.Header>
-          <h3 className="text-lg font-semibold">Statistik</h3>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <Card className="h-full flex flex-col">
+          <Card.Header className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
+          <h3 className="text-lg font-semibold">Verkaufsstatistik</h3>
+          <Dropdown>
+            <Button variant="secondary" size="sm">
+              {period === '24h' ? t('last24h') : period === '30d' ? t('last30d') : t('last90d')}
+              <CaretDown className="ml-1" />
+            </Button>
+            <Dropdown.Popover placement="bottom end">
+              <Dropdown.Menu onAction={(key) => setPeriod(key as TimePeriod)} selectedKeys={[period]}>
+                <Dropdown.Item id="24h" textValue={t('last24h')}>
+                  <Label>{t('last24h')}</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="30d" textValue={t('last30d')}>
+                  <Label>{t('last30d')}</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="90d" textValue={t('last90d')}>
+                  <Label>{t('last90d')}</Label>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
         </Card.Header>
-        <Card.Content className="p-6 pt-0">
-          <div className="flex flex-col gap-6">
-            <Tabs selectedKey={period} onSelectionChange={(k) => setPeriod(k as TimePeriod)} className="w-full sm:w-fit">
-              <Tabs.ListContainer>
-                <Tabs.List>
-                  <Tabs.Tab id="24h"><span className="hidden sm:inline">{t('last24h')}</span><span className="sm:hidden">24h</span><Tabs.Indicator /></Tabs.Tab>
-                  <Tabs.Tab id="30d"><span className="hidden sm:inline">{t('last30d')}</span><span className="sm:hidden">30d</span><Tabs.Indicator /></Tabs.Tab>
-                  <Tabs.Tab id="90d"><span className="hidden sm:inline">{t('last90d')}</span><span className="sm:hidden">90d</span><Tabs.Indicator /></Tabs.Tab>
-                </Tabs.List>
-              </Tabs.ListContainer>
-            </Tabs>
-            
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <Card.Content className="p-6 pt-4">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-wrap gap-12">
               <div className="flex flex-col">
-                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="text-sm font-medium">Anzahl an Bestellungen</div>
-                  <ShoppingBag className="text-muted-foreground w-4 h-4" />
-                </div>
                 <div className="text-3xl font-bold">{totalOrders}</div>
-                <div className="h-[80px] w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                      <Line
-                        type="monotone"
-                        dataKey="orders"
-                        stroke="hsl(var(--heroui-primary, 212 100% 47%))"
-                        strokeWidth={3}
-                        dot={false}
-                      />
-                      <Tooltip cursor={false} content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-background border rounded-md shadow-sm p-2 text-sm">
-                              <span className="font-medium">{payload[0].value}</span>
-                            </div>
-                          )
-                        }
-                        return null
-                      }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  Anzahl Bestellungen
                 </div>
               </div>
-
               <div className="flex flex-col">
-                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="text-sm font-medium">{t('netRevenue')}</div>
-                  <ChartLineUp className="text-muted-foreground w-4 h-4" />
-                </div>
                 <div className="text-3xl font-bold">{formatPrice(Math.round(netRevenue))}</div>
-                <div className="h-[80px] w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                      <Line
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="hsl(var(--heroui-primary, 212 100% 47%))"
-                        strokeWidth={3}
-                        dot={false}
-                      />
-                      <Tooltip 
-                        cursor={false} 
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="bg-background border rounded-md shadow-sm p-2 text-sm">
-                                <span className="font-medium">{formatPrice((payload[0].value as number) * 100)}</span>
-                              </div>
-                            )
-                          }
-                          return null
-                        }} 
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  {t('netRevenue')}
                 </div>
               </div>
+            </div>
+
+            <div className="h-[250px] w-full mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'currentColor', opacity: 0.05 }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-background border rounded-md shadow-sm p-3 flex flex-col gap-1 text-sm">
+                            <span className="font-medium text-muted-foreground">{payload[0].payload.name}</span>
+                            <span className="font-bold text-primary">{payload[0].value} Bestellungen</span>
+                          </div>
+                        )
+                      }
+                      return null
+                    }} 
+                  />
+                  <Bar
+                    dataKey="orders"
+                    fill="hsl(var(--heroui-primary, 212 100% 47%))"
+                    radius={[4, 4, 4, 4]}
+                    maxBarSize={40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </Card.Content>
       </Card>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Card>
+      <Card className="h-full flex flex-col">
+        <Card.Header>
+          <h3 className="text-lg font-semibold">{t('quickLinks') || 'Quick Links'}</h3>
+        </Card.Header>
+        <Card.Content className="flex-1 flex flex-col">
+          <div className="flex flex-col gap-3 flex-1">
+            <Link href={`/dashboard/${organization.$id}/orders`} className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
+              <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
+                <ClipboardText className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm">{t('orders')}</span>
+                <span className="text-xs text-muted-foreground">Alle Bestellungen auf einen Blick</span>
+              </div>
+            </Link>
+            <Link href={`/dashboard/${organization.$id}/menu`} className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
+              <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
+                <ForkKnife className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm">{t('menu')}</span>
+                <span className="text-xs text-muted-foreground">Kategorien und Produkte bearbeiten</span>
+              </div>
+            </Link>
+            <Link href={`/dashboard/${organization.$id}/settings`} className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
+              <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
+                <Gear className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm">{t('settings')}</span>
+                <span className="text-xs text-muted-foreground">Einstellungen für deinen Shop</span>
+              </div>
+            </Link>
+          </div>
+        </Card.Content>
+      </Card>
+    </div>
+
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+        <Card className="h-full flex flex-col">
           <Card.Header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
             <div className="flex flex-col gap-1.5">
               <h3 className="text-lg font-semibold">{t('qrCodeGenerator')}</h3>
@@ -364,7 +400,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                 </div>
               </div>
 
-              <Card className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-12 p-6 bg-white shadow-sm w-full">
+              <Card className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-12 p-6 bg-white shadow-sm w-full print:hidden">
                 <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left max-w-sm">
                   <p className="text-2xl md:text-3xl font-black leading-tight text-black whitespace-pre-line">
                     {t('qrCodeDesc1')}
@@ -386,7 +422,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                   <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
                     <StyledQRCode value={qrUrl} size={220} />
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <Image src="/full.svg" alt="Zakkig" width={110} height={28} className="w-[110px] h-auto" />
+                      <Image src="https://www.zakkig.de/full.svg" alt="Zakkig" width={110} height={28} className="w-[110px] h-auto" />
                     </div>
                   </div>
                 </div>
@@ -394,6 +430,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
             </div>
           </Card.Content>
         </Card>
+
 
         <Card>
           <Card.Header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
@@ -478,7 +515,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
             <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
               <StyledQRCode value={qrUrl} size={220} />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <Image src="/full.svg" alt="Zakkig" width={110} height={28} className="w-[110px] h-auto" />
+                <Image src="https://www.zakkig.de/full.svg" alt="Zakkig" width={110} height={28} className="w-[110px] h-auto" />
               </div>
             </div>
           </div>

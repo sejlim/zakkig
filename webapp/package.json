@@ -17,6 +17,7 @@
     "@heroui/styles": "latest",
     "@phosphor-icons/react": "^2.1.10",
     "appwrite": "^16.0.2",
+    "framer-motion": "^12.42.2",
     "next": "^16.2.10",
     "node-appwrite": "^14.1.0",
     "qr-code-styling": "^1.9.2",

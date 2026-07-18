@@ -54,18 +54,20 @@ export default function SignInPage() {
     }
   }
 
-  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const submitOtp = async (code: string) => {
     if (!state.userId) return
-    
     setIsVerifying(true)
     setOtpError("")
-    const res = await verifyOtpAction(state.userId, otp)
+    const res = await verifyOtpAction(state.userId, code)
     setIsVerifying(false)
-    
     if (res?.error) {
       setOtpError(t(res.error as any))
     }
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    await submitOtp(otp)
   }
 
   const handleResendOtp = async () => {
@@ -104,7 +106,12 @@ export default function SignInPage() {
                 <InputOTP
                   maxLength={6}
                   value={otp}
-                  onChange={setOtp}
+                  onChange={(val) => {
+                    setOtp(val)
+                    if (val.length === 6) {
+                      submitOtp(val)
+                    }
+                  }}
                   isDisabled={isVerifying}
                   autoFocus
                 >
@@ -204,7 +211,7 @@ export default function SignInPage() {
               </Link>
             </div>
             <InputGroup>
-              <Input
+              <InputGroup.Input
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}

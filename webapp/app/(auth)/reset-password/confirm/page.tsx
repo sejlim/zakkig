@@ -110,7 +110,7 @@ function ResetPasswordConfirmForm() {
             {locale === 'de' ? 'Neues Passwort' : 'New Password'} <span className="text-danger">*</span>
           </label>
           <InputGroup>
-            <Input
+            <InputGroup.Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
@@ -158,7 +158,7 @@ function ResetPasswordConfirmForm() {
             {t('confirmPassword')} <span className="text-danger">*</span>
           </label>
           <InputGroup>
-            <Input
+            <InputGroup.Input
               id="confirmPassword"
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}

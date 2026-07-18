@@ -116,9 +116,9 @@ export default function ResetPasswordPage() {
       {!state.success && (
         <>
           <Separator />
-          <Card.Footer className="justify-center">
+          <Card.Footer className="justify-center mt-6">
             <p className="text-sm text-muted-foreground">
-              {t('hasAccount')}{" "}
+              {t('rememberedAccount')}{" "}
               <Link
                 href="/sign-in"
                 className="font-medium text-foreground underline-offset-4 hover:underline"

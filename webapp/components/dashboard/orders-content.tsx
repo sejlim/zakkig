@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { MagnifyingGlass, Export } from '@phosphor-icons/react'
+import { MagnifyingGlass, Export, CircleDashed, CookingPot, CheckCircle } from '@phosphor-icons/react'
 import { toast, Card, Button, Chip as Badge, Tabs, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from "@heroui/react"
 import { useTranslation, formatPrice } from '@/lib/i18n'
+import { PageHeader } from './page-header'
 import { exportOrdersCSVAction, updateOrderStatusAction } from '@/actions/order-actions'
 import type { Order, OrderItem } from '@/lib/types'
 
@@ -69,13 +70,12 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t('orders')}</h1>
+      <PageHeader title={t('orders')}>
         <Button variant="outline" onPress={handleExportCSV}>
           <Export data-icon="inline-start" />
           {t('exportCSV')}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Tab navigation */}
       <div className="flex gap-1 border-b">

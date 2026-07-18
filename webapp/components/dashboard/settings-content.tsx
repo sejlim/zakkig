@@ -1,8 +1,9 @@
 'use client'
 
 import { useActionState, useEffect } from 'react'
-import { toast, Card,   Button, Input, TextArea, Separator, Chip as Badge, Alert } from "@heroui/react"
+import { toast, Card, Button, Input, TextArea, Separator, Chip as Badge, Alert } from "@heroui/react"
 import { WarningCircle } from '@phosphor-icons/react'
+import { PageHeader } from './page-header'
 import { useTranslation } from '@/lib/i18n'
 import { updateBusinessAction, requestAccountDeletionAction } from '@/actions/settings-actions'
 import type { Organization } from '@/lib/types'
@@ -29,7 +30,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <h1 className="text-2xl font-semibold">{t('settings')}</h1>
+      <PageHeader title={t('settings')} />
 
       {/* Account Settings */}
       <Card>
