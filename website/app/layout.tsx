@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description: t.metaDescription,
     url: 'https://www.zakkig.de',
     siteName: 'zakkig',
-    images: ['/full.png'],
+    images: ['/og_image.png'],
     locale: 'de_DE',
     type: 'website',
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: t.metaTitle,
     description: t.metaDescription,
-    images: ['/full.png'],
+    images: ['/og_image.png'],
   },
 };
 import "./globals.css"

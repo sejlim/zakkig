@@ -14,20 +14,13 @@ export const metadata: Metadata = {
     alternateLocale: 'de_DE',
     siteName: 'zakkig',
     type: 'website',
-    images: [
-      {
-        url: 'https://www.zakkig.de/full.png',
-        width: 1200,
-        height: 630,
-        alt: 'zakkig Logo',
-      },
-    ],
+    images: ['/og_image.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title: t.metaTitle,
     description: t.metaDescription,
-    images: ['https://www.zakkig.de/full.png'],
+    images: ['/og_image.png'],
   },
   alternates: {
     canonical: 'https://www.zakkig.de/en/',
