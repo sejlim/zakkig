@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Datenschutzerklärung von zakkig.',
   robots: 'noindex, follow',
   alternates: {
-    canonical: 'https://zakkig.de/datenschutz',
+    canonical: 'https://www.zakkig.de/datenschutz',
   },
   openGraph: {
     locale: 'de_DE',
@@ -59,7 +59,7 @@ export default function Datenschutz() {
           <p>
             Impressum:{' '}
             <a
-              href="https://zakkig.de/impressum"
+              href="https://www.zakkig.de/impressum"
               className="text-white hover:underline"
             >
               https://www.zakkig.de/impressum

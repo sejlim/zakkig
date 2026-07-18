@@ -37,7 +37,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
   const [isExpanded, setIsExpanded] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
-  const zakkigUrl = locale === 'de' ? 'https://zakkig.de' : 'https://zakkig.de/en'
+  const zakkigUrl = locale === 'de' ? 'https://www.zakkig.de' : 'https://www.zakkig.de/en'
 
   const navItems = [
     {

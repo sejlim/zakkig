@@ -96,8 +96,8 @@ export default function SignUpPage() {
     return (
       <Card className="w-full">
         <div className="w-full flex items-center justify-between px-6 py-4">
-          <Link href={locale === 'en' ? 'https://zakkig.de/en' : 'https://zakkig.de'} target="_blank" rel="noreferrer">
-            <Image src="https://zakkig.de/full.svg" alt="zakkig" width={120} height={40} priority className="w-auto h-8 hover:opacity-80 transition-opacity" />
+          <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
+            <Image src="https://www.zakkig.de/full.svg" alt="zakkig" width={120} height={40} priority className="w-auto h-8 hover:opacity-80 transition-opacity" />
           </Link>
           <LanguageSwitcher />
         </div>
@@ -169,9 +169,9 @@ export default function SignUpPage() {
   return (
     <Card className="w-full">
       <div className="w-full flex items-center justify-between px-6 py-4">
-        <Link href={locale === 'en' ? 'https://zakkig.de/en' : 'https://zakkig.de'} target="_blank" rel="noreferrer">
+        <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
           <Image
-            src="https://zakkig.de/full.svg"
+            src="https://www.zakkig.de/full.svg"
             alt="zakkig"
             width={120}
             height={40}
@@ -327,11 +327,11 @@ export default function SignUpPage() {
                 <p className="text-xs text-muted-foreground">
                   {locale === 'de' ? (
                     <>
-                      Durch die Registrierung erklärst du dich mit unseren <a href="https://zakkig.de/agb" className="underline" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://zakkig.de/datenschutz" className="underline" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
+                      Durch die Registrierung erklärst du dich mit unseren <a href="https://www.zakkig.de/agb" className="underline" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://www.zakkig.de/datenschutz" className="underline" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
                     </>
                   ) : (
                     <>
-                      By registering, you agree to our <a href="https://zakkig.de/en/terms" className="underline" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://zakkig.de/en/privacy" className="underline" target="_blank" rel="noreferrer">Privacy Policy</a>.
+                      By registering, you agree to our <a href="https://www.zakkig.de/en/terms" className="underline" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://www.zakkig.de/en/privacy" className="underline" target="_blank" rel="noreferrer">Privacy Policy</a>.
                     </>
                   )}
                 </p>

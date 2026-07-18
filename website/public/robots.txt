@@ -1,4 +1,4 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Disallow:
-Sitemap: https://zakkig.de/sitemap.xml
+Sitemap: https://www.zakkig.de/sitemap.xml

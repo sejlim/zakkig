@@ -11,7 +11,7 @@ Das übergeordnete Ziel des Projekts ist es, eine nahtlose, app-lose Lösung fü
 
 ## Aktueller Status: Landingpage & Warteliste
 
-Aktuell befindet sich das Projekt in der Pre-Launch-Phase. Die bestehende Landingpage unter `https://zakkig.de` dient derzeit folgendem Zweck:
+Aktuell befindet sich das Projekt in der Pre-Launch-Phase. Die bestehende Landingpage unter `https://www.zakkig.de` dient derzeit folgendem Zweck:
 1. Das Konzept und den Mehrwert von zakkig frühzeitig zu präsentieren.
 2. Interessierten Gastronomen die Möglichkeit zu geben, sich in eine Warteliste einzutragen, um bei Release als einer der Ersten exklusiven Vorab-Zugriff auf das System zu erhalten.
 
@@ -29,9 +29,9 @@ Das Projekt ist als skalierbares Turborepo (Monorepo) aufgebaut, um Code und UI-
 
 ## Wichtige URLs (Website)
 
-- Startseite (DE): https://zakkig.de/
-- Homepage (EN): https://zakkig.de/en
-- Impressum (DE): https://zakkig.de/impressum
-- Datenschutz (DE): https://zakkig.de/datenschutz
-- Legal Notice (EN): https://zakkig.de/en/legal
-- Privacy Policy (EN): https://zakkig.de/en/privacy
+- Startseite (DE): https://www.zakkig.de/
+- Homepage (EN): https://www.zakkig.de/en
+- Impressum (DE): https://www.zakkig.de/impressum
+- Datenschutz (DE): https://www.zakkig.de/datenschutz
+- Legal Notice (EN): https://www.zakkig.de/en/legal
+- Privacy Policy (EN): https://www.zakkig.de/en/privacy

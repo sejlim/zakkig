@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://zakkig.de/full.png',
+        url: 'https://www.zakkig.de/full.png',
         width: 1200,
         height: 630,
         alt: 'zakkig Logo',
@@ -27,14 +27,14 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: t.metaTitle,
     description: t.metaDescription,
-    images: ['https://zakkig.de/full.png'],
+    images: ['https://www.zakkig.de/full.png'],
   },
   alternates: {
-    canonical: 'https://zakkig.de/',
+    canonical: 'https://www.zakkig.de/',
     languages: {
-      'de': 'https://zakkig.de/',
-      'en': 'https://zakkig.de/en/',
-      'x-default': 'https://zakkig.de/',
+      'de': 'https://www.zakkig.de/',
+      'en': 'https://www.zakkig.de/en/',
+      'x-default': 'https://www.zakkig.de/',
     },
   },
 };

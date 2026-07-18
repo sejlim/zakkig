@@ -6,7 +6,7 @@ import { translations } from '@/lib/translations';
 const t = translations.de;
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://zakkig.de'),
+  metadataBase: new URL('https://www.zakkig.de'),
   icons: {
     icon: '/icon.png',
     apple: '/icon.png',
@@ -14,16 +14,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: t.metaTitle,
     description: t.metaDescription,
-    url: 'https://zakkig.de',
+    url: 'https://www.zakkig.de',
     siteName: 'zakkig',
-    images: [
-      {
-        url: '/full.png',
-        width: 1200,
-        height: 630,
-        alt: 'zakkig Logo',
-      },
-    ],
+    images: ['/full.png'],
     locale: 'de_DE',
     type: 'website',
   },

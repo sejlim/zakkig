@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Privacy Policy of zakkig.',
   robots: 'noindex, follow',
   alternates: {
-    canonical: 'https://zakkig.de/en/privacy',
+    canonical: 'https://www.zakkig.de/en/privacy',
   },
   openGraph: {
     locale: 'en_US',
@@ -59,7 +59,7 @@ export default function Privacy() {
           <p>
             Legal Notice:{' '}
             <a
-              href="https://zakkig.de/en/legal"
+              href="https://www.zakkig.de/en/legal"
               className="text-white hover:underline"
             >
               https://www.zakkig.de/en/legal

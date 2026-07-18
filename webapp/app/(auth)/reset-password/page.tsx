@@ -43,9 +43,9 @@ export default function ResetPasswordPage() {
   return (
     <Card className="w-full">
       <div className="w-full flex items-center justify-between px-6 py-4">
-        <Link href={locale === 'en' ? 'https://zakkig.de/en' : 'https://zakkig.de'} target="_blank" rel="noreferrer">
+        <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
           <Image
-            src="https://zakkig.de/full.svg"
+            src="https://www.zakkig.de/full.svg"
             alt="zakkig"
             width={120}
             height={40}
