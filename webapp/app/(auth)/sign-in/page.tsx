@@ -93,7 +93,7 @@ export default function SignInPage() {
           <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
             <Image src="https://www.zakkig.de/full.svg" alt="zakkig" width={120} height={40} priority className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert" />
           </Link>
-          <LanguageSwitcher variant="secondary" />
+          <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
         </div>
         <CardHeader className="flex-col items-start gap-1 pt-4">
           <CardTitle className="text-2xl">{locale === 'de' ? 'Anmeldung bestätigen' : 'Verify Login'}</CardTitle>
@@ -176,7 +176,7 @@ export default function SignInPage() {
             className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert"
           />
         </Link>
-        <LanguageSwitcher variant="secondary" />
+        <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
       </div>
       <CardHeader className="flex-col items-start gap-1 pt-4">
         <CardTitle className="text-2xl">{t('signIn')}</CardTitle>

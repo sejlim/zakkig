@@ -68,30 +68,38 @@ export default function ResetPasswordPage() {
             className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert"
           />
         </Link>
-        <LanguageSwitcher variant="secondary" />
+        <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
       </div>
-      <CardHeader className="flex-col items-start gap-1 pt-4">
-        <CardTitle className="text-2xl">{t('resetPassword')}</CardTitle>
-        <CardDescription className="text-primary-foreground/80">
-          {t('resetPasswordDescription')}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        {state.success ? (
-          <div className="flex flex-col gap-4 mt-2">
-            <p className="text-sm text-primary-foreground/80 mb-2">
+      {state.success ? (
+        <>
+          <CardHeader className="flex-col items-start gap-1 pt-4">
+            <CardTitle className="text-2xl">{t('resetPasswordLinkSent' as any)}</CardTitle>
+            <CardDescription className="text-primary-foreground/80">
               {t('resetPasswordSent')}
-            </p>
-            <Link href="/sign-in" className="w-full">
-              <Button type="button" className="w-full gap-2 h-11 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-                <ArrowLeft className="w-5 h-5" weight="bold" />
-                {t('backToSignIn')}
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mt-2">
+              <Link href="/sign-in" className="w-full">
+                <Button type="button" className="w-full gap-2 h-11 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+                  <ArrowLeft className="w-5 h-5" weight="bold" />
+                  {t('backToSignIn')}
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </>
+      ) : (
+        <>
+          <CardHeader className="flex-col items-start gap-1 pt-4">
+            <CardTitle className="text-2xl">{t('resetPassword')}</CardTitle>
+            <CardDescription className="text-primary-foreground/80">
+              {t('resetPasswordDescription')}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className={`text-sm font-semibold ${fieldErrors.email ? "text-destructive" : ""}`}>{t('email')}</label>
@@ -124,8 +132,9 @@ export default function ResetPasswordPage() {
               )}
             </Button>
           </form>
-        )}
-      </CardContent>
+        </CardContent>
+        </>
+      )}
 
       {!state.success && (
         <>

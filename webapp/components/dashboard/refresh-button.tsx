@@ -16,7 +16,7 @@ export function RefreshButton() {
   }
 
   return (
-    <Button variant="ghost" size="icon" onClick={handleRefresh} className="shrink-0 text-muted-foreground h-9 w-9" disabled={isPending}>
+    <Button variant="ghost" size="icon" onClick={handleRefresh} className="shrink-0 text-foreground h-9 w-9" disabled={isPending}>
       <ArrowsClockwise weight="bold" className={isPending ? "animate-spin" : ""} />
     </Button>
   )

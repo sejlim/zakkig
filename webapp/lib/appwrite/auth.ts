@@ -7,12 +7,15 @@ import { SESSION_COOKIE_NAME } from '@/lib/constants'
 import { createAdminClient } from '@/lib/appwrite/server'
 
 async function createPublicClient() {
+  const cookieStore = await cookies()
   const headersList = await headers()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value || 'de'
   const userAgent = headersList.get('user-agent') || ''
 
   const client = new Client()
     .setEndpoint(APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT_ID)
+    .setLocale(locale)
 
   if (userAgent) {
     client.setForwardedUserAgent(userAgent)

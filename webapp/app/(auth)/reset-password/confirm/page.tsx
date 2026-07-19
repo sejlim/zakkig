@@ -8,11 +8,12 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { cn } from "@/lib/utils"
 import { confirmPasswordResetAction } from "@/actions/auth-actions"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useTranslation } from "@/lib/i18n"
-import { Eye, EyeSlash, Check, X, FloppyDisk, CircleNotch } from "@phosphor-icons/react"
+import { Eye, EyeSlash, Check, X, FloppyDisk, CircleNotch, ArrowLeft } from "@phosphor-icons/react"
+import { toast } from "sonner"
 
 function ResetPasswordConfirmForm() {
   const searchParams = useSearchParams()
@@ -23,6 +24,17 @@ function ResetPasswordConfirmForm() {
   const [state, formAction, isPending] = useActionState(boundAction, {})
   
   const { t, locale } = useTranslation()
+
+  useEffect(() => {
+    if (state.error) {
+      toast.error(t(state.error as any))
+    }
+    if (state.success) {
+      toast.success(locale === 'de' ? 'Passwort erfolgreich geändert' : 'Password successfully changed')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordValue, setPasswordValue] = useState("")
@@ -80,36 +92,50 @@ function ResetPasswordConfirmForm() {
 
   if (state.success) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-          <Check className="w-6 h-6 text-emerald-600" weight="bold" />
-        </div>
-        <h2 className="text-xl font-semibold">
-          {locale === 'de' ? 'Passwort erfolgreich geändert' : 'Password successfully changed'}
-        </h2>
-        <p className="text-muted-foreground mt-2">
-          {locale === 'de' 
-            ? 'Du kannst dich nun mit deinem neuen Passwort anmelden.' 
-            : 'You can now sign in with your new password.'}
-        </p>
-        <Button type="button" onClick={() => window.location.href = "/sign-in"} className="mt-6">
-          {t('signIn')}
-        </Button>
-      </div>
+      <>
+        <CardHeader className="flex-col items-start gap-1 pt-4">
+          <CardTitle className="text-2xl">
+            {locale === 'de' ? 'Passwort erfolgreich geändert' : 'Password successfully changed'}
+          </CardTitle>
+          <CardDescription className="text-primary-foreground/80">
+            {locale === 'de' 
+              ? 'Du kannst dich nun mit deinem neuen Passwort anmelden.' 
+              : 'You can now sign in with your new password.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mt-2">
+            <Link href="/sign-in" className="w-full">
+              <Button type="button" className="w-full gap-2 h-11 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+                <ArrowLeft className="w-5 h-5" weight="bold" />
+                {t('signIn')}
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      {state.error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {t(state.error as any)}
-        </div>
-      )}
+    <>
+      <CardHeader className="flex-col items-start gap-1 pt-4">
+        <CardTitle className="text-2xl">
+          {locale === 'de' ? 'Passwort zurücksetzen' : 'Reset Password'}
+        </CardTitle>
+        <CardDescription className="text-primary-foreground/80">
+          {locale === 'de' 
+            ? 'Bitte gib dein neues Passwort ein.' 
+            : 'Please enter your new password.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+
 
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-destructive" : ""}`}>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="password" className={`text-sm font-semibold ${fieldErrors.password ? "text-destructive" : ""}`}>
             {locale === 'de' ? 'Neues Passwort' : 'New Password'} <span className="text-destructive">*</span>
           </label>
           <div className="relative">
@@ -120,7 +146,7 @@ function ResetPasswordConfirmForm() {
               autoComplete="new-password"
               value={passwordValue}
               onChange={(e) => setPasswordValue(e.target.value)}
-              className={fieldErrors.password ? "border-destructive pr-10" : "pr-10"}
+              className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground pr-10 ${fieldErrors.password ? "border-destructive" : ""}`}
             />
             <button
               className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
@@ -128,34 +154,34 @@ function ResetPasswordConfirmForm() {
               onClick={() => setShowPassword(!showPassword)}
               title={showPassword ? t('hidePassword') : t('showPassword')}
             >
-              {showPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+              {showPassword ? <EyeSlash className="w-5 h-5 text-primary-foreground/50" weight="bold" /> : <Eye className="w-5 h-5 text-primary-foreground/50" weight="bold" />}
             </button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1">
             <div className="flex items-start gap-2 text-xs mt-1">
               {passwordValue.length >= 8 ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
-              <span className={passwordValue.length >= 8 ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLength' as any)}</span>
+              <span className={passwordValue.length >= 8 ? "text-primary-foreground" : "text-primary-foreground/50"}>{t('passwordReqLength' as any)}</span>
             </div>
             <div className="flex items-start gap-2 text-xs mt-1">
               {/[A-Z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
-              <span className={/[A-Z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqUppercase' as any)}</span>
+              <span className={/[A-Z]/.test(passwordValue) ? "text-primary-foreground" : "text-primary-foreground/50"}>{t('passwordReqUppercase' as any)}</span>
             </div>
             <div className="flex items-start gap-2 text-xs mt-1">
               {/[a-z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
-              <span className={/[a-z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLowercase' as any)}</span>
+              <span className={/[a-z]/.test(passwordValue) ? "text-primary-foreground" : "text-primary-foreground/50"}>{t('passwordReqLowercase' as any)}</span>
             </div>
             <div className="flex items-start gap-2 text-xs mt-1">
               {/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
-              <span className={/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? "text-emerald-700 leading-tight" : "text-muted-foreground leading-tight"}>{t('passwordReqNumberOrSpecial' as any)}</span>
+              <span className={/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? "text-primary-foreground leading-tight" : "text-primary-foreground/50 leading-tight"}>{t('passwordReqNumberOrSpecial' as any)}</span>
             </div>
           </div>
           
           {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
+        <div className="flex flex-col gap-1.5 mt-2">
+          <label htmlFor="confirmPassword" className={`text-sm font-semibold ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
             {t('confirmPassword')} <span className="text-destructive">*</span>
           </label>
           <div className="relative">
@@ -164,7 +190,7 @@ function ResetPasswordConfirmForm() {
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               autoComplete="new-password"
-              className={fieldErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
+              className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground pr-10 ${fieldErrors.confirmPassword ? "border-destructive" : ""}`}
             />
             <button
               className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
@@ -172,18 +198,22 @@ function ResetPasswordConfirmForm() {
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               title={showConfirmPassword ? t('hidePassword') : t('showPassword')}
             >
-              {showConfirmPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+              {showConfirmPassword ? <EyeSlash className="w-5 h-5 text-primary-foreground/50" weight="bold" /> : <Eye className="w-5 h-5 text-primary-foreground/50" weight="bold" />}
             </button>
           </div>
           {fieldErrors.confirmPassword && <span className="text-sm text-destructive">{fieldErrors.confirmPassword}</span>}
         </div>
       </div>
 
-      <Button type="submit" className="w-full mt-4 gap-2" disabled={isPending}>
+      <Button 
+        type="submit" 
+        className="w-full gap-2 mt-4 h-11 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100" 
+        disabled={isPending}
+      >
         {isPending ? (
           <>
             <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
-            {locale === 'de' ? 'Wird geändert...' : 'Changing...'}
+            {locale === 'de' ? 'Speichern...' : 'Saving...'}
           </>
         ) : (
           <>
@@ -191,8 +221,22 @@ function ResetPasswordConfirmForm() {
             {locale === 'de' ? 'Passwort ändern' : 'Change Password'}
           </>
         )}
-      </Button>
-    </form>
+        </Button>
+        </form>
+      </CardContent>
+
+      <CardFooter className="justify-center pb-6 bg-transparent border-t border-primary-foreground/10">
+        <p className="text-sm text-primary-foreground/80">
+          {t('rememberedAccount')}{" "}
+          <Link
+            href="/sign-in"
+            className="font-semibold text-primary-foreground underline-offset-4 hover:underline"
+          >
+            {t('signIn')}
+          </Link>
+        </p>
+      </CardFooter>
+    </>
   )
 }
 
@@ -200,8 +244,8 @@ export default function ResetPasswordConfirmPage() {
   const { locale } = useTranslation()
 
   return (
-    <Card className="w-full">
-      <div className="w-full flex items-center justify-between px-6 py-4">
+    <Card className="w-full bg-primary text-primary-foreground border-border/5">
+      <div className="w-full flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary-foreground/10">
         <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
           <Image
             src="https://www.zakkig.de/full.svg"
@@ -209,41 +253,15 @@ export default function ResetPasswordConfirmPage() {
             width={120}
             height={40}
             priority
-            className="w-auto h-8 hover:opacity-80 transition-opacity"
+            className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert"
           />
         </Link>
-        <LanguageSwitcher />
-      </div>
-      <Separator />
-      <CardHeader className="flex-col items-start gap-1">
-        <h1 className="text-xl font-semibold">
-          {locale === 'de' ? 'Passwort zurücksetzen' : 'Reset Password'}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {locale === 'de' 
-            ? 'Bitte gib dein neues Passwort ein.' 
-            : 'Please enter your new password.'}
-        </p>
-      </CardHeader>
-
-      <div>
-        <Suspense fallback={<div className="h-40 flex items-center justify-center">Loading...</div>}>
-          <ResetPasswordConfirmForm />
-        </Suspense>
+        <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
       </div>
 
-      <Separator />
-
-      <CardFooter className="justify-center mt-6">
-        <p className="text-sm text-muted-foreground">
-          <Link
-            href="/sign-in"
-            className="font-medium text-foreground underline-offset-4 hover:underline"
-          >
-            {locale === 'de' ? 'Zurück zur Anmeldung' : 'Back to sign in'}
-          </Link>
-        </p>
-      </CardFooter>
+      <Suspense fallback={<CardContent><div className="h-40 flex items-center justify-center">Loading...</div></CardContent>}>
+        <ResetPasswordConfirmForm />
+      </Suspense>
     </Card>
   )
 }

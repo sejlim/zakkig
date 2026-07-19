@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { verifyCredentials, signUp, signOut, sendEmailOtp, verifyOtp, resetPassword, confirmPasswordReset } from '@/lib/appwrite/auth'
 import { createOrganization, getOrganizationByOwner } from '@/lib/appwrite/database'
 import { getUser, createAdminClient } from '@/lib/appwrite/server'
+import { Query } from 'node-appwrite'
 export interface AuthActionState {
   error?: string
   success?: boolean
@@ -19,6 +20,19 @@ export async function resendOtpAction(userId: string, email: string) {
     return { success: true }
   } catch (error) {
     return { error: 'authError' }
+  }
+}
+
+export async function checkEmailExistsAction(email: string): Promise<{ exists: boolean }> {
+  try {
+    const { users } = createAdminClient()
+    const response = await users.list([
+      Query.equal('email', [email])
+    ])
+    return { exists: response.total > 0 }
+  } catch (error) {
+    console.error("Failed to check email:", error)
+    return { exists: false }
   }
 }
 
@@ -148,11 +162,18 @@ export async function resetPasswordAction(
     return { error: 'missingFields' }
   }
 
+  // Check if email exists
+  const check = await checkEmailExistsAction(email)
+  if (!check.exists) {
+    return { error: 'emailNotFound' }
+  }
+
   try {
     await resetPassword(email)
     return { success: true }
   } catch (error) {
-    // Return success to avoid email enumeration
+    // Return success to avoid email enumeration if something else goes wrong
+    // (though we already checked existence, it's safer for generic errors)
     return { success: true }
   }
 }

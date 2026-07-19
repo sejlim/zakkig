@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState, startTransition, useEffect } from "react"
+import { useActionState, useState, startTransition, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslation } from "@/lib/i18n"
-import { Eye, EyeSlash, Check, X, UserPlus, CheckCircle, CircleNotch, PaperPlaneRight } from "@phosphor-icons/react"
+import { Eye, EyeSlash, Check, X, UserPlus, CheckCircle, CircleNotch, PaperPlaneRight, ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
 export default function SignUpPage() {
@@ -23,10 +23,14 @@ export default function SignUpPage() {
   const [passwordValue, setPasswordValue] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
+  // Wizard State
+  const [step, setStep] = useState(1)
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+
   // OTP State
   const [otp, setOtp] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
-  const [otpError, setOtpError] = useState("")
   const [countdown, setCountdown] = useState(60)
 
   useEffect(() => {
@@ -43,35 +47,68 @@ export default function SignUpPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
+  const handleNext = async () => {
+    if (!formRef.current) return
+    const fd = new FormData(formRef.current)
+    const errors: Record<string, string> = {}
+    
+    if (step === 1) {
+      if (!fd.get("restaurantName")) errors.restaurantName = t('restaurantNameRequired' as any)
+    } else if (step === 2) {
+      const email = fd.get("email") as string
+      if (!email) {
+        errors.email = t('emailRequired')
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.email = t('emailInvalid')
+      }
+      
+      const password = fd.get("password") as string
+      if (!password) {
+        errors.password = t('passwordRequired')
+      } else {
+        const hasLength = password.length >= 8
+        const hasUpperCase = /[A-Z]/.test(password)
+        const hasLowerCase = /[a-z]/.test(password)
+        const hasNumberOrSpecial = /[0-9]/.test(password) || /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        if (!hasLength || !hasUpperCase || !hasLowerCase || !hasNumberOrSpecial) {
+          errors.password = t('passwordInvalid' as any)
+        }
+      }
+
+      if (Object.keys(errors).length === 0) {
+        setIsCheckingEmail(true)
+        const { checkEmailExistsAction } = await import('@/actions/auth-actions')
+        const res = await checkEmailExistsAction(email)
+        setIsCheckingEmail(false)
+        if (res.exists) {
+           errors.email = t('authErrorUserExists' as any)
+           toast.error(t('authErrorUserExists' as any))
+        }
+      }
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+    } else {
+      setFieldErrors({})
+      setStep(step + 1)
+    }
+  }
+
+  const handleBack = () => {
+    setFieldErrors({})
+    setStep(step - 1)
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const errors: Record<string, string> = {}
     
-    if (!formData.get("restaurantName")) errors.restaurantName = t('restaurantNameRequired' as any)
-    if (!formData.get("email")) {
-      errors.email = t('emailRequired')
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.get("email") as string)) {
-      errors.email = t('emailInvalid')
-    }
     const password = formData.get("password") as string
     const confirmPassword = formData.get("confirmPassword") as string
     
-    if (!password) {
-      errors.password = t('passwordRequired')
-    } else {
-      const hasLength = password.length >= 8
-      const hasUpperCase = /[A-Z]/.test(password)
-      const hasLowerCase = /[a-z]/.test(password)
-      const hasNumberOrSpecial = /[0-9]/.test(password) || /[!@#$%^&*(),.?":{}|<>]/.test(password)
-      
-      if (!hasLength || !hasUpperCase || !hasLowerCase || !hasNumberOrSpecial) {
-        errors.password = t('passwordInvalid' as any)
-      }
-    }
-    
     if (password !== confirmPassword) errors.confirmPassword = t('passwordMismatch')
-
     if (!formData.get("terms")) errors.terms = t('termsRequired')
 
     if (Object.keys(errors).length > 0) {
@@ -112,7 +149,7 @@ export default function SignUpPage() {
           <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
             <Image src="https://www.zakkig.de/full.svg" alt="zakkig" width={120} height={40} priority className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert" />
           </Link>
-          <LanguageSwitcher variant="secondary" />
+          <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
         </div>
         <CardHeader className="flex-col items-start gap-1 pt-4">
           <CardTitle className="text-2xl">{locale === 'de' ? 'E-Mail bestätigen' : 'Verify Email'}</CardTitle>
@@ -195,7 +232,7 @@ export default function SignUpPage() {
             className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert"
           />
         </Link>
-        <LanguageSwitcher variant="secondary" />
+        <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
       </div>
       <CardHeader className="flex-col items-start gap-1 pt-4">
         <CardTitle className="text-2xl">{t('signUp')}</CardTitle>
@@ -205,9 +242,20 @@ export default function SignUpPage() {
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        {/* Progress Bar (Dynamic Segments) */}
+        <div className="flex w-full gap-4 mb-6">
+          {[1, 2, 3].map((s) => (
+            <div 
+              key={s} 
+              className={cn("h-1.5 rounded-full transition-all duration-300", s <= step ? "flex-[2] bg-primary-foreground" : "flex-1 bg-primary-foreground/20")} 
+            />
+          ))}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+          
+          {/* Step 1: Business & Name */}
+          <div className={cn("flex-col gap-5", step === 1 ? "flex" : "hidden")}>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="restaurantName" className={`text-sm font-semibold ${fieldErrors.restaurantName ? "text-destructive" : ""}`}>
                 {t('restaurantName')} <span className="text-destructive">*</span>
@@ -236,22 +284,23 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className={`text-sm font-semibold ${fieldErrors.email ? "text-destructive" : ""}`}>
-              {t('email')} <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              autoComplete="email"
-              className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
-            />
-            {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
-          </div>
+          {/* Step 2: Email & Password */}
+          <div className={cn("flex-col gap-5", step === 2 ? "flex" : "hidden")}>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className={`text-sm font-semibold ${fieldErrors.email ? "text-destructive" : ""}`}>
+                {t('email')} <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder={t('emailPlaceholder')}
+                autoComplete="email"
+                className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
+              />
+              {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
+            </div>
 
-          <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="password" className={`text-sm font-semibold ${fieldErrors.password ? "text-destructive" : ""}`}>
                 {t('password')} <span className="text-destructive">*</span>
@@ -297,7 +346,10 @@ export default function SignUpPage() {
               
               {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
             </div>
+          </div>
 
+          {/* Step 3: Confirm Password & Terms */}
+          <div className={cn("flex-col gap-5", step === 3 ? "flex" : "hidden")}>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="confirmPassword" className={`text-sm font-semibold ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
                 {t('confirmPassword')} <span className="text-destructive">*</span>
@@ -321,50 +373,83 @@ export default function SignUpPage() {
               </div>
               {fieldErrors.confirmPassword && <span className="text-sm text-destructive">{fieldErrors.confirmPassword}</span>}
             </div>
-          </div>
 
-          <div className="flex flex-col gap-1 my-3">
-            <div className="flex items-start space-x-3">
-              <Checkbox id="terms" name="terms" value="true" className={`mt-0.5 border-primary-foreground/20 data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary ${fieldErrors.terms ? "border-destructive" : ""}`} />
-              <div className="grid gap-1.5 leading-tight">
-                <label
-                  htmlFor="terms"
-                  className={cn("text-sm font-medium cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70", fieldErrors.terms ? "text-destructive" : "")}
-                >
-                  {t('agreeToTerms')}
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  {locale === 'de' ? (
-                    <>
-                      Durch die Registrierung erklärst du dich mit unseren <a href="https://www.zakkig.de/agb" className="underline hover:text-foreground" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://www.zakkig.de/datenschutz" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
-                    </>
-                  ) : (
-                    <>
-                      By registering, you agree to our <a href="https://www.zakkig.de/en/terms" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://www.zakkig.de/en/privacy" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Privacy Policy</a>.
-                    </>
-                  )}
-                </p>
+            <div className="flex flex-col gap-1 my-3">
+              <div className="flex items-start space-x-3">
+                <Checkbox id="terms" name="terms" value="true" className={`mt-0.5 border-primary-foreground/20 data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary ${fieldErrors.terms ? "border-destructive" : ""}`} />
+                <div className="grid gap-1.5 leading-tight">
+                  <label
+                    htmlFor="terms"
+                    className={cn("text-sm font-medium cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70", fieldErrors.terms ? "text-destructive" : "")}
+                  >
+                    {t('agreeToTerms')}
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    {locale === 'de' ? (
+                      <>
+                        Durch die Registrierung erklärst du dich mit unseren <a href="https://www.zakkig.de/agb" className="underline hover:text-foreground" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://www.zakkig.de/datenschutz" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
+                      </>
+                    ) : (
+                      <>
+                        By registering, you agree to our <a href="https://www.zakkig.de/en/terms" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://www.zakkig.de/en/privacy" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Privacy Policy</a>.
+                      </>
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-11 gap-2 text-base mt-2 bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100" 
-            disabled={isPending}
-          >
-            {isPending ? (
-              <>
-                <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
-                {t('signingUp')}
-              </>
-            ) : (
-              <>
-                <UserPlus className="w-5 h-5" weight="bold" />
-                {t('signUp')}
-              </>
+          {/* Navigation Buttons */}
+          <div className="flex gap-3 mt-2">
+            {step > 1 && (
+              <Button 
+                type="button" 
+                onClick={handleBack}
+                className="flex-1 h-11 gap-2 text-base bg-transparent border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 disabled:border-primary-foreground/10 disabled:text-primary-foreground/40 disabled:opacity-100"
+                disabled={isPending || isCheckingEmail}
+              >
+                <ArrowLeft className="w-5 h-5" weight="bold" />
+                {t('back' as any) || 'Zurück'}
+              </Button>
             )}
-          </Button>
+            
+            {step < 3 ? (
+              <Button 
+                type="button" 
+                onClick={handleNext}
+                className={cn("h-11 gap-2 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100", step === 1 ? "w-full" : "flex-1")} 
+                disabled={isCheckingEmail}
+              >
+                {isCheckingEmail ? (
+                  <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
+                ) : (
+                  <>
+                    <ArrowRight className="w-5 h-5" weight="bold" />
+                    {(t('next' as any) || 'Weiter')}
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                type="submit" 
+                className="flex-1 h-11 gap-2 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100" 
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
+                    {t('signingUp')}
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5" weight="bold" />
+                    {t('signUp')}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </form>
       </CardContent>
 
