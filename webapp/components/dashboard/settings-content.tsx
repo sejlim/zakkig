@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { WarningCircle } from '@phosphor-icons/react'
-import { PageHeader } from './page-header'
+import { RefreshButton } from './refresh-button'
 import { useTranslation } from '@/lib/i18n'
 import { updateBusinessAction, requestAccountDeletionAction } from '@/actions/settings-actions'
 import type { Organization } from '@/lib/types'
@@ -36,7 +36,10 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <PageHeader title={t('settings')} />
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{t('settings')}</h1>
+        <RefreshButton />
+      </div>
 
       {/* Account Settings */}
       <Card>

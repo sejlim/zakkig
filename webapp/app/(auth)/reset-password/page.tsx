@@ -8,9 +8,9 @@ import { resetPasswordAction } from "@/actions/auth-actions"
 import { useTranslation } from "@/lib/i18n"
 import { PaperPlaneRight, CircleNotch } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+
 
 export default function ResetPasswordPage() {
   const [state, formAction, isPending] = useActionState(
@@ -44,8 +44,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <Card className="w-full">
-      <div className="w-full flex items-center justify-between px-6 py-4">
+    <Card className="w-full border-none shadow-none sm:border-solid sm:shadow-sm">
+      <div className="w-full flex items-center justify-between px-6 pt-6 pb-2">
         <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
           <Image
             src="https://www.zakkig.de/full.svg"
@@ -58,48 +58,47 @@ export default function ResetPasswordPage() {
         </Link>
         <LanguageSwitcher />
       </div>
-      <Separator />
       <CardHeader className="flex-col items-start gap-1">
-        <h1 className="text-xl font-semibold">{t('resetPassword')}</h1>
-        <p className="text-sm text-muted-foreground">
+        <CardTitle className="text-2xl">{t('resetPassword')}</CardTitle>
+        <CardDescription>
           {t('resetPasswordDescription')}
-        </p>
+        </CardDescription>
       </CardHeader>
 
-      <div>
+      <CardContent>
         {state.success ? (
           <div className="flex flex-col gap-4">
             <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
               {t('resetPasswordSent')}
             </div>
             <Link href="/sign-in" className="w-full">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full h-11">
                 {t('backToSignIn')}
               </Button>
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
             {state.error && (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {t(state.error as any)}
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-destructive" : ""}`}>{t('email')}</label>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className={`text-sm font-semibold ${fieldErrors.email ? "text-destructive" : ""}`}>{t('email')}</label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 placeholder={t('emailPlaceholder')}
                 autoComplete="email"
-                className={fieldErrors.email ? "border-destructive" : ""}
+                className={`h-11 ${fieldErrors.email ? "border-destructive" : ""}`}
               />
               {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
             </div>
 
-            <Button type="submit" className="w-full gap-2" disabled={isPending}>
+            <Button type="submit" className="w-full gap-2 mt-2 h-11" disabled={isPending}>
               {isPending ? (
                 <>
                   <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -114,17 +113,16 @@ export default function ResetPasswordPage() {
             </Button>
           </form>
         )}
-      </div>
+      </CardContent>
 
       {!state.success && (
         <>
-          <Separator />
-          <CardFooter className="justify-center mt-6">
+          <CardFooter className="justify-center pb-6">
             <p className="text-sm text-muted-foreground">
               {t('rememberedAccount')}{" "}
               <Link
                 href="/sign-in"
-                className="font-medium text-foreground underline-offset-4 hover:underline"
+                className="font-semibold text-foreground underline-offset-4 hover:underline"
               >
                 {t('signIn')}
               </Link>

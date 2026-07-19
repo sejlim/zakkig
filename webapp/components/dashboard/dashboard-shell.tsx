@@ -10,7 +10,9 @@ import {
   Gear,
   SignOut,
   Globe,
-  List
+  List,
+  CaretLeft,
+  CaretRight
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from "@/components/ui/button"
@@ -35,7 +37,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
   const router = useRouter()
   const { t } = useTranslation()
   const { locale, setLocale } = useLanguageStore()
-  const { isExpanded } = useSidebarStore()
+  const { isExpanded, toggleSidebar } = useSidebarStore()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
   const zakkigUrl = locale === 'de' ? 'https://www.zakkig.de' : 'https://www.zakkig.de/en'
@@ -76,30 +78,35 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-background md:relative print:hidden",
+          "fixed inset-y-0 right-0 z-50 flex flex-col border-l bg-background transition-transform duration-300 md:transition-none md:left-0 md:border-l-0 md:border-r md:relative print:hidden",
           isExpanded ? "w-64" : "w-16",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          "max-md:w-64", // Always wide on mobile
+          isMobileOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
         )}
       >
-        <div className={cn("flex h-16 items-center px-4 border-b shrink-0", (isExpanded || isMobileOpen) ? "justify-between" : "justify-center")}>
-          {(isExpanded || isMobileOpen) ? (
-            <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer" className="overflow-hidden">
-              <Image src="https://www.zakkig.de/full.svg" alt="zakkig logo" width={100} height={24} className="h-6 w-auto" />
-            </Link>
-          ) : (
-            <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer" className="mx-auto">
-              <Image src="https://www.zakkig.de/icon.svg" alt="zakkig icon" width={24} height={24} className="h-6 w-6" />
-            </Link>
+        <div className={cn("flex h-16 items-center border-b shrink-0", isExpanded ? "justify-between px-4" : "justify-center px-2", "max-md:justify-start max-md:px-3")}>
+          {/* Desktop Logo */}
+          {isExpanded && (
+            <div className="hidden md:flex flex-1">
+              <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer" className="overflow-hidden">
+                <Image src="https://www.zakkig.de/full.svg" alt="zakkig logo" width={100} height={24} className="h-6 w-auto" />
+              </Link>
+            </div>
           )}
+
+          {/* Desktop Toggle Button */}
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="hidden md:flex shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground">
+            {isExpanded ? <CaretLeft weight="bold" /> : <CaretRight weight="bold" />}
+          </Button>
+
+          {/* Mobile Close Button (Replaces Logo) */}
+          <Button variant="ghost" onClick={() => setIsMobileOpen(false)} className="md:hidden shrink-0 justify-start px-2.5 h-8 text-muted-foreground hover:text-foreground">
+            <CaretRight weight="bold" className="h-5 w-5" />
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-2">
           <div className="px-3">
-            {isExpanded && (
-              <p className="text-xs font-medium text-muted-foreground mb-2">
-                {t('dashboard')}
-              </p>
-            )}
             <nav className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const isActive = pathname === item.href
@@ -166,7 +173,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
             <Image src="https://www.zakkig.de/full.svg" alt="Zakkig" width={110} height={28} className="h-7 w-auto" />
           </Link>
           <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(true)}>
-            <List className="h-6 w-6" />
+            <CaretLeft weight="bold" className="h-6 w-6" />
           </Button>
         </header>
         <main className="flex-1 overflow-y-auto p-6">

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table"
 import { useTranslation, formatPrice } from '@/lib/i18n'
-import { PageHeader } from './page-header'
+import { RefreshButton } from './refresh-button'
 import { exportOrdersCSVAction, updateOrderStatusAction } from '@/actions/order-actions'
 import type { Order, OrderItem } from '@/lib/types'
 
@@ -74,12 +74,16 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('orders')}>
-        <Button variant="outline" onClick={handleExportCSV}>
-          <Export data-icon="inline-start" className="mr-2" />
-          {t('exportCSV')}
-        </Button>
-      </PageHeader>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{t('orders')}</h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Export data-icon="inline-start" className="mr-2" />
+            {t('exportCSV')}
+          </Button>
+          <RefreshButton />
+        </div>
+      </div>
 
       {/* Tab navigation */}
       <div className="flex gap-1 border-b">

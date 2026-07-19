@@ -12,12 +12,20 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from 'next/link'
 import Image from 'next/image'
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { createKitchenSessionAction, deleteKitchenSessionAction } from '@/actions/order-actions'
 import { toggleFeatureAction } from '@/actions/settings-actions'
-import { PageHeader } from './page-header'
+import { RefreshButton } from './refresh-button'
 import type { Organization, Order, KitchenSession } from '@/lib/types'
+
+const chartConfig = {
+  orders: {
+    label: "Bestellungen",
+    color: "hsl(var(--primary))",
+  },
+}
 
 interface OverviewContentProps {
   organization: Organization
@@ -207,10 +215,13 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
   return (
     <>
     <div className="flex flex-col gap-6 print:hidden">
-      <PageHeader 
-        title={t('overview')} 
-        description={organization.address || undefined} 
-      />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('overview')}</h1>
+          {organization.address && <p className="text-sm text-muted-foreground mt-1">{organization.address}</p>}
+        </div>
+        <RefreshButton />
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card className="h-full flex flex-col">
@@ -251,45 +262,35 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
               </div>
             </div>
 
-            <div className="h-[250px] w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'currentColor', opacity: 0.05 }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-background border rounded-md shadow-sm p-3 flex flex-col gap-1 text-sm">
-                            <span className="font-medium text-muted-foreground">{payload[0].payload.name}</span>
-                            <span className="font-bold text-primary">{payload[0].value} Bestellungen</span>
-                          </div>
-                        )
-                      }
-                      return null
-                    }} 
-                  />
-                  <Bar
-                    dataKey="orders"
-                    fill="hsl(var(--heroui-primary, 212 100% 47%))"
-                    radius={[4, 4, 4, 4]}
-                    maxBarSize={40}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full mt-4">
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
+                />
+                <ChartTooltip 
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="line" />} 
+                />
+                <Line
+                  dataKey="orders"
+                  type="monotone"
+                  stroke="var(--color-orders)"
+                  strokeWidth={2}
+                  dot={{ fill: "var(--color-orders)", r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ChartContainer>
           </div>
         </CardContent>
       </Card>

@@ -6,9 +6,8 @@ import Image from "next/image"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { signInAction, verifyOtpAction, resendOtpAction } from "@/actions/auth-actions"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { useTranslation } from "@/lib/i18n"
 import { Eye, EyeSlash, SignIn, CheckCircle, CircleNotch, PaperPlaneRight } from "@phosphor-icons/react"
@@ -82,23 +81,22 @@ export default function SignInPage() {
 
   if (state.requiresOtp) {
     return (
-      <Card className="w-full">
-        <div className="w-full flex items-center justify-between px-6 py-4">
+      <Card className="w-full border-none shadow-none sm:border-solid sm:shadow-sm">
+        <div className="w-full flex items-center justify-between px-6 pt-6 pb-2">
           <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
             <Image src="https://www.zakkig.de/full.svg" alt="zakkig" width={120} height={40} priority className="w-auto h-8 hover:opacity-80 transition-opacity" />
           </Link>
           <LanguageSwitcher />
         </div>
-        <Separator />
         <CardHeader className="flex-col items-start gap-1">
-          <h1 className="text-xl font-semibold">{locale === 'de' ? 'Anmeldung bestätigen' : 'Verify Login'}</h1>
-          <p className="text-sm text-muted-foreground">
+          <CardTitle className="text-2xl">{locale === 'de' ? 'Anmeldung bestätigen' : 'Verify Login'}</CardTitle>
+          <CardDescription>
             {locale === 'de' 
               ? `Wir haben dir einen 6-stelligen Code an ${state.email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.` 
               : `We have sent a 6-digit code to ${state.email}. Enter the code in the input field below and confirm to continue.`}
-          </p>
+          </CardDescription>
         </CardHeader>
-        <div>
+        <CardContent>
           <form onSubmit={handleVerifyOtp} noValidate className="flex flex-col gap-4">
             {otpError && (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -120,12 +118,12 @@ export default function SignInPage() {
                   autoFocus
                 >
                   <InputOTPGroup className="w-full flex gap-2">
-                    <InputOTPSlot index={0} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={1} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={2} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={3} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={4} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={5} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={0} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={1} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={2} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={3} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={4} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={5} className="h-14 flex-1 text-2xl rounded-md" />
                   </InputOTPGroup>
                 </InputOTP>
               </div>
@@ -134,13 +132,13 @@ export default function SignInPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full sm:w-1/2"
+                className="w-full sm:w-1/2 h-11"
                 disabled={countdown > 0}
                 onClick={handleResendOtp}
               >
                 {countdown > 0 ? t('resendIn').replace('{time}', countdown.toString()) : t('resendCode')}
               </Button>
-              <Button type="submit" className="w-full sm:w-1/2 gap-2" disabled={isVerifying || otp.length < 6}>
+              <Button type="submit" className="w-full sm:w-1/2 gap-2 h-11" disabled={isVerifying || otp.length < 6}>
                 {isVerifying ? (
                   <>
                     <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -155,14 +153,14 @@ export default function SignInPage() {
               </Button>
             </div>
           </form>
-        </div>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="w-full">
-      <div className="w-full flex items-center justify-between px-6 py-4">
+    <Card className="w-full border-none shadow-none sm:border-solid sm:shadow-sm">
+      <div className="w-full flex items-center justify-between px-6 pt-6 pb-2">
         <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
           <Image
             src="https://www.zakkig.de/full.svg"
@@ -175,42 +173,36 @@ export default function SignInPage() {
         </Link>
         <LanguageSwitcher />
       </div>
-      <Separator />
       <CardHeader className="flex-col items-start gap-1">
-        <h1 className="text-xl font-semibold">{t('signIn')}</h1>
-        <p className="text-sm text-muted-foreground">
+        <CardTitle className="text-2xl">{t('signIn')}</CardTitle>
+        <CardDescription>
           {t('signInDescription')}
-        </p>
-      </CardHeader>
-
-      <div>
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        </CardDescription>
+      </CardHeader>      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
           {state.error && (
             <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {t(state.error as any)}
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-destructive" : ""}`}>{t('email')}</label>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="email" className={`text-sm font-semibold ${fieldErrors.email ? "text-destructive" : ""}`}>{t('email')}</label>
             <Input
               id="email"
               name="email"
               type="email"
               placeholder={t('emailPlaceholder')}
               autoComplete="email"
-              className={fieldErrors.email ? "border-destructive" : ""}
+              className={`h-11 ${fieldErrors.email ? "border-destructive" : ""}`}
             />
             {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-destructive" : ""}`}>{t('password')}</label>
-              <Link
-                href="/reset-password"
-                className="text-xs font-medium text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-              >
+              <label htmlFor="password" className={`text-sm font-semibold ${fieldErrors.password ? "text-destructive" : ""}`}>{t('password')}</label>
+              <Link href="/reset-password" className="text-sm font-medium text-foreground underline-offset-4 hover:underline">
                 {t('forgotPassword')}
               </Link>
             </div>
@@ -220,7 +212,7 @@ export default function SignInPage() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className={fieldErrors.password ? "border-destructive pr-10" : "pr-10"}
+                className={`h-11 ${fieldErrors.password ? "border-destructive pr-10" : "pr-10"}`}
               />
               <button
                 className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
@@ -234,7 +226,7 @@ export default function SignInPage() {
             {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
           </div>
 
-          <Button type="submit" className="w-full mt-2 gap-2" disabled={isPending}>
+          <Button type="submit" className="w-full gap-2 mt-2 h-11" disabled={isPending}>
             {isPending ? (
               <>
                 <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -248,16 +240,14 @@ export default function SignInPage() {
             )}
           </Button>
         </form>
-      </div>
+      </CardContent>
 
-      <Separator />
-
-      <CardFooter className="justify-center mt-6">
+      <CardFooter className="justify-center pb-6">
         <p className="text-sm text-muted-foreground">
           {t('noAccount')}{" "}
           <Link
             href="/sign-up"
-            className="font-medium text-foreground underline-offset-4 hover:underline"
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
           >
             {t('signUp')}
           </Link>

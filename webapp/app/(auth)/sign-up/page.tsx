@@ -7,9 +7,8 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { cn } from "@/lib/utils"
 import { signUpAction, verifyOtpAction, resendOtpAction } from "@/actions/auth-actions"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslation } from "@/lib/i18n"
@@ -101,23 +100,22 @@ export default function SignUpPage() {
 
   if (state.requiresOtp) {
     return (
-      <Card className="w-full">
-        <div className="w-full flex items-center justify-between px-6 py-4">
+      <Card className="w-full border-none shadow-none sm:border-solid sm:shadow-sm">
+        <div className="w-full flex items-center justify-between px-6 pt-6 pb-2">
           <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
             <Image src="https://www.zakkig.de/full.svg" alt="zakkig" width={120} height={40} priority className="w-auto h-8 hover:opacity-80 transition-opacity" />
           </Link>
           <LanguageSwitcher />
         </div>
-        <Separator />
         <CardHeader className="flex-col items-start gap-1">
-          <h1 className="text-xl font-semibold">{locale === 'de' ? 'E-Mail bestätigen' : 'Verify Email'}</h1>
-          <p className="text-sm text-muted-foreground">
+          <CardTitle className="text-2xl">{locale === 'de' ? 'E-Mail bestätigen' : 'Verify Email'}</CardTitle>
+          <CardDescription>
             {locale === 'de' 
               ? `Wir haben dir einen 6-stelligen Code an ${state.email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.` 
               : `We have sent a 6-digit code to ${state.email}. Enter the code in the input field below and confirm to continue.`}
-          </p>
+          </CardDescription>
         </CardHeader>
-        <div>
+        <CardContent>
           <form onSubmit={handleVerifyOtp} noValidate className="flex flex-col gap-4">
             {otpError && (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -139,12 +137,12 @@ export default function SignUpPage() {
                   autoFocus
                 >
                   <InputOTPGroup className="w-full flex gap-2">
-                    <InputOTPSlot index={0} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={1} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={2} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={3} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={4} className="h-14 flex-1 text-2xl" />
-                    <InputOTPSlot index={5} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={0} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={1} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={2} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={3} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={4} className="h-14 flex-1 text-2xl rounded-md" />
+                    <InputOTPSlot index={5} className="h-14 flex-1 text-2xl rounded-md" />
                   </InputOTPGroup>
                 </InputOTP>
               </div>
@@ -153,13 +151,13 @@ export default function SignUpPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full sm:w-1/2"
+                className="w-full sm:w-1/2 h-11"
                 disabled={countdown > 0}
                 onClick={handleResendOtp}
               >
                 {countdown > 0 ? t('resendIn').replace('{time}', countdown.toString()) : t('resendCode')}
               </Button>
-              <Button type="submit" className="w-full sm:w-1/2 gap-2" disabled={isVerifying || otp.length < 6}>
+              <Button type="submit" className="w-full sm:w-1/2 gap-2 h-11" disabled={isVerifying || otp.length < 6}>
                 {isVerifying ? (
                   <>
                     <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -174,14 +172,14 @@ export default function SignUpPage() {
               </Button>
             </div>
           </form>
-        </div>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="w-full">
-      <div className="w-full flex items-center justify-between px-6 py-4">
+    <Card className="w-full border-none shadow-none sm:border-solid sm:shadow-sm">
+      <div className="w-full flex items-center justify-between px-6 pt-6 pb-2">
         <Link href={locale === 'en' ? 'https://www.zakkig.de/en' : 'https://www.zakkig.de'} target="_blank" rel="noreferrer">
           <Image
             src="https://www.zakkig.de/full.svg"
@@ -194,25 +192,24 @@ export default function SignUpPage() {
         </Link>
         <LanguageSwitcher />
       </div>
-      <Separator />
       <CardHeader className="flex-col items-start gap-1">
-        <h1 className="text-xl font-semibold">{t('signUp')}</h1>
-        <p className="text-sm text-muted-foreground">
+        <CardTitle className="text-2xl">{t('signUp')}</CardTitle>
+        <CardDescription>
           {t('signUpDescription')}
-        </p>
+        </CardDescription>
       </CardHeader>
 
-      <div>
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
           {state.error && (
             <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {t(state.error as any)}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="restaurantName" className={`text-sm font-medium ${fieldErrors.restaurantName ? "text-destructive" : ""}`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="restaurantName" className={`text-sm font-semibold ${fieldErrors.restaurantName ? "text-destructive" : ""}`}>
                 {t('restaurantName')} <span className="text-destructive">*</span>
               </label>
               <Input
@@ -221,27 +218,26 @@ export default function SignUpPage() {
                 type="text"
                 placeholder={t('businessPlaceholder')}
                 autoComplete="organization"
-                className={fieldErrors.restaurantName ? "border-destructive" : ""}
+                className={`h-11 ${fieldErrors.restaurantName ? "border-destructive" : ""}`}
               />
               {fieldErrors.restaurantName && <span className="text-sm text-destructive">{fieldErrors.restaurantName}</span>}
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="name" className="text-sm font-medium">{t('name')}</label>
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="name" className="text-sm font-semibold">{t('name')}</label>
               <Input
                 id="name"
                 name="name"
                 type="text"
                 placeholder={t('namePlaceholder')}
                 autoComplete="name"
+                className="h-11"
               />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-destructive" : ""}`}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="email" className={`text-sm font-semibold ${fieldErrors.email ? "text-destructive" : ""}`}>
               {t('email')} <span className="text-destructive">*</span>
             </label>
             <Input
@@ -250,14 +246,14 @@ export default function SignUpPage() {
               type="email"
               placeholder={t('emailPlaceholder')}
               autoComplete="email"
-              className={fieldErrors.email ? "border-destructive" : ""}
+              className={`h-11 ${fieldErrors.email ? "border-destructive" : ""}`}
             />
             {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-destructive" : ""}`}>
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="password" className={`text-sm font-semibold ${fieldErrors.password ? "text-destructive" : ""}`}>
                 {t('password')} <span className="text-destructive">*</span>
               </label>
               <div className="relative">
@@ -268,7 +264,7 @@ export default function SignUpPage() {
                   autoComplete="new-password"
                   value={passwordValue}
                   onChange={(e) => setPasswordValue(e.target.value)}
-                  className={fieldErrors.password ? "border-destructive pr-10" : "pr-10"}
+                  className={`h-11 ${fieldErrors.password ? "border-destructive pr-10" : "pr-10"}`}
                 />
                 <button
                   className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
@@ -280,20 +276,20 @@ export default function SignUpPage() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1">
-                <div className="flex items-start gap-2 text-xs mt-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
+                <div className="flex items-start gap-2 text-xs">
                   {passwordValue.length >= 8 ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={passwordValue.length >= 8 ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLength' as any)}</span>
                 </div>
-                <div className="flex items-start gap-2 text-xs mt-1">
+                <div className="flex items-start gap-2 text-xs">
                   {/[A-Z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={/[A-Z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqUppercase' as any)}</span>
                 </div>
-                <div className="flex items-start gap-2 text-xs mt-1">
+                <div className="flex items-start gap-2 text-xs">
                   {/[a-z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={/[a-z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLowercase' as any)}</span>
                 </div>
-                <div className="flex items-start gap-2 text-xs mt-1">
+                <div className="flex items-start gap-2 text-xs">
                   {/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? "text-emerald-700 leading-tight" : "text-muted-foreground leading-tight"}>{t('passwordReqNumberOrSpecial' as any)}</span>
                 </div>
@@ -302,8 +298,8 @@ export default function SignUpPage() {
               {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="confirmPassword" className={`text-sm font-semibold ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
                 {t('confirmPassword')} <span className="text-destructive">*</span>
               </label>
               <div className="relative">
@@ -312,7 +308,7 @@ export default function SignUpPage() {
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={fieldErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
+                  className={`h-11 ${fieldErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}`}
                 />
                 <button
                   className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
@@ -327,33 +323,33 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 my-2">
-            <div className="flex items-start space-x-2">
-              <Checkbox id="terms" name="terms" value="true" className={fieldErrors.terms ? "border-destructive" : ""} />
-              <div className="grid gap-1.5 leading-none">
+          <div className="flex flex-col gap-1 my-3">
+            <div className="flex items-start space-x-3">
+              <Checkbox id="terms" name="terms" value="true" className={`mt-0.5 ${fieldErrors.terms ? "border-destructive" : ""}`} />
+              <div className="grid gap-1.5 leading-tight">
                 <label
                   htmlFor="terms"
-                  className={cn("text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70", fieldErrors.terms ? "text-destructive" : "")}
+                  className={cn("text-sm font-medium cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70", fieldErrors.terms ? "text-destructive" : "")}
                 >
                   {t('agreeToTerms')}
                 </label>
                 <p className="text-xs text-muted-foreground">
                   {locale === 'de' ? (
                     <>
-                      Durch die Registrierung erklärst du dich mit unseren <a href="https://www.zakkig.de/agb" className="underline" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://www.zakkig.de/datenschutz" className="underline" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
+                      Durch die Registrierung erklärst du dich mit unseren <a href="https://www.zakkig.de/agb" className="underline hover:text-foreground" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://www.zakkig.de/datenschutz" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
                     </>
                   ) : (
                     <>
-                      By registering, you agree to our <a href="https://www.zakkig.de/en/terms" className="underline" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://www.zakkig.de/en/privacy" className="underline" target="_blank" rel="noreferrer">Privacy Policy</a>.
+                      By registering, you agree to our <a href="https://www.zakkig.de/en/terms" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://www.zakkig.de/en/privacy" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Privacy Policy</a>.
                     </>
                   )}
                 </p>
               </div>
             </div>
-            {fieldErrors.terms && <span className="text-sm text-destructive ml-6">{fieldErrors.terms}</span>}
+            {fieldErrors.terms && <span className="text-sm text-destructive ml-7">{fieldErrors.terms}</span>}
           </div>
 
-          <Button type="submit" className="w-full gap-2" disabled={isPending}>
+          <Button type="submit" className="w-full gap-2 h-11" disabled={isPending}>
             {isPending ? (
               <>
                 <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -367,16 +363,14 @@ export default function SignUpPage() {
             )}
           </Button>
         </form>
-      </div>
+      </CardContent>
 
-      <Separator />
-
-      <CardFooter className="justify-center mt-6">
+      <CardFooter className="justify-center pb-6">
         <p className="text-sm text-muted-foreground">
           {t('hasAccount')}{" "}
           <Link
             href="/sign-in"
-            className="font-medium text-foreground underline-offset-4 hover:underline"
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
           >
             {t('signIn')}
           </Link>

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea as TextArea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { PageHeader } from './page-header'
+import { RefreshButton } from './refresh-button'
 
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import {
@@ -89,12 +89,16 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('menu')}>
-        <Button onClick={openNewCategory} variant="default">
-          <Plus data-icon="inline-start" className="mr-2 h-4 w-4" />
-          {t('addCategory')}
-        </Button>
-      </PageHeader>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{t('menu')}</h1>
+        <div className="flex items-center gap-2">
+          <Button onClick={openNewCategory} variant="default">
+            <Plus data-icon="inline-start" className="mr-2 h-4 w-4" />
+            {t('addCategory')}
+          </Button>
+          <RefreshButton />
+        </div>
+      </div>
 
       {categories.length === 0 ? (
         <Card>
