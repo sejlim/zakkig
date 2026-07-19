@@ -7,7 +7,10 @@ import { useSearchParams } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { cn } from "@/lib/utils"
 import { confirmPasswordResetAction } from "@/actions/auth-actions"
-import { Button, Card, Input, Separator, InputGroup } from "@heroui/react"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 import { useTranslation } from "@/lib/i18n"
 import { Eye, EyeSlash, Check, X, FloppyDisk, CircleNotch } from "@phosphor-icons/react"
 
@@ -106,81 +109,77 @@ function ResetPasswordConfirmForm() {
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-danger" : ""}`}>
-            {locale === 'de' ? 'Neues Passwort' : 'New Password'} <span className="text-danger">*</span>
+          <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-destructive" : ""}`}>
+            {locale === 'de' ? 'Neues Passwort' : 'New Password'} <span className="text-destructive">*</span>
           </label>
-          <InputGroup>
-            <InputGroup.Input
+          <div className="relative">
+            <Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
               value={passwordValue}
               onChange={(e) => setPasswordValue(e.target.value)}
-              className={fieldErrors.password ? "border-danger" : ""}
+              className={fieldErrors.password ? "border-destructive pr-10" : "pr-10"}
             />
-            <InputGroup.Suffix>
-              <button
-                className="focus:outline-none"
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? t('hidePassword') : t('showPassword')}
-              >
-                {showPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
-              </button>
-            </InputGroup.Suffix>
-          </InputGroup>
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              title={showPassword ? t('hidePassword') : t('showPassword')}
+            >
+              {showPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+            </button>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1">
             <div className="flex items-start gap-2 text-xs mt-1">
-              {passwordValue.length >= 8 ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-red-500 shrink-0 mt-0.5" weight="bold" />}
+              {passwordValue.length >= 8 ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
               <span className={passwordValue.length >= 8 ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLength' as any)}</span>
             </div>
             <div className="flex items-start gap-2 text-xs mt-1">
-              {/[A-Z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-red-500 shrink-0 mt-0.5" weight="bold" />}
+              {/[A-Z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
               <span className={/[A-Z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqUppercase' as any)}</span>
             </div>
             <div className="flex items-start gap-2 text-xs mt-1">
-              {/[a-z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-red-500 shrink-0 mt-0.5" weight="bold" />}
+              {/[a-z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
               <span className={/[a-z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLowercase' as any)}</span>
             </div>
             <div className="flex items-start gap-2 text-xs mt-1">
-              {/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-red-500 shrink-0 mt-0.5" weight="bold" />}
+              {/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
               <span className={/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? "text-emerald-700 leading-tight" : "text-muted-foreground leading-tight"}>{t('passwordReqNumberOrSpecial' as any)}</span>
             </div>
           </div>
           
-          {fieldErrors.password && <span className="text-xs text-red-500">{fieldErrors.password}</span>}
+          {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-danger" : ""}`}>
-            {t('confirmPassword')} <span className="text-danger">*</span>
+          <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
+            {t('confirmPassword')} <span className="text-destructive">*</span>
           </label>
-          <InputGroup>
-            <InputGroup.Input
+          <div className="relative">
+            <Input
               id="confirmPassword"
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               autoComplete="new-password"
-              className={fieldErrors.confirmPassword ? "border-danger" : ""}
+              className={fieldErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
             />
-            <InputGroup.Suffix>
-              <button
-                className="focus:outline-none"
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                title={showConfirmPassword ? t('hidePassword') : t('showPassword')}
-              >
-                {showConfirmPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
-              </button>
-            </InputGroup.Suffix>
-          </InputGroup>
-          {fieldErrors.confirmPassword && <span className="text-xs text-red-500">{fieldErrors.confirmPassword}</span>}
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              title={showConfirmPassword ? t('hidePassword') : t('showPassword')}
+            >
+              {showConfirmPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+            </button>
+          </div>
+          {fieldErrors.confirmPassword && <span className="text-sm text-destructive">{fieldErrors.confirmPassword}</span>}
         </div>
       </div>
 
-      <Button type="submit" className="w-full mt-4 gap-2" isDisabled={isPending}>
+      <Button type="submit" className="w-full mt-4 gap-2" disabled={isPending}>
         {isPending ? (
           <>
             <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -216,16 +215,16 @@ export default function ResetPasswordConfirmPage() {
         <LanguageSwitcher />
       </div>
       <Separator />
-      <Card.Header className="flex-col items-start gap-1">
+      <CardHeader className="flex-col items-start gap-1">
         <h1 className="text-xl font-semibold">
           {locale === 'de' ? 'Passwort zurücksetzen' : 'Reset Password'}
         </h1>
-        <p className="text-sm text-default-500">
+        <p className="text-sm text-muted-foreground">
           {locale === 'de' 
             ? 'Bitte gib dein neues Passwort ein.' 
             : 'Please enter your new password.'}
         </p>
-      </Card.Header>
+      </CardHeader>
 
       <div>
         <Suspense fallback={<div className="h-40 flex items-center justify-center">Loading...</div>}>
@@ -235,7 +234,7 @@ export default function ResetPasswordConfirmPage() {
 
       <Separator />
 
-      <Card.Footer className="justify-center mt-6">
+      <CardFooter className="justify-center mt-6">
         <p className="text-sm text-muted-foreground">
           <Link
             href="/sign-in"
@@ -244,7 +243,7 @@ export default function ResetPasswordConfirmPage() {
             {locale === 'de' ? 'Zurück zur Anmeldung' : 'Back to sign in'}
           </Link>
         </p>
-      </Card.Footer>
+      </CardFooter>
     </Card>
   )
 }

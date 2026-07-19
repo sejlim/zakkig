@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Check, X, Clock } from '@phosphor-icons/react'
-import { Card, CardHeader, Chip as Badge, Button, ScrollShadow } from '@heroui/react'
+import { Card, CardHeader } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTranslation } from '@/lib/i18n'
 import { subscribeToOrders } from '@/lib/appwrite/realtime'
 import { updateOrderStatusAction } from '@/actions/order-actions'
@@ -103,9 +106,9 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
         <div className="flex flex-1 flex-col rounded-xl border bg-background shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="font-semibold text-lg">{t('inProgress')}</h2>
-            <Badge color="default">{activeOrders.length}</Badge>
+            <Badge variant="secondary">{activeOrders.length}</Badge>
           </div>
-          <ScrollShadow className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeOrders.map(order => (
                 <OrderCard 
@@ -127,16 +130,16 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
                 </div>
               )}
             </div>
-          </ScrollShadow>
+          </ScrollArea>
         </div>
 
         {/* Completed Column */}
         <div className="flex w-1/3 flex-col rounded-xl border bg-background shadow-sm overflow-hidden opacity-70">
           <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="font-semibold text-lg">{t('done')}</h2>
-            <Badge color="default">{completedOrders.length}</Badge>
+            <Badge variant="secondary">{completedOrders.length}</Badge>
           </div>
-          <ScrollShadow className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4">
             <div className="flex flex-col gap-4">
               {completedOrders.map(order => (
                 <OrderCard 
@@ -153,7 +156,7 @@ export function KitchenBoard({ organization, initialOrders }: KitchenBoardProps)
                 />
               ))}
             </div>
-          </ScrollShadow>
+          </ScrollArea>
         </div>
       </div>
     </div>
@@ -166,14 +169,14 @@ function OrderCard({ order, items, age, actionButton }: { order: Order, items: O
   
   return (
     <Card className={isUrgent ? 'border-primary/50 shadow-md' : 'shadow-sm'}>
-      <Card.Header className="pb-2">
+      <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
             <div className="text-xl font-bold">{order.orderNumber}</div>
             <div className="flex items-center gap-2 mt-1">
-              <Badge color="default">{order.type === 'dine-in' ? t('dineIn') : t('takeaway')}</Badge>
+              <Badge variant="secondary">{order.type === 'dine-in' ? t('dineIn') : t('takeaway')}</Badge>
               {order.tableNumber && (
-                <Badge color="default" className="font-mono text-sm">Tisch {order.tableNumber}</Badge>
+                <Badge variant="secondary" className="font-mono text-sm">Tisch {order.tableNumber}</Badge>
               )}
             </div>
           </div>
@@ -182,8 +185,8 @@ function OrderCard({ order, items, age, actionButton }: { order: Order, items: O
             {age}
           </div>
         </div>
-      </Card.Header>
-      <div>
+      </CardHeader>
+      <div className="p-6 pt-0">
         <ul className="space-y-2 mt-2">
           {items.map((item) => (
             <li key={item.menuItemId} className="flex gap-2 text-lg">

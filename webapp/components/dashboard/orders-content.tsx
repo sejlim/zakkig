@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { MagnifyingGlass, Export, CircleDashed, CookingPot, CheckCircle } from '@phosphor-icons/react'
-import { toast, Card, Button, Chip as Badge, Tabs, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from "@heroui/react"
+import { toast } from "sonner"
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table"
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { PageHeader } from './page-header'
 import { exportOrdersCSVAction, updateOrderStatusAction } from '@/actions/order-actions'
@@ -21,11 +25,11 @@ function parseItems(itemsJson: string): OrderItem[] {
   }
 }
 
-const statusVariants: Record<string, "default" | "success" | "warning" | "danger" | "accent"> = {
+const statusVariants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: 'default',
-  preparing: 'accent',
-  ready: 'success',
-  completed: 'default',
+  preparing: 'secondary',
+  ready: 'default',
+  completed: 'outline',
 }
 
 export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
@@ -71,8 +75,8 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('orders')}>
-        <Button variant="outline" onPress={handleExportCSV}>
-          <Export data-icon="inline-start" />
+        <Button variant="outline" onClick={handleExportCSV}>
+          <Export data-icon="inline-start" className="mr-2" />
           {t('exportCSV')}
         </Button>
       </PageHeader>
@@ -91,7 +95,7 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
           <span className="flex items-center gap-2">
             {t('liveView')}
             {activeOrders.length > 0 && (
-              <Badge size="sm">{activeOrders.length}</Badge>
+              <Badge variant="secondary">{activeOrders.length}</Badge>
             )}
           </span>
         </button>
@@ -112,9 +116,9 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
         <div>
           {activeOrders.length === 0 ? (
             <Card>
-              <Card.Content className="py-12 text-center text-muted-foreground">
+              <CardContent className="py-12 text-center text-muted-foreground">
                 {t('noOrders')}
-              </Card.Content>
+              </CardContent>
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -122,23 +126,23 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
                 const items = parseItems(order.items)
                 return (
                   <Card key={order.$id}>
-                    <Card.Header className="pb-3">
+                    <CardHeader className="pb-3">
                       <div className="flex items-center justify-between w-full">
                         <h3 className="text-base font-semibold">{order.orderNumber}</h3>
-                        <Badge variant={statusVariants[order.status] === 'default' ? undefined : undefined}>
+                        <Badge variant={statusVariants[order.status]}>
                           {getStatusLabel(order.status)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                        <Badge size="sm">
+                        <Badge variant="outline">
                           {order.type === 'dine-in' ? t('dineIn') : t('takeaway')}
                         </Badge>
                         {order.tableNumber && (
                           <span>{t('table')} {order.tableNumber}</span>
                         )}
                       </div>
-                    </Card.Header>
-                    <Card.Content>
+                    </CardHeader>
+                    <CardContent>
                       <div className="flex flex-col gap-2">
                         {items.map((item) => (
                           <div key={item.menuItemId} className="flex justify-between text-sm">
@@ -155,7 +159,7 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
                             <Button
                               size="sm"
                               className="flex-1"
-                              onPress={() => handleStatusChange(order.$id, 'preparing')}
+                              onClick={() => handleStatusChange(order.$id, 'preparing')}
                             >
                               {t('preparing')}
                             </Button>
@@ -165,7 +169,7 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
                               size="sm"
                               variant="secondary"
                               className="flex-1"
-                              onPress={() => handleStatusChange(order.$id, 'ready')}
+                              onClick={() => handleStatusChange(order.$id, 'ready')}
                             >
                               {t('ready')}
                             </Button>
@@ -175,14 +179,14 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
                               size="sm"
                               variant="ghost"
                               className="flex-1"
-                              onPress={() => handleStatusChange(order.$id, 'completed')}
+                              onClick={() => handleStatusChange(order.$id, 'completed')}
                             >
                               {t('completed')}
                             </Button>
                           )}
                         </div>
                       </div>
-                    </Card.Content>
+                    </CardContent>
                   </Card>
                 )
               })}
@@ -207,12 +211,14 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
           <Card>
             <Table aria-label="Orders history">
               <TableHeader>
-                <TableColumn>{t('orderNumber')}</TableColumn>
-                <TableColumn>{t('date')}</TableColumn>
-                <TableColumn>{t('type')}</TableColumn>
-                <TableColumn>{t('items')}</TableColumn>
-                <TableColumn className="text-right">{t('total')}</TableColumn>
-                <TableColumn>{t('status')}</TableColumn>
+                <TableRow>
+                  <TableHead>{t('orderNumber')}</TableHead>
+                  <TableHead>{t('date')}</TableHead>
+                  <TableHead>{t('type')}</TableHead>
+                  <TableHead>{t('items')}</TableHead>
+                  <TableHead className="text-right">{t('total')}</TableHead>
+                  <TableHead>{t('status')}</TableHead>
+                </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
@@ -230,7 +236,7 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
                         <span suppressHydrationWarning>{new Date(order.$createdAt).toLocaleDateString('de-DE')}</span>
                       </TableCell>
                       <TableCell>
-                        <Badge size="sm">
+                        <Badge variant="secondary">
                           {order.type === 'dine-in' ? t('dineIn') : t('takeaway')}
                         </Badge>
                       </TableCell>
@@ -241,7 +247,7 @@ export function OrdersContent({ orders, organizationId }: OrdersContentProps) {
                         {formatPrice(order.total)}
                       </TableCell>
                       <TableCell>
-                        <Badge>
+                        <Badge variant={statusVariants[order.status]}>
                           {getStatusLabel(order.status)}
                         </Badge>
                       </TableCell>

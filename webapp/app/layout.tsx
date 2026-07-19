@@ -3,13 +3,13 @@ import type { Metadata } from "next"
 
 import "./globals.css"
 import { cn } from "@/lib/utils"
-import { Toast } from "@heroui/react"
+import { Toaster } from "@/components/ui/sonner"
 
 const poppins = Poppins({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  weight: ['300', '400', '500', '600', '700'],
-})
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+});
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -59,7 +59,7 @@ export default function RootLayout({
     >
       <body className="bg-background text-foreground">
         {children}
-        <Toast.Provider placement="top" />
+        <Toaster position="top-center" />
       </body>
     </html>
   )

@@ -2,7 +2,13 @@
 
 import { useState, useActionState } from 'react'
 import { Plus, PencilSimple, Trash, Eye, EyeSlash } from '@phosphor-icons/react'
-import { toast, Card,   Button, Chip as Badge, Input, TextArea, Separator as Separator, Modal } from "@heroui/react"
+import { toast } from 'sonner'
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Textarea as TextArea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { PageHeader } from './page-header'
 
 import { useTranslation, formatPrice } from '@/lib/i18n'
@@ -84,17 +90,17 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('menu')}>
-        <Button onPress={openNewCategory} variant="primary">
-          <Plus data-icon="inline-start" />
+        <Button onClick={openNewCategory} variant="default">
+          <Plus data-icon="inline-start" className="mr-2 h-4 w-4" />
           {t('addCategory')}
         </Button>
       </PageHeader>
 
       {categories.length === 0 ? (
         <Card>
-          <Card.Content className="py-12 text-center text-muted-foreground">
+          <CardContent className="py-12 text-center text-muted-foreground">
             {t('noCategories')}
-          </Card.Content>
+          </CardContent>
         </Card>
       ) : (
         <div className="flex flex-col gap-6">
@@ -102,38 +108,36 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
             const categoryItems = getItemsByCategory(category.$id)
             return (
               <Card key={category.$id}>
-                <Card.Header className="flex-col items-start gap-2">
+                <CardHeader className="flex-col items-start gap-2">
                   <div className="flex items-center justify-between w-full">
                     <h3 className="text-lg font-semibold">{category.name}</h3>
                     <div className="flex items-center gap-2">
                       <Button
-                        variant="tertiary"
-                        size="sm"
-                        isIconOnly
-                        onPress={() => openEditCategory(category)}
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditCategory(category)}
                       >
-                        <PencilSimple />
+                        <PencilSimple className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="danger-soft"
-                        size="sm"
-                        isIconOnly
-                        onPress={() => handleDeleteCategory(category.$id)}
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteCategory(category.$id)}
                       >
-                        <Trash />
+                        <Trash className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="secondary"
                         size="sm"
-                        onPress={() => openNewItem(category.$id)}
+                        onClick={() => openNewItem(category.$id)}
                       >
-                        <Plus data-icon="inline-start" />
+                        <Plus data-icon="inline-start" className="mr-2 h-4 w-4" />
                         {t('addItem')}
                       </Button>
                     </div>
                   </div>
-                </Card.Header>
-                <Card.Content>
+                </CardHeader>
+                <CardContent>
                   {categoryItems.length === 0 ? (
                     <p className="text-sm text-muted-foreground">{t('noItems')}</p>
                   ) : (
@@ -147,7 +151,7 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{item.name}</span>
                               {!item.available && (
-                                <Badge color="default" variant="soft">{t('unavailable')}</Badge>
+                                <Badge variant="secondary">{t('unavailable')}</Badge>
                               )}
                             </div>
                             {item.description && (
@@ -157,150 +161,135 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
                           </div>
                           <div className="flex items-center gap-2">
                             <Button
-                              variant="tertiary"
-                              size="sm"
-                              isIconOnly
-                              onPress={() => handleToggleAvailability(item.$id, !item.available)}
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleToggleAvailability(item.$id, !item.available)}
                             >
-                              {item.available ? <Eye /> : <EyeSlash />}
+                              {item.available ? <Eye className="h-4 w-4" /> : <EyeSlash className="h-4 w-4" />}
                             </Button>
                             <Button
-                              variant="tertiary"
-                              size="sm"
-                              isIconOnly
-                              onPress={() => openEditItem(item)}
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditItem(item)}
                             >
-                              <PencilSimple />
+                              <PencilSimple className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="danger-soft"
-                              size="sm"
-                              isIconOnly
-                              onPress={() => handleDeleteItem(item.$id, item.imageId)}
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => handleDeleteItem(item.$id, item.imageId)}
                             >
-                              <Trash />
+                              <Trash className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
-                </Card.Content>
+                </CardContent>
               </Card>
             )
           })}
         </div>
       )}
 
-      <Modal>
-        <Modal.Backdrop isOpen={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-          <Modal.Container>
-            <Modal.Dialog>
-              <Modal.Header className="flex flex-col gap-1">
-                <Modal.Heading className="text-lg font-semibold">
-                  {editingCategory ? t('editCategory') : t('addCategory')}
-                </Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                <form action={categoryAction} className="flex flex-col gap-4" id="category-form">
-                  <input type="hidden" name="organizationId" value={organizationId} />
-                  {editingCategory && (
-                    <input type="hidden" name="categoryId" value={editingCategory.$id} />
-                  )}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="category-name" className="text-sm font-medium">{t('categoryName')}</label>
-                    <Input
-                      id="category-name"
-                      name="name"
-                      defaultValue={editingCategory?.name ?? ''}
-                      required
-                    />
-                  </div>
-                  <input type="hidden" name="sortOrder" value={editingCategory?.sortOrder ?? categories.length} />
-                  {categoryState.error && (
-                    <p className="text-sm text-danger">{categoryState.error}</p>
-                  )}
-                </form>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button type="submit" form="category-form" isDisabled={isCategoryPending} variant="primary">
-                  {t('save')}
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? t('editCategory') : t('addCategory')}
+            </DialogTitle>
+          </DialogHeader>
+          <form action={categoryAction} noValidate className="flex flex-col gap-4 py-4" id="category-form">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            {editingCategory && (
+              <input type="hidden" name="categoryId" value={editingCategory.$id} />
+            )}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="category-name" className="text-sm font-medium">{t('categoryName')}</label>
+              <Input
+                id="category-name"
+                name="name"
+                defaultValue={editingCategory?.name ?? ''}
+                required
+              />
+            </div>
+            <input type="hidden" name="sortOrder" value={editingCategory?.sortOrder ?? categories.length} />
+            {categoryState.error && (
+              <p className="text-sm text-destructive">{categoryState.error}</p>
+            )}
+          </form>
+          <DialogFooter>
+            <Button type="submit" form="category-form" disabled={isCategoryPending} variant="default">
+              {t('save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <Modal>
-        <Modal.Backdrop isOpen={showItemDialog} onOpenChange={setShowItemDialog}>
-          <Modal.Container>
-            <Modal.Dialog>
-              <Modal.Header className="flex flex-col gap-1">
-                <Modal.Heading className="text-lg font-semibold">
-                  {editingItem ? t('editItem') : t('addItem')}
-                </Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                <form action={itemAction} className="flex flex-col gap-4" id="item-form">
-                  <input type="hidden" name="organizationId" value={organizationId} />
-                  <input type="hidden" name="categoryId" value={selectedCategoryId} />
-                  {editingItem && (
-                    <>
-                      <input type="hidden" name="itemId" value={editingItem.$id} />
-                      <input type="hidden" name="existingImageId" value={editingItem.imageId} />
-                      <input type="hidden" name="available" value={String(editingItem.available)} />
-                    </>
-                  )}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="item-name" className="text-sm font-medium">{t('itemName')}</label>
-                    <Input
-                      id="item-name"
-                      name="name"
-                      defaultValue={editingItem?.name ?? ''}
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="item-description" className="text-sm font-medium">{t('description')}</label>
-                    <TextArea
-                      id="item-description"
-                      name="description"
-                      defaultValue={editingItem?.description ?? ''}
-                      rows={2}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="item-price" className="text-sm font-medium">{t('price')} (€)</label>
-                    <Input
-                      id="item-price"
-                      name="price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      defaultValue={editingItem ? (editingItem.price / 100).toFixed(2) : ''}
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="item-image" className="text-sm font-medium">{t('image')}</label>
-                    <Input id="item-image" name="image" type="file" accept="image/*" />
-                  </div>
-                  <input type="hidden" name="sortOrder" value={editingItem?.sortOrder ?? 0} />
-                  {itemState.error && (
-                    <p className="text-sm text-danger">{itemState.error}</p>
-                  )}
-                </form>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button type="submit" form="item-form" isDisabled={isItemPending} variant="primary">
-                  {t('save')}
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      <Dialog open={showItemDialog} onOpenChange={setShowItemDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingItem ? t('editItem') : t('addItem')}
+            </DialogTitle>
+          </DialogHeader>
+          <form action={itemAction} noValidate className="flex flex-col gap-4 py-4" id="item-form">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <input type="hidden" name="categoryId" value={selectedCategoryId} />
+            {editingItem && (
+              <>
+                <input type="hidden" name="itemId" value={editingItem.$id} />
+                <input type="hidden" name="existingImageId" value={editingItem.imageId} />
+                <input type="hidden" name="available" value={String(editingItem.available)} />
+              </>
+            )}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="item-name" className="text-sm font-medium">{t('itemName')}</label>
+              <Input
+                id="item-name"
+                name="name"
+                defaultValue={editingItem?.name ?? ''}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="item-description" className="text-sm font-medium">{t('description')}</label>
+              <TextArea
+                id="item-description"
+                name="description"
+                defaultValue={editingItem?.description ?? ''}
+                rows={2}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="item-price" className="text-sm font-medium">{t('price')} (€)</label>
+              <Input
+                id="item-price"
+                name="price"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={editingItem ? (editingItem.price / 100).toFixed(2) : ''}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="item-image" className="text-sm font-medium">{t('image')}</label>
+              <Input id="item-image" name="image" type="file" accept="image/*" />
+            </div>
+            <input type="hidden" name="sortOrder" value={editingItem?.sortOrder ?? 0} />
+            {itemState.error && (
+              <p className="text-sm text-destructive">{itemState.error}</p>
+            )}
+          </form>
+          <DialogFooter>
+            <Button type="submit" form="item-form" disabled={isItemPending} variant="default">
+              {t('save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

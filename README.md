@@ -134,64 +134,38 @@ Das Branding von zakkig ist extrem edel, minimalistisch und unauffällig. Es nut
 
 **Wichtig zur Theme-Strategie:** Wir lassen den Dark Mode prinzipiell raus und bieten keine weiteren Theme-Modes an. Die gesamte Plattform wird exklusiv im **Light Theme** betrieben. Dies sorgt dafür, dass sich zakkig mit einem klaren, seriösen und konsistenten Bild unaufdringlich in jede Gaststätte einfügt.
 
-### 4.2 Das UI Theme (HeroUI)
+### 4.2 Das UI Theme (shadcn/ui)
 
-Als technisches Fundament für das Interface nutzen wir **HeroUI** in Kombination mit Tailwind CSS v4. Wir setzen konsequent auf die Schriftart **Poppins** für perfekte Lesbarkeit.
+Als technisches Fundament für das Interface nutzen wir **shadcn/ui** in Kombination mit Tailwind CSS v4. Wir setzen konsequent auf die Schriftart **Poppins** für perfekte Lesbarkeit.
 **Zentrales Theme (`globals.css`):**
 
 ```css
-/*
- * HeroUI Theme Customization
- * Add this to your global.css after importing @heroui/styles
- * Only includes variables users need to customize
- * @see https://heroui.com/docs/react/getting-started/theming
- */
+@import "tailwindcss";
 
-:root,
-.light,
-.default,
-[data-theme="light"],
-[data-theme="default"] {
-  /* Theme Colors (Light Mode) */
-  --accent: oklch(29.22% 0.0156 264.30);
-  --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(97.02% 0.0000 264.30);
-  --border: oklch(90.00% 0.0000 264.30);
-  --danger: oklch(65.32% 0.2328 27.00);
-  --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(94.00% 0.0000 264.30);
-  --default-foreground: oklch(21.03% 0.0059 264.30);
-  --field-background: oklch(100.00% 0.0000 264.30);
-  --field-border: transparent;
-  --field-foreground: oklch(21.03% 0.0000 264.30);
-  --field-placeholder: oklch(55.17% 0.0000 264.30);
-  --focus: oklch(29.22% 0.0156 264.30);
-  --foreground: oklch(21.03% 0.0000 264.30);
-  --muted: oklch(55.17% 0.0000 264.30);
-  --overlay: oklch(100.00% 0.0000 264.30);
-  --overlay-foreground: oklch(21.03% 0.0000 264.30);
-  --scrollbar: oklch(87.10% 0.0000 264.30);
-  --segment: oklch(100.00% 0.0000 264.30);
-  --segment-foreground: oklch(21.03% 0.0000 264.30);
-  --separator: oklch(92.00% 0.0000 264.30);
-  --success: oklch(73.29% 0.1935 152.07);
-  --success-foreground: oklch(21.03% 0.0059 152.07);
-  --surface: oklch(100.00% 0.0000 264.30);
-  --surface-foreground: oklch(21.03% 0.0000 264.30);
-  --surface-secondary: oklch(95.24% 0.0000 264.30);
-  --surface-secondary-foreground: oklch(21.03% 0.0000 264.30);
-  --surface-tertiary: oklch(93.73% 0.0000 264.30);
-  --surface-tertiary-foreground: oklch(21.03% 0.0000 264.30);
-  --warning: oklch(78.19% 0.1585 73.59);
-  --warning-foreground: oklch(21.03% 0.0059 73.59);
+@custom-variant dark (&:is(.dark *));
 
-  /* Border Radius */
-  --radius: 0.5rem;
-  --field-radius: 1rem;
-
-  /* Font Family */
-  /* Make sure to load Poppins font in your app */
-  --font-sans: "Poppins", sans-serif;
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.1450 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1450 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1450 0 0);
+  --primary: oklch(0.2050 0 0);
+  --primary-foreground: oklch(0.9850 0 0);
+  --secondary: oklch(0.9700 0 0);
+  --secondary-foreground: oklch(0.2050 0 0);
+  --muted: oklch(0.9700 0 0);
+  --muted-foreground: oklch(0.5560 0 0);
+  --accent: oklch(0.9700 0 0);
+  --accent-foreground: oklch(0.2050 0 0);
+  --destructive: oklch(0.5770 0.2450 27.3250);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9220 0 0);
+  --input: oklch(0.9220 0 0);
+  --ring: oklch(0.7080 0 0);
+  --radius: 1.5rem;
+  --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
 }
 
 /* 
@@ -199,41 +173,17 @@ Als technisches Fundament für das Interface nutzen wir **HeroUI** in Kombinatio
   wird aber aufgrund der "Light Mode Only"-Philosophie im Frontend nicht aktiv angeboten.
 */
 
-.dark,
-[data-theme="dark"] {
-  color-scheme: dark;
-  /* Theme Colors (Dark Mode) */
-  --accent: oklch(29.22% 0.0156 264.30);
-  --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(12.00% 0.0000 264.30);
-  --border: oklch(28.00% 0.0000 264.30);
-  --danger: oklch(59.40% 0.1967 25.89);
-  --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(27.40% 0.0000 264.30);
-  --default-foreground: oklch(99.11% 0 0);
-  --field-background: oklch(21.03% 0.0000 264.30);
-  --field-border: transparent;
-  --field-foreground: oklch(99.11% 0.0000 264.30);
-  --field-placeholder: oklch(70.50% 0.0000 264.30);
-  --focus: oklch(29.22% 0.0156 264.30);
-  --foreground: oklch(99.11% 0.0000 264.30);
-  --muted: oklch(70.50% 0.0000 264.30);
-  --overlay: oklch(21.03% 0.0000 264.30);
-  --overlay-foreground: oklch(99.11% 0.0000 264.30);
-  --scrollbar: oklch(70.50% 0.0000 264.30);
-  --segment: oklch(39.64% 0.0000 264.30);
-  --segment-foreground: oklch(99.11% 0.0000 264.30);
-  --separator: oklch(25.00% 0.0000 264.30);
-  --success: oklch(73.29% 0.1935 152.07);
-  --success-foreground: oklch(21.03% 0.0059 152.07);
-  --surface: oklch(21.03% 0.0000 264.30);
-  --surface-foreground: oklch(99.11% 0.0000 264.30);
-  --surface-secondary: oklch(25.70% 0.0000 264.30);
-  --surface-secondary-foreground: oklch(99.11% 0.0000 264.30);
-  --surface-tertiary: oklch(27.21% 0.0000 264.30);
-  --surface-tertiary-foreground: oklch(99.11% 0.0000 264.30);
-  --warning: oklch(82.03% 0.1388 77.60);
-  --warning-foreground: oklch(21.03% 0.0059 77.60);
+.dark {
+  --background: oklch(0.1450 0 0);
+  --foreground: oklch(0.9850 0 0);
+  /* ...weitere Dark Mode Variablen... */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* ...weitere Theme Zuweisungen... */
+  --font-sans: var(--font-sans);
 }
 ```
 
@@ -253,7 +203,7 @@ Das Projekt besteht aus zwei komplett unabhängigen Next.js-Applikationen in ein
 ### 5.2 Der Technologie Stack
 
 - **Frontend-Framework:** Next.js (React) mit Server-Side Rendering (SSR) und Server Actions.
-- **UI & Styling:** HeroUI kombiniert mit Tailwind CSS v4.
+- **UI & Styling:** shadcn/ui kombiniert mit Tailwind CSS v4.
 - **State Management:** Zustand für persistente Client-Side States.
 - **Lokalisierung:** i18n für ein dynamisches, mehrsprachiges Setup (Deutsch / Englisch).
 - **Backend as a Service:** Appwrite Cloud.

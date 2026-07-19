@@ -6,8 +6,10 @@ import { z } from 'zod';
 import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
 import { addToWaitlist } from '../app/actions/waitlist';
-import { Form, Input, Button, toast } from '@heroui/react';
-import { Check } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { Check, CircleNotch } from '@phosphor-icons/react';
 
 const waitlistSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -35,12 +37,12 @@ export function WaitlistForm() {
       if (response.success) {
         setStatus('success');
         toast.success(t('formSuccess'), {
-          indicator: <Check weight="bold" />
+          icon: <Check weight="bold" />
         });
         form.reset();
       } else {
         setStatus('error');
-        toast.danger(
+        toast.error(
           response.errorCode === 'EMAIL_ALREADY_EXISTS'
             ? t('formDuplicateError')
             : t('formError')
@@ -50,7 +52,7 @@ export function WaitlistForm() {
     } catch (err) {
       console.error(err);
       setStatus('error');
-      toast.danger(t('formError'));
+      toast.error(t('formError'));
       setShowRedText(true);
     }
   };
@@ -60,7 +62,7 @@ export function WaitlistForm() {
     if (error) {
       const val = form.getValues('email');
       const isEmpty = !val || val.trim() === '';
-      toast.danger(
+      toast.error(
         isEmpty ? t('formRequiredError') : t('formInvalidEmailError')
       );
       setShowRedText(true);
@@ -69,9 +71,9 @@ export function WaitlistForm() {
 
   return (
     <div className="w-full max-w-lg">
-      <Form
+      <form
+        noValidate
         onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-        validationBehavior="aria"
         className="flex flex-col sm:flex-row gap-3 w-full"
       >
         <div className="w-full sm:w-80 sm:flex-none flex flex-col">
@@ -81,7 +83,7 @@ export function WaitlistForm() {
             type="email"
             placeholder={t('formPlaceholder')}
             disabled={status === 'loading'}
-            className={`w-full h-12 px-6 rounded-full bg-white/10 hover:bg-white/15 focus:outline-none focus:bg-white/15 border-none transition-colors text-base placeholder:text-zinc-500 ${showRedText ? 'text-danger' : 'text-white'}`}
+            className={`w-full h-12 px-6 rounded-full bg-white/10 hover:bg-white/15 focus:outline-none focus:bg-white/15 border-none transition-colors text-base placeholder:text-zinc-500 ${showRedText ? 'text-destructive' : 'text-white'}`}
             {...form.register('email', {
               onChange: () => {
                 if (showRedText) setShowRedText(false);
@@ -91,13 +93,13 @@ export function WaitlistForm() {
         </div>
         <Button
           type="submit"
-          isPending={status === 'loading'}
-          isDisabled={status === 'loading'}
-          className="h-12 px-8 bg-white text-black hover:bg-zinc-200 rounded-full font-semibold text-base sm:w-auto w-full transition-colors"
+          disabled={status === 'loading'}
+          className="h-12 px-8 bg-white text-black hover:bg-zinc-200 rounded-full font-semibold text-base sm:w-auto w-full transition-colors flex items-center justify-center"
         >
+          {status === 'loading' && <CircleNotch className="w-5 h-5 mr-2 animate-spin" weight="bold" />}
           {t('formButton')}
         </Button>
-      </Form>
+      </form>
       <p className="mt-4 text-xs text-zinc-500 font-light text-left leading-normal px-4">
         {t('waitlistConsentPrefix')}{' '}
         <a

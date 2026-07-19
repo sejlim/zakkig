@@ -6,7 +6,12 @@ import Image from "next/image"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { cn } from "@/lib/utils"
 import { signUpAction, verifyOtpAction, resendOtpAction } from "@/actions/auth-actions"
-import { Button, Card, Input, Separator, InputOTP, Checkbox, InputGroup } from "@heroui/react"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslation } from "@/lib/i18n"
 import { Eye, EyeSlash, Check, X, UserPlus, CheckCircle, CircleNotch, PaperPlaneRight } from "@phosphor-icons/react"
 
@@ -104,16 +109,16 @@ export default function SignUpPage() {
           <LanguageSwitcher />
         </div>
         <Separator />
-        <Card.Header className="flex-col items-start gap-1">
+        <CardHeader className="flex-col items-start gap-1">
           <h1 className="text-xl font-semibold">{locale === 'de' ? 'E-Mail bestätigen' : 'Verify Email'}</h1>
-          <p className="text-sm text-default-500">
+          <p className="text-sm text-muted-foreground">
             {locale === 'de' 
               ? `Wir haben dir einen 6-stelligen Code an ${state.email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.` 
               : `We have sent a 6-digit code to ${state.email}. Enter the code in the input field below and confirm to continue.`}
           </p>
-        </Card.Header>
+        </CardHeader>
         <div>
-          <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+          <form onSubmit={handleVerifyOtp} noValidate className="flex flex-col gap-4">
             {otpError && (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {otpError}
@@ -130,17 +135,17 @@ export default function SignUpPage() {
                       submitOtp(val)
                     }
                   }}
-                  isDisabled={isVerifying}
+                  disabled={isVerifying}
                   autoFocus
                 >
-                <InputOTP.Group className="w-full flex">
-                  <InputOTP.Slot index={0} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={1} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={2} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={3} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={4} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={5} className="h-14 flex-1 text-2xl" />
-                </InputOTP.Group>
+                  <InputOTPGroup className="w-full flex gap-2">
+                    <InputOTPSlot index={0} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={1} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={2} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={3} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={4} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={5} className="h-14 flex-1 text-2xl" />
+                  </InputOTPGroup>
                 </InputOTP>
               </div>
             </div>
@@ -149,12 +154,12 @@ export default function SignUpPage() {
                 type="button"
                 variant="outline"
                 className="w-full sm:w-1/2"
-                isDisabled={countdown > 0}
+                disabled={countdown > 0}
                 onClick={handleResendOtp}
               >
                 {countdown > 0 ? t('resendIn').replace('{time}', countdown.toString()) : t('resendCode')}
               </Button>
-              <Button type="submit" className="w-full sm:w-1/2 gap-2" isDisabled={isVerifying || otp.length < 6}>
+              <Button type="submit" className="w-full sm:w-1/2 gap-2" disabled={isVerifying || otp.length < 6}>
                 {isVerifying ? (
                   <>
                     <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -190,12 +195,12 @@ export default function SignUpPage() {
         <LanguageSwitcher />
       </div>
       <Separator />
-      <Card.Header className="flex-col items-start gap-1">
+      <CardHeader className="flex-col items-start gap-1">
         <h1 className="text-xl font-semibold">{t('signUp')}</h1>
-        <p className="text-sm text-default-500">
+        <p className="text-sm text-muted-foreground">
           {t('signUpDescription')}
         </p>
-      </Card.Header>
+      </CardHeader>
 
       <div>
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -207,8 +212,8 @@ export default function SignUpPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="restaurantName" className={`text-sm font-medium ${fieldErrors.restaurantName ? "text-danger" : ""}`}>
-                {t('restaurantName')} <span className="text-danger">*</span>
+              <label htmlFor="restaurantName" className={`text-sm font-medium ${fieldErrors.restaurantName ? "text-destructive" : ""}`}>
+                {t('restaurantName')} <span className="text-destructive">*</span>
               </label>
               <Input
                 id="restaurantName"
@@ -216,9 +221,9 @@ export default function SignUpPage() {
                 type="text"
                 placeholder={t('businessPlaceholder')}
                 autoComplete="organization"
-                className={fieldErrors.restaurantName ? "border-danger" : ""}
+                className={fieldErrors.restaurantName ? "border-destructive" : ""}
               />
-              {fieldErrors.restaurantName && <span className="text-xs text-danger">{fieldErrors.restaurantName}</span>}
+              {fieldErrors.restaurantName && <span className="text-sm text-destructive">{fieldErrors.restaurantName}</span>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -236,8 +241,8 @@ export default function SignUpPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-danger" : ""}`}>
-              {t('email')} <span className="text-danger">*</span>
+            <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-destructive" : ""}`}>
+              {t('email')} <span className="text-destructive">*</span>
             </label>
             <Input
               id="email"
@@ -245,100 +250,90 @@ export default function SignUpPage() {
               type="email"
               placeholder={t('emailPlaceholder')}
               autoComplete="email"
-              className={fieldErrors.email ? "border-danger" : ""}
+              className={fieldErrors.email ? "border-destructive" : ""}
             />
-            {fieldErrors.email && <span className="text-xs text-danger">{fieldErrors.email}</span>}
+            {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
           </div>
 
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-danger" : ""}`}>
-                {t('password')} <span className="text-danger">*</span>
+              <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-destructive" : ""}`}>
+                {t('password')} <span className="text-destructive">*</span>
               </label>
-              <InputGroup>
-                <InputGroup.Input
+              <div className="relative">
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   value={passwordValue}
                   onChange={(e) => setPasswordValue(e.target.value)}
-                  className={fieldErrors.password ? "border-danger" : ""}
+                  className={fieldErrors.password ? "border-destructive pr-10" : "pr-10"}
                 />
-                <InputGroup.Suffix>
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    title={showPassword ? t('hidePassword') : t('showPassword')}
-                  >
-                    {showPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
-                  </button>
-                </InputGroup.Suffix>
-              </InputGroup>
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? t('hidePassword') : t('showPassword')}
+                >
+                  {showPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+                </button>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1">
                 <div className="flex items-start gap-2 text-xs mt-1">
-                  {passwordValue.length >= 8 ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-danger shrink-0 mt-0.5" weight="bold" />}
+                  {passwordValue.length >= 8 ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={passwordValue.length >= 8 ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLength' as any)}</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs mt-1">
-                  {/[A-Z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-danger shrink-0 mt-0.5" weight="bold" />}
+                  {/[A-Z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={/[A-Z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqUppercase' as any)}</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs mt-1">
-                  {/[a-z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-danger shrink-0 mt-0.5" weight="bold" />}
+                  {/[a-z]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={/[a-z]/.test(passwordValue) ? "text-emerald-700" : "text-muted-foreground"}>{t('passwordReqLowercase' as any)}</span>
                 </div>
                 <div className="flex items-start gap-2 text-xs mt-1">
-                  {/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-danger shrink-0 mt-0.5" weight="bold" />}
+                  {/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? <Check className="text-emerald-500 shrink-0 mt-0.5" weight="bold" /> : <X className="text-destructive shrink-0 mt-0.5" weight="bold" />}
                   <span className={/[0-9]/.test(passwordValue) || /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) ? "text-emerald-700 leading-tight" : "text-muted-foreground leading-tight"}>{t('passwordReqNumberOrSpecial' as any)}</span>
                 </div>
               </div>
               
-              {fieldErrors.password && <span className="text-xs text-danger">{fieldErrors.password}</span>}
+              {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-danger" : ""}`}>
-                {t('confirmPassword')} <span className="text-danger">*</span>
+              <label htmlFor="confirmPassword" className={`text-sm font-medium ${fieldErrors.confirmPassword ? "text-destructive" : ""}`}>
+                {t('confirmPassword')} <span className="text-destructive">*</span>
               </label>
-              <InputGroup>
-                <InputGroup.Input
+              <div className="relative">
+                <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={fieldErrors.confirmPassword ? "border-danger" : ""}
+                  className={fieldErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
                 />
-                <InputGroup.Suffix>
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    title={showConfirmPassword ? t('hidePassword') : t('showPassword')}
-                  >
-                    {showConfirmPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
-                  </button>
-                </InputGroup.Suffix>
-              </InputGroup>
-              {fieldErrors.confirmPassword && <span className="text-xs text-danger">{fieldErrors.confirmPassword}</span>}
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  title={showConfirmPassword ? t('hidePassword') : t('showPassword')}
+                >
+                  {showConfirmPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+                </button>
+              </div>
+              {fieldErrors.confirmPassword && <span className="text-sm text-destructive">{fieldErrors.confirmPassword}</span>}
             </div>
           </div>
 
           <div className="flex flex-col gap-1 my-2">
             <div className="flex items-start space-x-2">
-              <Checkbox id="terms" name="terms" value="true" className={fieldErrors.terms ? "border-danger" : ""}>
-                <Checkbox.Content>
-                  <Checkbox.Control className="cursor-pointer">
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                </Checkbox.Content>
-              </Checkbox>
+              <Checkbox id="terms" name="terms" value="true" className={fieldErrors.terms ? "border-destructive" : ""} />
               <div className="grid gap-1.5 leading-none">
                 <label
                   htmlFor="terms"
-                  className={cn("text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70", fieldErrors.terms ? "text-danger" : "")}
+                  className={cn("text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70", fieldErrors.terms ? "text-destructive" : "")}
                 >
                   {t('agreeToTerms')}
                 </label>
@@ -355,10 +350,10 @@ export default function SignUpPage() {
                 </p>
               </div>
             </div>
-            {fieldErrors.terms && <span className="text-xs text-danger ml-6">{fieldErrors.terms}</span>}
+            {fieldErrors.terms && <span className="text-sm text-destructive ml-6">{fieldErrors.terms}</span>}
           </div>
 
-          <Button type="submit" className="w-full gap-2" isDisabled={isPending}>
+          <Button type="submit" className="w-full gap-2" disabled={isPending}>
             {isPending ? (
               <>
                 <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -376,7 +371,7 @@ export default function SignUpPage() {
 
       <Separator />
 
-      <Card.Footer className="justify-center mt-6">
+      <CardFooter className="justify-center mt-6">
         <p className="text-sm text-muted-foreground">
           {t('hasAccount')}{" "}
           <Link
@@ -386,7 +381,7 @@ export default function SignUpPage() {
             {t('signIn')}
           </Link>
         </p>
-      </Card.Footer>
+      </CardFooter>
     </Card>
   )
 }

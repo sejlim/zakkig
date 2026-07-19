@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useTranslation } from '../lib/i18n';
 import { WaitlistForm } from './WaitlistForm';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 
 export function MainPage() {
   const { t, locale } = useTranslation();
@@ -266,9 +266,9 @@ export function MainPage() {
           {/* Legal Footer Links */}
           <div className="flex items-end justify-between gap-4 text-sm text-zinc-500 font-light md:items-center">
             <Button
-              isIconOnly
               variant="ghost"
-              onPress={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              size="icon"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="flex items-center cursor-pointer hover:opacity-80 transition-opacity duration-200 bg-transparent min-w-0 w-auto h-auto min-h-0 p-0"
               aria-label={t('scrollToTopLabel')}
             >

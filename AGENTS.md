@@ -6,10 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 <!-- END:nextjs-agent-rules -->
 
-<!-- BEGIN:heroui-agent-rules -->
+<!-- BEGIN:shadcn-agent-rules -->
 
-# HeroUI
+# shadcn
 
-While interacting with HeroUI make sure to use the HeroUI mcp for more context.
+While interacting with shadcn make sure to use the shadcn mcp for more context.
 
-<!-- END:heroui-agent-rules -->
+<!-- END:shadcn-agent-rules -->

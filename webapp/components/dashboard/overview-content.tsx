@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useMemo, useRef, useTransition } from 'react'
 import { Copy, Plus, Trash, LinkSimple, ChartLineUp, ShoppingBag, Printer, Scissors, CaretDown, ClipboardText, ForkKnife, Gear } from '@phosphor-icons/react'
-import { toast, Card,   Button, Chip as Badge, Separator, Input, Dropdown, Label, Switch, Tabs } from "@heroui/react"
+import { toast } from "sonner"
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from 'next/link'
 import Image from 'next/image'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
@@ -98,7 +105,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
     startTransition(async () => {
       const result = await toggleFeatureAction(organization.$id, type, checked)
       if (result.error) {
-        toast.danger(result.error as string)
+        toast.error(result.error as string)
         if (type === 'to-go') setIsToGo(!checked)
         else setIsToStay(!checked)
       } else {
@@ -207,29 +214,27 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card className="h-full flex flex-col">
-          <Card.Header className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
           <h3 className="text-lg font-semibold">Verkaufsstatistik</h3>
-          <Dropdown>
-            <Button variant="secondary" size="sm">
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="secondary" size="sm" />}>
               {period === '24h' ? t('last24h') : period === '30d' ? t('last30d') : t('last90d')}
               <CaretDown className="ml-1" />
-            </Button>
-            <Dropdown.Popover placement="bottom end">
-              <Dropdown.Menu onAction={(key) => setPeriod(key as TimePeriod)} selectedKeys={[period]}>
-                <Dropdown.Item id="24h" textValue={t('last24h')}>
-                  <Label>{t('last24h')}</Label>
-                </Dropdown.Item>
-                <Dropdown.Item id="30d" textValue={t('last30d')}>
-                  <Label>{t('last30d')}</Label>
-                </Dropdown.Item>
-                <Dropdown.Item id="90d" textValue={t('last90d')}>
-                  <Label>{t('last90d')}</Label>
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
-        </Card.Header>
-        <Card.Content className="p-6 pt-4">
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setPeriod('24h')}>
+                {t('last24h')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPeriod('30d')}>
+                {t('last30d')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPeriod('90d')}>
+                {t('last90d')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        <CardContent className="p-6 pt-4">
           <div className="flex flex-col gap-8">
             <div className="flex flex-wrap gap-12">
               <div className="flex flex-col">
@@ -286,14 +291,14 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
               </ResponsiveContainer>
             </div>
           </div>
-        </Card.Content>
+        </CardContent>
       </Card>
 
       <Card className="h-full flex flex-col">
-        <Card.Header>
+        <CardHeader>
           <h3 className="text-lg font-semibold">{t('quickLinks') || 'Quick Links'}</h3>
-        </Card.Header>
-        <Card.Content className="flex-1 flex flex-col">
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col">
           <div className="flex flex-col gap-3 flex-1">
             <Link href={`/dashboard/${organization.$id}/orders`} className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
               <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
@@ -323,38 +328,36 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
               </div>
             </Link>
           </div>
-        </Card.Content>
+        </CardContent>
       </Card>
     </div>
 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
         <Card className="h-full flex flex-col">
-          <Card.Header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
             <div className="flex flex-col gap-1.5">
               <h3 className="text-lg font-semibold">{t('qrCodeGenerator')}</h3>
               <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
                 {qrType === 'to-go' ? t('qrCodeAdminDescToGo') : t('qrCodeAdminDescToStay')}
               </p>
             </div>
-            <Button onPress={handlePrint} variant="outline" className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto h-10 px-5 rounded-3xl gap-2">
+            <Button onClick={handlePrint} variant="outline" className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto h-10 px-5 rounded-3xl gap-2">
               <Printer />
               {t('printQrCode')}
             </Button>
-          </Card.Header>
-          <Card.Content>
+          </CardHeader>
+          <CardContent>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 min-h-[36px]">
                 <Tabs
-                  selectedKey={qrType}
-                  onSelectionChange={(k) => setQrType(k as 'to-go' | 'to-stay')}
+                  value={qrType}
+                  onValueChange={(k) => setQrType(k as 'to-go' | 'to-stay')}
                   className="w-full sm:w-auto"
                 >
-                  <Tabs.ListContainer>
-                    <Tabs.List>
-                      <Tabs.Tab id="to-go">{t('toGo')}<Tabs.Indicator /></Tabs.Tab>
-                      <Tabs.Tab id="to-stay">{t('toStay')}<Tabs.Indicator /></Tabs.Tab>
-                    </Tabs.List>
-                  </Tabs.ListContainer>
+                  <TabsList>
+                    <TabsTrigger value="to-go">{t('toGo')}</TabsTrigger>
+                    <TabsTrigger value="to-stay">{t('toStay')}</TabsTrigger>
+                  </TabsList>
                 </Tabs>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
@@ -385,17 +388,10 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                     </label>
                     <Switch
                       id="feature-toggle"
-                      isSelected={qrType === 'to-go' ? isToGo : isToStay}
-                      onChange={(checked: boolean) => handleToggleFeature(qrType, checked)}
-                      isDisabled={isPending}
-                      size="sm"
-                    >
-                      <Switch.Content className="cursor-pointer">
-                        <Switch.Control>
-                          <Switch.Thumb />
-                        </Switch.Control>
-                      </Switch.Content>
-                    </Switch>
+                      checked={qrType === 'to-go' ? isToGo : isToStay}
+                      onCheckedChange={(checked: boolean) => handleToggleFeature(qrType, checked)}
+                      disabled={isPending}
+                    />
                   </div>
                 </div>
               </div>
@@ -428,24 +424,24 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                 </div>
               </Card>
             </div>
-          </Card.Content>
+          </CardContent>
         </Card>
 
 
         <Card>
-          <Card.Header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
             <div className="flex flex-col gap-1.5">
               <h3 className="text-lg font-semibold">{t('kitchenSessions')}</h3>
               <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
                 {t('kitchenSessionsDesc')}
               </p>
             </div>
-            <Button onPress={handleCreateSession} size="sm" className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto">
-              <Plus data-icon="inline-start" />
+            <Button onClick={handleCreateSession} size="sm" className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto">
+              <Plus data-icon="inline-start" className="mr-2" />
               {t('createSession')}
             </Button>
-          </Card.Header>
-          <Card.Content>
+          </CardHeader>
+          <CardContent>
             {sessions.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('noActiveOrders')}</p>
             ) : (
@@ -465,16 +461,15 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                       <Button
                         variant="ghost"
                         size="sm"
-                        onPress={() => copyKitchenLink(session.token)}
+                        onClick={() => copyKitchenLink(session.token)}
                       >
-                        <Copy data-icon="inline-start" />
+                        <Copy data-icon="inline-start" className="mr-2" />
                         {t('copyLink')}
                       </Button>
                       <Button
-                        variant="danger-soft"
-                        size="sm"
-                        isIconOnly
-                        onPress={() => handleDeleteSession(session.$id)}
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteSession(session.$id)}
                       >
                         <Trash />
                       </Button>
@@ -483,7 +478,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
                 ))}
               </div>
             )}
-          </Card.Content>
+          </CardContent>
         </Card>
       </div>
     </div>

@@ -1,20 +1,16 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { AppleLogo, CreditCard, GoogleLogo } from '@phosphor-icons/react'
+import { AppleLogo, CreditCard, GoogleLogo, CircleNotch } from '@phosphor-icons/react'
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { placeOrderAction } from '@/actions/order-actions'
-import { 
-  Drawer,
-  Button,
-  Input,
-  Label,
-  ToggleButtonGroup,
-  ToggleButton,
-  Separator,
-  toast
-} from '@heroui/react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import type { Organization } from '@/lib/types'
 
 interface CartSheetProps {
@@ -36,7 +32,7 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
     const email = formData.get('email') as string
     
     if (!email) {
-      toast.danger(t('error'))
+      toast.error(t('error'))
       return
     }
 
@@ -52,45 +48,51 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
       if (result.success && result.orderId && result.orderNumber) {
         onOrderSuccess(result.orderId, result.orderNumber)
       } else {
-        toast.danger(result.error || t('error'))
+        toast.error(result.error || t('error'))
       }
     })
   }
 
   return (
-    <Drawer.Backdrop isOpen={open} onOpenChange={onOpenChange}>
-      <Drawer.Content placement="bottom" className="h-[90vh] sm:h-auto rounded-t-xl px-4 sm:max-w-md mx-auto">
-        <Drawer.Dialog>
-          <Drawer.Header className="text-left mb-6">
-            <Drawer.Heading>{t('checkout')}</Drawer.Heading>
-            <div className="text-sm text-muted-foreground mt-2">
-              {t('orderTotal')}: <span className="font-bold text-foreground">{formatPrice(total())}</span>
-            </div>
-          </Drawer.Header>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-[90vh] sm:h-auto rounded-t-xl px-4 sm:max-w-md mx-auto">
+        <SheetHeader className="text-left mb-6">
+          <SheetTitle>{t('checkout')}</SheetTitle>
+          <div className="text-sm text-muted-foreground mt-2">
+            {t('orderTotal')}: <span className="font-bold text-foreground">{formatPrice(total())}</span>
+          </div>
+        </SheetHeader>
 
-          <Drawer.Body className="p-0">
-            <form action={onSubmit} className="space-y-6 overflow-y-auto max-h-[calc(90vh-8rem)] pb-8 px-1">
-              <div className="space-y-3">
-                <Label>{t('paymentMethod')}</Label>
-                <ToggleButtonGroup 
-                  selectionMode="single"
-                  selectedKeys={new Set([paymentMethod])} 
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string;
-                    if (selected) setPaymentMethod(selected);
-                  }}
-                  className="justify-start flex-wrap gap-2 w-full"
+        <div className="p-0">
+          <form action={onSubmit} noValidate className="space-y-6 overflow-y-auto max-h-[calc(90vh-8rem)] pb-8 px-1">
+            <div className="space-y-3">
+              <Label>{t('paymentMethod')}</Label>
+              <div className="flex flex-wrap gap-2 w-full">
+                <Button 
+                  type="button" 
+                  variant={paymentMethod === 'apple-pay' ? 'default' : 'outline'} 
+                  onClick={() => setPaymentMethod('apple-pay')} 
+                  className="flex-1 h-12"
                 >
-                  <ToggleButton id="apple-pay" className="flex-1 h-12" aria-label="Apple Pay">
-                    <AppleLogo weight="fill" className="mr-2 h-5 w-5" /> Apple Pay
-                  </ToggleButton>
-                  <ToggleButton id="google-pay" className="flex-1 h-12" aria-label="Google Pay">
-                    <GoogleLogo weight="bold" className="mr-2 h-5 w-5" /> Google Pay
-                  </ToggleButton>
-                  <ToggleButton id="card" className="flex-1 h-12" aria-label="Card">
-                    <CreditCard className="mr-2 h-5 w-5" /> {t('card')}
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                  <AppleLogo weight="fill" className="mr-2 h-5 w-5" /> Apple Pay
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={paymentMethod === 'google-pay' ? 'default' : 'outline'} 
+                  onClick={() => setPaymentMethod('google-pay')} 
+                  className="flex-1 h-12"
+                >
+                  <GoogleLogo weight="bold" className="mr-2 h-5 w-5" /> Google Pay
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={paymentMethod === 'card' ? 'default' : 'outline'} 
+                  onClick={() => setPaymentMethod('card')} 
+                  className="flex-1 h-12"
+                >
+                  <CreditCard className="mr-2 h-5 w-5" /> {t('card')}
+                </Button>
+              </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Testmodus: Zahlung wird simuliert.
                 </p>
@@ -113,7 +115,8 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
                 <p><strong>{t('buyingFrom')}</strong> {organization.name}</p>
               </div>
 
-              <Button type="submit" className="w-full h-14 text-lg" isPending={isPending} variant="primary">
+              <Button type="submit" className="w-full h-14 text-lg" disabled={isPending}>
+                {isPending && <CircleNotch className="mr-2 h-5 w-5 animate-spin" />}
                 {isPending ? t('loading') : t('placeOrder')}
               </Button>
               
@@ -121,9 +124,8 @@ export function CartSheet({ open, onOpenChange, organization, type, tableNumber,
                 {t('paymentDisclaimer')} {t('agreeToTerms')}
               </p>
             </form>
-          </Drawer.Body>
-        </Drawer.Dialog>
-      </Drawer.Content>
-    </Drawer.Backdrop>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }

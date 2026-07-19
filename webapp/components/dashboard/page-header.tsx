@@ -1,7 +1,7 @@
 'use client'
 
 import { useSidebarStore } from '@/store/sidebar-store'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { CaretLeft, CaretRight, ArrowsClockwise } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
@@ -27,14 +27,14 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
     <div className="sticky -top-6 z-40 -mx-6 -mt-6 px-6 py-4 bg-background/95 backdrop-blur flex flex-col gap-1 -mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" isIconOnly onPress={toggleSidebar} className="hidden md:flex shrink-0">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="hidden md:flex shrink-0 h-9 w-9">
             {isExpanded ? <CaretLeft weight="bold" /> : <CaretRight weight="bold" />}
           </Button>
           <h1 className="text-2xl font-semibold">{title}</h1>
         </div>
         <div className="flex items-center gap-2">
           {children}
-          <Button variant="ghost" size="sm" isIconOnly onPress={handleRefresh} className="shrink-0 text-muted-foreground" isDisabled={isPending}>
+          <Button variant="ghost" size="icon" onClick={handleRefresh} className="shrink-0 text-muted-foreground h-9 w-9" disabled={isPending}>
             <ArrowsClockwise weight="bold" className={isPending ? "animate-spin" : ""} />
           </Button>
         </div>

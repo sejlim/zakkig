@@ -5,7 +5,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { signInAction, verifyOtpAction, resendOtpAction } from "@/actions/auth-actions"
-import { Button, Card, Input, Separator, InputOTP, InputGroup } from "@heroui/react"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { useTranslation } from "@/lib/i18n"
 import { Eye, EyeSlash, SignIn, CheckCircle, CircleNotch, PaperPlaneRight } from "@phosphor-icons/react"
 
@@ -86,16 +90,16 @@ export default function SignInPage() {
           <LanguageSwitcher />
         </div>
         <Separator />
-        <Card.Header className="flex-col items-start gap-1">
+        <CardHeader className="flex-col items-start gap-1">
           <h1 className="text-xl font-semibold">{locale === 'de' ? 'Anmeldung bestätigen' : 'Verify Login'}</h1>
-          <p className="text-sm text-default-500">
+          <p className="text-sm text-muted-foreground">
             {locale === 'de' 
               ? `Wir haben dir einen 6-stelligen Code an ${state.email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.` 
               : `We have sent a 6-digit code to ${state.email}. Enter the code in the input field below and confirm to continue.`}
           </p>
-        </Card.Header>
+        </CardHeader>
         <div>
-          <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+          <form onSubmit={handleVerifyOtp} noValidate className="flex flex-col gap-4">
             {otpError && (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {otpError}
@@ -112,17 +116,17 @@ export default function SignInPage() {
                       submitOtp(val)
                     }
                   }}
-                  isDisabled={isVerifying}
+                  disabled={isVerifying}
                   autoFocus
                 >
-                <InputOTP.Group className="w-full flex">
-                  <InputOTP.Slot index={0} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={1} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={2} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={3} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={4} className="h-14 flex-1 text-2xl" />
-                  <InputOTP.Slot index={5} className="h-14 flex-1 text-2xl" />
-                </InputOTP.Group>
+                  <InputOTPGroup className="w-full flex gap-2">
+                    <InputOTPSlot index={0} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={1} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={2} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={3} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={4} className="h-14 flex-1 text-2xl" />
+                    <InputOTPSlot index={5} className="h-14 flex-1 text-2xl" />
+                  </InputOTPGroup>
                 </InputOTP>
               </div>
             </div>
@@ -131,12 +135,12 @@ export default function SignInPage() {
                 type="button"
                 variant="outline"
                 className="w-full sm:w-1/2"
-                isDisabled={countdown > 0}
+                disabled={countdown > 0}
                 onClick={handleResendOtp}
               >
                 {countdown > 0 ? t('resendIn').replace('{time}', countdown.toString()) : t('resendCode')}
               </Button>
-              <Button type="submit" className="w-full sm:w-1/2 gap-2" isDisabled={isVerifying || otp.length < 6}>
+              <Button type="submit" className="w-full sm:w-1/2 gap-2" disabled={isVerifying || otp.length < 6}>
                 {isVerifying ? (
                   <>
                     <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -172,12 +176,12 @@ export default function SignInPage() {
         <LanguageSwitcher />
       </div>
       <Separator />
-      <Card.Header className="flex-col items-start gap-1">
+      <CardHeader className="flex-col items-start gap-1">
         <h1 className="text-xl font-semibold">{t('signIn')}</h1>
-        <p className="text-sm text-default-500">
+        <p className="text-sm text-muted-foreground">
           {t('signInDescription')}
         </p>
-      </Card.Header>
+      </CardHeader>
 
       <div>
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -188,21 +192,21 @@ export default function SignInPage() {
           )}
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-danger" : ""}`}>{t('email')}</label>
+            <label htmlFor="email" className={`text-sm font-medium ${fieldErrors.email ? "text-destructive" : ""}`}>{t('email')}</label>
             <Input
               id="email"
               name="email"
               type="email"
               placeholder={t('emailPlaceholder')}
               autoComplete="email"
-              className={fieldErrors.email ? "border-danger" : ""}
+              className={fieldErrors.email ? "border-destructive" : ""}
             />
-            {fieldErrors.email && <span className="text-xs text-danger">{fieldErrors.email}</span>}
+            {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
           </div>
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-danger" : ""}`}>{t('password')}</label>
+              <label htmlFor="password" className={`text-sm font-medium ${fieldErrors.password ? "text-destructive" : ""}`}>{t('password')}</label>
               <Link
                 href="/reset-password"
                 className="text-xs font-medium text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
@@ -210,29 +214,27 @@ export default function SignInPage() {
                 {t('forgotPassword')}
               </Link>
             </div>
-            <InputGroup>
-              <InputGroup.Input
+            <div className="relative">
+              <Input
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className={fieldErrors.password ? "border-danger" : ""}
+                className={fieldErrors.password ? "border-destructive pr-10" : "pr-10"}
               />
-              <InputGroup.Suffix>
-                <button
-                  className="focus:outline-none"
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? t('hidePassword') : t('showPassword')}
-                >
-                  {showPassword ? <EyeSlash className="text-2xl text-default-400 pointer-events-none" weight="bold" /> : <Eye className="text-2xl text-default-400 pointer-events-none" weight="bold" />}
-                </button>
-              </InputGroup.Suffix>
-            </InputGroup>
-            {fieldErrors.password && <span className="text-xs text-danger">{fieldErrors.password}</span>}
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? t('hidePassword') : t('showPassword')}
+              >
+                {showPassword ? <EyeSlash className="w-5 h-5 text-muted-foreground" weight="bold" /> : <Eye className="w-5 h-5 text-muted-foreground" weight="bold" />}
+              </button>
+            </div>
+            {fieldErrors.password && <span className="text-sm text-destructive">{fieldErrors.password}</span>}
           </div>
 
-          <Button type="submit" className="w-full mt-2 gap-2" isDisabled={isPending}>
+          <Button type="submit" className="w-full mt-2 gap-2" disabled={isPending}>
             {isPending ? (
               <>
                 <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
@@ -250,7 +252,7 @@ export default function SignInPage() {
 
       <Separator />
 
-      <Card.Footer className="justify-center mt-6">
+      <CardFooter className="justify-center mt-6">
         <p className="text-sm text-muted-foreground">
           {t('noAccount')}{" "}
           <Link
@@ -260,7 +262,7 @@ export default function SignInPage() {
             {t('signUp')}
           </Link>
         </p>
-      </Card.Footer>
+      </CardFooter>
     </Card>
   )
 }

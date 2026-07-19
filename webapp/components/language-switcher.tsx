@@ -1,14 +1,14 @@
 'use client'
 
 import { useLanguageStore } from '@/store/language-store'
-import { Button } from '@heroui/react'
+import { Button } from '@/components/ui/button'
 import { Globe } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 
 export function LanguageSwitcher({ 
   className,
   variant = "outline",
-  size = "md",
+  size = "default",
 }: { 
   className?: string
   variant?: React.ComponentProps<typeof Button>["variant"]
@@ -27,8 +27,8 @@ export function LanguageSwitcher({
 
   if (!mounted) {
     return (
-      <Button variant={variant} size={size} className={`gap-2 ${className || ''}`} isDisabled>
-        <Globe data-icon="inline-start" weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
+      <Button variant={variant} size={size} className={`gap-2 ${className || ''}`} disabled>
+        <Globe weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
         <span>{locale.toUpperCase()}</span>
       </Button>
     )
@@ -41,7 +41,7 @@ export function LanguageSwitcher({
       className={`gap-2 ${className || ''}`} 
       onClick={toggleLanguage}
     >
-      <Globe data-icon="inline-start" weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
+      <Globe weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
       <span>{locale.toUpperCase()}</span>
     </Button>
   )

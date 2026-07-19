@@ -1,7 +1,13 @@
 'use client'
 
 import { useActionState, useEffect } from 'react'
-import { toast, Card, Button, Input, TextArea, Separator, Chip as Badge, Alert } from "@heroui/react"
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea as TextArea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 import { WarningCircle } from '@phosphor-icons/react'
 import { PageHeader } from './page-header'
 import { useTranslation } from '@/lib/i18n'
@@ -34,10 +40,10 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
       {/* Account Settings */}
       <Card>
-        <Card.Header className="flex-col items-start">
+        <CardHeader className="flex-col items-start">
           <h3 className="text-lg font-semibold">{t('accountSettings')}</h3>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">{t('name')}</label>
             <Input value={user.name || ''} disabled />
@@ -49,16 +55,16 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
           <p className="text-sm text-muted-foreground">
             Account-Daten können derzeit über das Appwrite Dashboard geändert werden.
           </p>
-        </Card.Content>
+        </CardContent>
       </Card>
 
       {/* Business Settings */}
       <Card>
-        <Card.Header className="flex-col items-start">
+        <CardHeader className="flex-col items-start">
           <h3 className="text-lg font-semibold">{t('businessSettings')}</h3>
-        </Card.Header>
-        <Card.Content>
-          <form action={businessAction} className="flex flex-col gap-4">
+        </CardHeader>
+        <CardContent>
+          <form action={businessAction} noValidate className="flex flex-col gap-4">
             <input type="hidden" name="organizationId" value={organization.$id} />
             <input type="hidden" name="existingLogoId" value={organization.logoFileId} />
             <div className="flex flex-col gap-2">
@@ -84,54 +90,54 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
               <Input id="business-logo" name="logo" type="file" accept="image/*" />
             </div>
             {businessState.error && (
-              <p className="text-sm text-danger">{businessState.error}</p>
+              <p className="text-sm text-destructive">{businessState.error}</p>
             )}
-            <Button type="submit" isDisabled={isBusinessPending} variant="primary">
+            <Button type="submit" disabled={isBusinessPending}>
               {t('save')}
             </Button>
           </form>
-        </Card.Content>
+        </CardContent>
       </Card>
 
       {/* Stripe Settings (Placeholder) */}
       <Card>
-        <Card.Header className="flex-col items-start">
+        <CardHeader className="flex-col items-start">
           <h3 className="text-lg font-semibold">{t('stripeSettings')}</h3>
           <p className="text-sm text-muted-foreground">Stripe Connect</p>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Badge variant="soft">{t('stripeNotConnected')}</Badge>
+            <Badge variant="secondary">{t('stripeNotConnected')}</Badge>
           </div>
           <Button
             variant="outline"
-            onPress={() => toast(t('comingSoon') as string)}
+            onClick={() => toast(t('comingSoon') as string)}
           >
             {t('connectStripe')}
           </Button>
-        </Card.Content>
+        </CardContent>
       </Card>
 
       <Separator />
 
       {/* Danger Zone */}
-      <Card className="border-danger/50 border">
-        <Card.Header className="flex-col items-start">
-          <h3 className="text-lg font-semibold text-danger">{t('deleteAccount')}</h3>
+      <Card className="border-destructive/50 border">
+        <CardHeader className="flex-col items-start">
+          <h3 className="text-lg font-semibold text-destructive">{t('deleteAccount')}</h3>
           <p className="text-sm text-muted-foreground">{t('deleteAccountDescription')}</p>
-        </Card.Header>
-        <Card.Content>
+        </CardHeader>
+        <CardContent>
           <Button
-            variant="danger"
-            onPress={async () => {
+            variant="destructive"
+            onClick={async () => {
               await requestAccountDeletionAction()
               toast.success('Löschanfrage gesendet.')
             }}
           >
-            <WarningCircle data-icon="inline-start" />
+            <WarningCircle className="mr-2" />
             {t('requestDeletion')}
           </Button>
-        </Card.Content>
+        </CardContent>
       </Card>
     </div>
   )

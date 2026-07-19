@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, Chip as Badge, Button } from '@heroui/react'
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useTranslation } from '@/lib/i18n'
 import { subscribeToOrder } from '@/lib/appwrite/realtime'

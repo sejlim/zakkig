@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from "@heroui/react"
+import { Button } from "@/components/ui/button"
 import { SignOut } from '@phosphor-icons/react'
 import { signOutAction } from '@/actions/auth-actions'
 import { useTranslation } from '@/lib/i18n'
@@ -10,7 +10,7 @@ export function SignOutButton() {
   
   return (
     <form action={signOutAction}>
-      <Button variant="tertiary" size="sm" type="submit">
+      <Button variant="ghost" size="sm" type="submit">
         <SignOut weight="bold" className="mr-2" />
         {t('signOut')}
       </Button>

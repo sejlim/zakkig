@@ -6,7 +6,10 @@ import { useRouter } from 'next/navigation'
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { getImagePreviewUrl } from '@/lib/appwrite/client'
 import { useCartStore } from '@/store/cart-store'
-import { Card, Button, Chip as Badge, Separator } from '@heroui/react'
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { CartSheet } from '@/components/guest/cart-sheet'
 import { OrderTracker } from '@/components/guest/order-tracker'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -245,7 +248,7 @@ export function GuestFrontend({ organization, categories, items, type, tableNumb
             <ShoppingCart weight={activeTab === 'cart' ? 'fill' : 'regular'} className="h-6 w-6" />
             <span className="text-xs font-medium">{t('cartTab')}</span>
             {itemCount() > 0 && (
-              <Badge color="default" className="absolute top-1 right-[20%] sm:right-[30%] px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center">
+              <Badge variant="secondary" className="absolute top-1 right-[20%] sm:right-[30%] px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center">
                 {itemCount()}
               </Badge>
             )}

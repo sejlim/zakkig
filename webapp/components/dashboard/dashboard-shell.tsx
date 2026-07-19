@@ -13,7 +13,8 @@ import {
   List
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
-import { Button, Avatar, Separator as Separator } from "@heroui/react"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useTranslation } from '@/lib/i18n'
 import { useLanguageStore } from '@/store/language-store'
 import { useSidebarStore } from '@/store/sidebar-store'
@@ -109,9 +110,9 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
                     className={cn(
                       isExpanded ? "w-full justify-start" : "mx-auto"
                     )}
-                    isIconOnly={!isExpanded}
+                    size={!isExpanded ? "icon" : "default"}
                     aria-label={!isExpanded ? item.label : undefined}
-                    onPress={() => {
+                    onClick={() => {
                       setIsMobileOpen(false)
                       router.push(item.href)
                     }}
@@ -128,8 +129,8 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
         <div className="border-t p-4 flex flex-col gap-4 shrink-0">
           <div className={cn("flex items-center gap-3", !isExpanded && "justify-center")}>
             <Avatar className="h-10 w-10 shrink-0">
-              <Avatar.Image src={organization?.logoFileId ? getImagePreviewUrl(organization.logoFileId) : undefined} alt={organization?.name ?? 'Z'} />
-              <Avatar.Fallback>{organization?.name?.charAt(0) ?? 'Z'}</Avatar.Fallback>
+              <AvatarImage src={organization?.logoFileId ? getImagePreviewUrl(organization.logoFileId) : undefined} alt={organization?.name ?? 'Z'} />
+              <AvatarFallback>{organization?.name?.charAt(0) ?? 'Z'}</AvatarFallback>
             </Avatar>
             {isExpanded && (
               <div className="flex flex-col flex-1 overflow-hidden">
@@ -141,16 +142,15 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
           
           <div className={cn("flex items-center gap-2", !isExpanded ? "flex-col" : "justify-between")}>
             <form action={signOutAction} className={cn(!isExpanded && "w-full flex justify-center")}>
-              <Button type="submit" variant="ghost" size="sm" isIconOnly={!isExpanded} className={cn(isExpanded && "w-full justify-start")}>
+              <Button type="submit" variant="ghost" size={!isExpanded ? "icon" : "sm"} className={cn(isExpanded && "w-full justify-start")}>
                 <SignOut />
                 {isExpanded && <span className="ml-2">{t('signOut')}</span>}
               </Button>
             </form>
             <Button 
               variant="ghost" 
-              size="sm" 
-              isIconOnly={!isExpanded}
-              onPress={() => setLocale(locale === 'de' ? 'en' : 'de')}
+              size={!isExpanded ? "icon" : "sm"}
+              onClick={() => setLocale(locale === 'de' ? 'en' : 'de')}
             >
               <Globe />
               {isExpanded && <span className="ml-2">{locale.toUpperCase()}</span>}
@@ -165,7 +165,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
           <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer">
             <Image src="https://www.zakkig.de/full.svg" alt="Zakkig" width={110} height={28} className="h-7 w-auto" />
           </Link>
-          <Button variant="ghost" isIconOnly onPress={() => setIsMobileOpen(true)}>
+          <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(true)}>
             <List className="h-6 w-6" />
           </Button>
         </header>
