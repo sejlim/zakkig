@@ -7,6 +7,8 @@ export type Locale = 'de' | 'en'
 const translations = {
   de: {
     // Auth
+    sales: 'Verkäufe',
+    statistics: 'Statistik',
     signIn: 'Anmelden',
     signUp: 'Registrieren',
     signOut: 'Abmelden',
@@ -205,6 +207,8 @@ const translations = {
   },
   en: {
     // Auth
+    sales: 'Sales',
+    statistics: 'Statistics',
     signIn: 'Sign In',
     signUp: 'Sign Up',
     signOut: 'Sign Out',

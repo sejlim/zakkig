@@ -149,14 +149,14 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
           
           <div className={cn("flex items-center gap-2", !isExpanded ? "flex-col" : "justify-between")}>
             <form action={signOutAction} className={cn(!isExpanded && "w-full flex justify-center")}>
-              <Button type="submit" variant="ghost" size={!isExpanded ? "icon" : "sm"} className={cn(isExpanded && "w-full justify-start")}>
+              <Button type="submit" variant="ghost" size={!isExpanded ? "icon" : "default"} className={cn(isExpanded && "w-full justify-start")}>
                 <SignOut />
                 {isExpanded && <span className="ml-2">{t('signOut')}</span>}
               </Button>
             </form>
             <Button 
               variant="ghost" 
-              size={!isExpanded ? "icon" : "sm"}
+              size={!isExpanded ? "icon" : "default"}
               onClick={() => setLocale(locale === 'de' ? 'en' : 'de')}
             >
               <Globe />
@@ -176,7 +176,7 @@ export function DashboardShell({ organization, user, children }: DashboardShellP
             <CaretLeft weight="bold" className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 md:pt-4">
           {children}
         </main>
       </div>

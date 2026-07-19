@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from 'next/link'
 import Image from 'next/image'
-import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { createKitchenSessionAction, deleteKitchenSessionAction } from '@/actions/order-actions'
@@ -20,12 +20,6 @@ import { toggleFeatureAction } from '@/actions/settings-actions'
 import { RefreshButton } from './refresh-button'
 import type { Organization, Order, KitchenSession } from '@/lib/types'
 
-const chartConfig = {
-  orders: {
-    label: "Bestellungen",
-    color: "hsl(var(--primary))",
-  },
-}
 
 interface OverviewContentProps {
   organization: Organization
@@ -92,12 +86,28 @@ function filterOrdersByPeriod(orders: Order[], period: TimePeriod): Order[] {
 
 export function OverviewContent({ organization, orders, kitchenSessions }: OverviewContentProps) {
   const { t } = useTranslation()
-  const [period, setPeriod] = useState<TimePeriod>('30d')
+  const [period, setPeriod] = useState<'24h' | '30d' | '90d'>('30d')
+
+  const chartConfig = {
+    orders: {
+      label: t('sales'),
+      color: "hsl(var(--primary))",
+    },
+  }
   const [sessions, setSessions] = useState(kitchenSessions)
   const [qrType, setQrType] = useState<'to-go' | 'to-stay'>('to-go')
   const [tableNum, setTableNum] = useState('1')
-
   const [isPending, startTransition] = useTransition()
+  const [mounted, setMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   const [isToGo, setIsToGo] = useState(organization.isToGoEnabled ?? true)
   const [isToStay, setIsToStay] = useState(organization.isToStayEnabled ?? true)
 
@@ -121,11 +131,6 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
       }
     })
   }
-  const [mounted, setMounted] = useState(false)
-  
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     setSessions(kitchenSessions)
@@ -182,6 +187,21 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
     }))
   }, [filtered, period, mounted])
 
+  const xAxisTicks = useMemo(() => {
+    if (chartData.length === 0) return []
+    const numTicks = isMobile ? 4 : 8
+    const ticks = []
+    const step = Math.max(1, Math.floor((chartData.length - 1) / (numTicks - 1)))
+    
+    for (let i = 0; i < numTicks; i++) {
+      const idx = chartData.length - 1 - (i * step)
+      if (idx >= 0) {
+        ticks.unshift(chartData[idx].time)
+      }
+    }
+    return ticks
+  }, [chartData, isMobile])
+
   const qrUrl =
     qrType === 'to-go'
       ? `${baseUrl}/to-go/${organization.$id}`
@@ -226,9 +246,9 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card className="h-full flex flex-col">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
-          <h3 className="text-lg font-semibold">Verkaufsstatistik</h3>
+          <h3 className="text-lg font-semibold">{t('statistics')}</h3>
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="secondary" size="sm" />}>
+            <DropdownMenuTrigger render={<Button variant="default" />}>
               {period === '24h' ? t('last24h') : period === '30d' ? t('last30d') : t('last90d')}
               <CaretDown className="ml-1" />
             </DropdownMenuTrigger>
@@ -251,7 +271,7 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
               <div className="flex flex-col">
                 <div className="text-3xl font-bold">{totalOrders}</div>
                 <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  Anzahl Bestellungen
+                  {t('sales')}
                 </div>
               </div>
               <div className="flex flex-col">
@@ -263,33 +283,42 @@ export function OverviewContent({ organization, orders, kitchenSessions }: Overv
             </div>
 
             <ChartContainer config={chartConfig} className="h-[250px] w-full mt-4">
-              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-orders)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-orders)" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
                 <XAxis 
-                  dataKey="name" 
+                  dataKey="time" 
                   axisLine={false} 
                   tickLine={false} 
+                  tickMargin={8}
+                  ticks={xAxisTicks}
                   tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
-                  dy={10}
                 />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  width={20}
                   tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.5 }}
                 />
                 <ChartTooltip 
                   cursor={false}
                   content={<ChartTooltipContent indicator="line" />} 
                 />
-                <Line
+                <Area
                   dataKey="orders"
                   type="monotone"
+                  fill="url(#fillOrders)"
+                  fillOpacity={0.4}
                   stroke="var(--color-orders)"
                   strokeWidth={2}
-                  dot={{ fill: "var(--color-orders)", r: 4 }}
-                  activeDot={{ r: 6 }}
+                  isAnimationActive={false}
                 />
-              </LineChart>
+              </AreaChart>
             </ChartContainer>
           </div>
         </CardContent>
