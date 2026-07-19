@@ -39,6 +39,7 @@ const translations = {
     signInDescription: 'Melde dich an, um auf dein Dashboard zu gelangen. Dort hast du dein Menü und Bestellungen immer im Blick.',
     signUpDescription: 'Erstelle einen Account für deinen Gastronomie-Betrieb, um digitale Bestellungen vor Ort entgegenzunehmen.',
     restaurantName: 'Betriebsname',
+    invalidOtp: 'Der eingegebene Code ist falsch.',
     authError: 'Die Anmeldung ist fehlgeschlagen. Bitte überprüfe deine Daten.',
     authErrorUserExists: 'Ein Konto mit dieser E-Mail existiert bereits.',
     signingIn: 'Wird angemeldet…',
@@ -239,6 +240,7 @@ const translations = {
     signInDescription: 'Sign in to access your dashboard. Keep your menu and orders in view at all times.',
     signUpDescription: 'Create an account for your hospitality business to accept digital orders on-site.',
     restaurantName: 'Business name',
+    invalidOtp: 'The entered code is invalid.',
     authError: 'Sign in failed. Please check your credentials.',
     authErrorUserExists: 'An account with this email already exists.',
     signingIn: 'Signing in…',
@@ -407,7 +409,7 @@ const translations = {
   },
 } as const
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLanguageStore } from '@/store/language-store'
 
 export type TranslationKey = keyof typeof translations.de
@@ -420,9 +422,9 @@ export function useTranslation() {
     setLocale(storeLocale)
   }, [storeLocale])
 
-  const t = (key: TranslationKey): string => {
+  const t = useCallback((key: TranslationKey): string => {
     return translations[locale][key]
-  }
+  }, [locale])
 
   return { t, locale }
 }
