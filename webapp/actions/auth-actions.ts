@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { isDisposableEmail } from "@/lib/disposable-domains";
 import {
   verifyCredentials,
   signUp,
@@ -79,6 +80,10 @@ export async function signUpAction(
 
   if (!email || !password || !restaurantName) {
     return { error: "missingFields" };
+  }
+
+  if (isDisposableEmail(email)) {
+    return { error: "disposableEmail" };
   }
 
   if (password !== confirmPassword) {

@@ -54,6 +54,7 @@ const translations = {
     agreeToTermsDesc:
       "Durch die Registrierung erklärst du dich mit unseren AGB und unserer Datenschutzerklärung einverstanden.",
     missingFields: "Bitte fülle alle Pflichtfelder aus.",
+    disposableEmail: "Bitte verwende eine echte E-Mail-Adresse.",
     sessionFailed: "Konto erstellt, aber Sitzung fehlgeschlagen.",
     signUpFailed: "Registrierung fehlgeschlagen.",
     resetFailed: "Zurücksetzen fehlgeschlagen.",
@@ -273,6 +274,7 @@ const translations = {
     agreeToTermsDesc:
       "By registering, you agree to our Terms of Service and Privacy Policy.",
     missingFields: "Please fill out all required fields.",
+    disposableEmail: "Please use a real email address.",
     sessionFailed: "Account created, but session failed.",
     signUpFailed: "Sign up failed.",
     resetFailed: "Password reset failed.",

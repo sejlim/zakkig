@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslation } from "@/lib/i18n"
+import { isDisposableEmail } from "@/lib/disposable-domains"
 import { Eye, EyeSlash, Check, X, UserPlus, CircleNotch, PaperPlaneRight, ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
@@ -168,6 +169,9 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
         errors.email = t('emailRequired')
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errors.email = t('emailInvalid')
+      } else if (isDisposableEmail(email)) {
+        errors.email = t('disposableEmail' as any)
+        toast.error(t('disposableEmail' as any))
       }
       
       const password = fd.get("password") as string
