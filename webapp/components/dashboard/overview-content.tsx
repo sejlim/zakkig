@@ -148,6 +148,14 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
         isSelected ? "border-primary bg-primary text-primary-foreground" : "hover:border-primary/50 bg-background text-foreground"
       )}
       onClick={onToggle}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
     >
       {tNum}
     </div>
@@ -291,6 +299,10 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
 }
 
 
+  const handlePrint = () => {
+    window.print();
+  };
+
 function QrCodeGeneratorCard({
   organization,
   baseUrl,
@@ -409,7 +421,8 @@ function QrCodeGeneratorCard({
   const confirmRemoveTables = () => {
     setDeleteTablesDialogOpen(false);
     const currentTables = optimisticTables;
-    const updatedTables = currentTables.filter((t) => !selectedTables.includes(t));
+    const selectedTablesSet = new Set(selectedTables);
+    const updatedTables = currentTables.filter((t) => !selectedTablesSet.has(t));
     startTransition(async () => {
       setOptimisticTables(updatedTables);
       const result = await updateTablesAction(organization.$id, updatedTables);
@@ -425,10 +438,6 @@ function QrCodeGeneratorCard({
     setSelectedTables((prev) => 
       prev.includes(tNum) ? prev.filter((t) => t !== tNum) : [...prev, tNum]
     );
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   const qrUrl =
@@ -552,6 +561,20 @@ function QrCodeGeneratorCard({
                         setSelectedTables(optimisticTables);
                       }
                     }}
+                    role="checkbox"
+                    aria-checked={selectedTables.length === optimisticTables.length && selectedTables.length > 0}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        if (optimisticTables.length === 0) return;
+                        if (selectedTables.length === optimisticTables.length) {
+                          setSelectedTables([]);
+                        } else {
+                          setSelectedTables(optimisticTables);
+                        }
+                      }
+                    }}
                   >
                     {selectedTables.length === optimisticTables.length && selectedTables.length > 0 && (
                       <Check className="h-4 w-4" weight="bold" />
@@ -619,14 +642,17 @@ function QrCodeGeneratorCard({
                       strategy={rectSortingStrategy}
                     >
                       <div className="grid grid-cols-4 gap-2 pb-4">
-                        {optimisticTables.map((tNum) => (
-                          <SortableTableItem
-                            key={tNum}
-                            tNum={tNum}
-                            isSelected={selectedTables.includes(tNum)}
+                        {(() => {
+                          const selectedTablesSet = new Set(selectedTables);
+                          return optimisticTables.map((tNum) => (
+                            <SortableTableItem
+                              key={tNum}
+                              tNum={tNum}
+                              isSelected={selectedTablesSet.has(tNum)}
                             onToggle={() => toggleTableSelection(tNum)}
                           />
-                        ))}
+                        ));
+                        })()}
                       </div>
                     </SortableContext>
                   </DndContext>

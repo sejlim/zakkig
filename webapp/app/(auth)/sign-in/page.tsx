@@ -39,7 +39,7 @@ function OtpForm({ state }: { state: any }) {
 
   useEffect(() => {
     if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000)
       return () => clearTimeout(timer)
     }
   }, [countdown])
