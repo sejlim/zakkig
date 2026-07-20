@@ -46,7 +46,8 @@ Das System ist extrem fokussiert und verzichtet bewusst auf unnötige Extras. Al
 Erfordert eine gültige Session (E-Mail, Passwort, HttpOnly Cookie).
 
 - `app.zakkig.de/dashboard/{organizationId}/overview`
-- `app.zakkig.de/dashboard/{organizationId}/orders`
+- `app.zakkig.de/dashboard/{organizationId}/live-orders`
+- `app.zakkig.de/dashboard/{organizationId}/archive`
 - `app.zakkig.de/dashboard/{organizationId}/menu`
 - `app.zakkig.de/dashboard/{organizationId}/settings`
 
@@ -70,7 +71,8 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
   - **Quick-Links:** Navigation zu den weiteren Dashboard-Seiten.
   - **Kitchen-Session Management:** Ansicht zum Erstellen und Verwalten von Kitchen-Sessions inkl. kopierbarem Pairing-Link.
   - **QR-Code Generator:** Erstellung von QR-Codes für To-Go und To-Stay (inkl. sichtbarer Tischnummer über dem Code). Generierte QR-Codes sind als PDF für den Druck herunterladbar.
-- **Orders (`/orders`):** Tab-Menü mit zwei Ansichten. Einerseits die Live-Küchenansicht. Andererseits eine detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater.
+- **Live-Bestellungen (`/live-orders`):** Echtzeit-Ansicht der aktiven Bestellungen (Pending, Preparing, Ready).
+- **Archiv (`/archive`):** Detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater.
 - **Menu (`/menu`):** Zentrale Verwaltung der Speisekarte, Getränke, Kategorien, Preise und Bilder.
 - **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten, Stripe-Details sowie die Möglichkeit, eine Löschanfrage für das Konto zu senden.
 

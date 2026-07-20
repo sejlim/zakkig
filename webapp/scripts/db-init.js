@@ -76,6 +76,7 @@ async function init() {
     await db.createStringAttribute(databaseId, 'organizations', 'taxId', 255, false);
     await db.createStringAttribute(databaseId, 'organizations', 'currency', 10, false, 'EUR');
     await db.createBooleanAttribute(databaseId, 'organizations', 'deletionRequested', false, false, false);
+    await db.createStringAttribute(databaseId, 'organizations', 'tables', 10, false, undefined, true);
 
     // Menu Categories
     await db.createStringAttribute(databaseId, 'menu_categories', 'organizationId', 255, true);

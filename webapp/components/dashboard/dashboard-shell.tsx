@@ -13,6 +13,7 @@ import {
   List,
   CaretLeft,
   CaretRight,
+  Archive,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -54,14 +55,19 @@ export function DashboardShell({
       icon: ChartBar,
     },
     {
-      label: t("orders"),
-      href: `/dashboard/${organization?.$id ?? "new"}/orders`,
-      icon: ClipboardText,
-    },
-    {
       label: t("menu"),
       href: `/dashboard/${organization?.$id ?? "new"}/menu`,
       icon: ForkKnife,
+    },
+    {
+      label: t("orders"),
+      href: `/dashboard/${organization?.$id ?? "new"}/live-orders`,
+      icon: ClipboardText,
+    },
+    {
+      label: t("archive"),
+      href: `/dashboard/${organization?.$id ?? "new"}/archive`,
+      icon: Archive,
     },
     {
       label: t("settings"),
@@ -71,7 +77,7 @@ export function DashboardShell({
   ];
 
   return (
-    <div className="flex h-screen w-full bg-primary overflow-hidden">
+    <div className="flex h-screen w-full bg-primary overflow-hidden print:h-auto print:overflow-visible print:block">
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <button
@@ -178,9 +184,10 @@ export function DashboardShell({
         </div>
 
         <div className="border-t border-primary-foreground/10 p-4 flex flex-col gap-4 shrink-0">
-          <div
+          <Link
+            href={`/dashboard/${organization?.$id || "default"}/settings`}
             className={cn(
-              "flex items-center gap-3",
+              "flex items-center gap-3 transition-opacity hover:opacity-80 cursor-pointer",
               !isExpanded && "justify-center",
             )}
           >
@@ -202,12 +209,12 @@ export function DashboardShell({
                 <span className="truncate font-semibold text-sm">
                   {organization?.name ?? "Zakkig"}
                 </span>
-                <span className="truncate text-xs text-primary-foreground/70">
-                  {user.name || user.email}
+                <span className="text-xs text-primary-foreground/70 truncate">
+                  {user?.name || user?.email || "Benutzer"}
                 </span>
               </div>
             )}
-          </div>
+          </Link>
 
           <div
             className={cn(
@@ -248,7 +255,7 @@ export function DashboardShell({
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background md:rounded-l-[1.5rem] shadow-sm">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background md:rounded-l-[1.5rem] shadow-sm print:overflow-visible print:block print:bg-white print:shadow-none">
         <header className="flex h-16 shrink-0 items-center justify-start gap-2 border-b border-primary-foreground/10 px-4 md:hidden print:hidden bg-primary text-primary-foreground">
           <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer">
             <Image
@@ -268,7 +275,7 @@ export function DashboardShell({
             <CaretRight weight="bold" className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 md:pt-4">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 md:pt-4 print:overflow-visible print:p-0 print:block">{children}</main>
       </div>
     </div>
   );

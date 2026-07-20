@@ -23,6 +23,7 @@ export interface Organization extends AppwriteDocument {
   taxId: string;
   currency: string;
   deletionRequested: boolean;
+  tables?: string[];
 }
 
 export interface CreateOrganizationData {
@@ -33,6 +34,7 @@ export interface CreateOrganizationData {
   legalName?: string;
   taxId?: string;
   currency?: string;
+  tables?: string[];
 }
 
 // ─── Menu Categories ────────────────────────────────────────────

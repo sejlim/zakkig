@@ -21,6 +21,9 @@ import {
   ClipboardText,
   ForkKnife,
   Gear,
+  Archive,
+  CheckSquare,
+  Check,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -33,20 +36,45 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import {
-  createKitchenSessionAction,
-  deleteKitchenSessionAction,
-} from "@/actions/order-actions";
-import { toggleFeatureAction } from "@/actions/settings-actions";
+import { toggleFeatureAction, updateTablesAction } from "@/actions/settings-actions";
 import { RefreshButton } from "./refresh-button";
-import type { Organization, Order, KitchenSession } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import type { Organization, Order } from "@/lib/types";
 import { ReactQRCode } from "@lglab/react-qr-code";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const OverviewChart = dynamic(() => import("./overview-chart"), { ssr: false });
 
@@ -89,6 +117,40 @@ function filterOrdersByPeriod(orders: Order[], period: TimePeriod): Order[] {
   };
   return orders.filter(
     (o) => now - new Date(o.$createdAt).getTime() < ms[period],
+  );
+}
+
+function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSelected: boolean; onToggle: () => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: tNum });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 0,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        "flex items-center justify-center border rounded-md px-3 py-2 h-10 cursor-grab active:cursor-grabbing transition-colors text-center font-medium touch-none", 
+        isSelected ? "border-primary bg-primary text-primary-foreground" : "hover:border-primary/50 bg-background text-foreground"
+      )}
+      onClick={onToggle}
+    >
+      {tNum}
+    </div>
   );
 }
 
@@ -174,7 +236,7 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
   }, [chartData, isMobile]);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col print:hidden">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
         <h3 className="text-lg font-semibold">{t("statistics")}</h3>
         <DropdownMenu>
@@ -228,64 +290,6 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
   );
 }
 
-function QuickLinksCard({ organization }: { organization: Organization }) {
-  const { t } = useTranslation();
-  return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <h3 className="text-lg font-semibold">
-          {t("quickLinks") || "Quick Links"}
-        </h3>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        <div className="flex flex-col gap-3 flex-1">
-          <Link
-            href={`/dashboard/${organization.$id}/orders`}
-            className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
-          >
-            <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
-              <ClipboardText className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm">{t("orders")}</span>
-              <span className="text-xs text-muted-foreground">
-                Alle Bestellungen auf einen Blick
-              </span>
-            </div>
-          </Link>
-          <Link
-            href={`/dashboard/${organization.$id}/menu`}
-            className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
-          >
-            <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
-              <ForkKnife className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm">{t("menu")}</span>
-              <span className="text-xs text-muted-foreground">
-                Kategorien und Produkte bearbeiten
-              </span>
-            </div>
-          </Link>
-          <Link
-            href={`/dashboard/${organization.$id}/settings`}
-            className="flex items-center gap-3 p-3 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
-          >
-            <div className="bg-primary/10 text-primary p-2 rounded-full shrink-0">
-              <Gear className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm">{t("settings")}</span>
-              <span className="text-xs text-muted-foreground">
-                Einstellungen für deinen Shop
-              </span>
-            </div>
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function QrCodeGeneratorCard({
   organization,
@@ -296,17 +300,62 @@ function QrCodeGeneratorCard({
 }) {
   const { t } = useTranslation();
   const [qrType, setQrType] = useState<"to-go" | "to-stay">("to-go");
-  const [tableNum, setTableNum] = useState("1");
+  const [selectedTables, setSelectedTables] = useState<string[]>([]);
+  const [newTableInput, setNewTableInput] = useState("");
+  const [isAddingTable, setIsAddingTable] = useState(false);
+  const [deactivateDialog, setDeactivateDialog] = useState<{ isOpen: boolean; type: "to-go" | "to-stay" | null }>({ isOpen: false, type: null });
+  const [deleteTablesDialogOpen, setDeleteTablesDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const [optimisticToGo, setOptimisticToGo] = useOptimistic(
-    organization.isToGoEnabled ?? true,
+    organization.isToGoEnabled ?? false,
   );
   const [optimisticToStay, setOptimisticToStay] = useOptimistic(
-    organization.isToStayEnabled ?? true,
+    organization.isToStayEnabled ?? false,
+  );
+  const [optimisticTables, setOptimisticTables] = useOptimistic<string[]>(
+    organization.tables || []
   );
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = optimisticTables.indexOf(active.id as string);
+      const newIndex = optimisticTables.indexOf(over.id as string);
+
+      const newTables = arrayMove(optimisticTables, oldIndex, newIndex);
+      
+      startTransition(async () => {
+        setOptimisticTables(newTables);
+        const result = await updateTablesAction(organization.$id, newTables);
+        if (result.error) {
+          toast.error(result.error as string);
+        }
+      });
+    }
+  };
+
   const handleToggleFeature = (type: "to-go" | "to-stay", checked: boolean) => {
+    if (!checked) {
+      setDeactivateDialog({ isOpen: true, type });
+      return;
+    }
+    executeToggleFeature(type, checked);
+  };
+
+  const executeToggleFeature = (type: "to-go" | "to-stay", checked: boolean) => {
     startTransition(async () => {
       if (type === "to-go") setOptimisticToGo(checked);
       else setOptimisticToStay(checked);
@@ -315,294 +364,379 @@ function QrCodeGeneratorCard({
       if (result.error) {
         toast.error(result.error as string);
       } else {
-        toast.success(checked ? "Funktion aktiviert" : "Funktion deaktiviert");
+        toast.success(checked ? t("featureEnabled") : t("featureDisabled"));
       }
     });
+  };
+
+  const confirmDeactivate = () => {
+    if (!deactivateDialog.type) return;
+    executeToggleFeature(deactivateDialog.type, false);
+    setDeactivateDialog({ isOpen: false, type: null });
+  };
+
+  const handleAddTable = (val: string) => {
+    if (!val) {
+      setIsAddingTable(false);
+      return;
+    }
+    const currentTables = optimisticTables;
+    if (currentTables.includes(val)) {
+      toast.error(t("tableExists"));
+      setIsAddingTable(false);
+      return;
+    }
+    setNewTableInput("");
+    setIsAddingTable(false);
+    const updatedTables = [...currentTables, val];
+    startTransition(async () => {
+      setOptimisticTables(updatedTables);
+      const result = await updateTablesAction(organization.$id, updatedTables);
+      if (result.error) {
+        toast.error(result.error as string);
+        setNewTableInput(val);
+      } else {
+        setSelectedTables(prev => [...prev, val]);
+      }
+    });
+  };
+
+  const handleRemoveSelectedTables = () => {
+    if (selectedTables.length === 0) return;
+    setDeleteTablesDialogOpen(true);
+  };
+
+  const confirmRemoveTables = () => {
+    setDeleteTablesDialogOpen(false);
+    const currentTables = optimisticTables;
+    const updatedTables = currentTables.filter((t) => !selectedTables.includes(t));
+    startTransition(async () => {
+      setOptimisticTables(updatedTables);
+      const result = await updateTablesAction(organization.$id, updatedTables);
+      if (result.error) toast.error(result.error as string);
+      else {
+        toast.success(t("tablesDeleted"));
+        setSelectedTables([]);
+      }
+    });
+  };
+
+  const toggleTableSelection = (tNum: string) => {
+    setSelectedTables((prev) => 
+      prev.includes(tNum) ? prev.filter((t) => t !== tNum) : [...prev, tNum]
+    );
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const qrUrl =
     qrType === "to-go"
       ? `${baseUrl}/to-go/${organization.$id}`
-      : `${baseUrl}/to-stay/${organization.$id}?table=${tableNum || "1"}`;
+      : `${baseUrl}/to-stay/${organization.$id}?table=${selectedTables[0] || "1"}`;
+
+  const isActive = qrType === "to-go" ? optimisticToGo : optimisticToStay;
 
   return (
     <>
-      <Card className="h-full flex flex-col print:hidden">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
-          <div className="flex flex-col gap-1.5">
-            <h3 className="text-lg font-semibold">{t("qrCodeGenerator")}</h3>
-            <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
-              {qrType === "to-go"
-                ? t("qrCodeAdminDescToGo")
-                : t("qrCodeAdminDescToStay")}
-            </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full print:hidden">
+        {/* Left Card: QR Code Preview */}
+        <Card className="relative flex flex-col items-center justify-end p-6 shadow-sm w-full h-full min-h-[600px] transition-all duration-200 bg-white">
+          
+          <div className="absolute top-4 right-4">
+            <Button
+              onClick={handlePrint}
+              variant="default"
+              disabled={qrType === "to-stay" && selectedTables.length === 0}
+              className="bg-primary text-secondary shadow-sm"
+            >
+              <Printer className="mr-2 h-4 w-4" />
+              {qrType === "to-go" 
+                ? t("printQrCode") 
+                : (selectedTables.length > 1 
+                    ? t("printMultipleCodes").replace("{{count}}", selectedTables.length.toString()) 
+                    : t("printQrCode"))}
+            </Button>
           </div>
-          <Button
-            onClick={handlePrint}
-            variant="outline"
-            className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto h-10 px-5 rounded-3xl gap-2"
-          >
-            <Printer />
-            {t("printQrCode")}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 min-h-[36px]">
-              <Tabs
-                value={qrType}
-                onValueChange={(k) => setQrType(k as "to-go" | "to-stay")}
-                className="w-full sm:w-auto"
-              >
-                <TabsList>
-                  <TabsTrigger value="to-go">{t("toGo")}</TabsTrigger>
-                  <TabsTrigger value="to-stay">{t("toStay")}</TabsTrigger>
-                </TabsList>
-              </Tabs>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                {qrType === "to-stay" && (
-                  <div className="flex items-center justify-center sm:justify-start gap-3 rounded-3xl border border-input bg-background pl-4 pr-1.5 h-10 w-full sm:w-auto">
-                    <label
-                      htmlFor="table-number"
-                      className="whitespace-nowrap font-medium text-sm text-muted-foreground m-0 cursor-text"
-                    >
-                      {t("tableNumber")}
-                    </label>
-                    <Input
-                      id="table-number"
-                      value={tableNum}
-                      onChange={(e) => setTableNum(e.target.value)}
-                      onBlur={() => {
-                        if (!tableNum || tableNum.trim() === "") {
-                          setTableNum("1");
-                        }
-                      }}
-                      placeholder="1"
-                      maxLength={4}
-                      className="w-16 h-7 text-center rounded-3xl"
-                    />
-                  </div>
-                )}
-
-                <div className="flex items-center justify-center sm:justify-start gap-3 rounded-3xl border border-input bg-background pl-4 pr-2 h-10 w-full sm:w-auto">
-                  <label
-                    htmlFor="feature-toggle"
-                    className="whitespace-nowrap font-medium text-sm text-muted-foreground m-0 cursor-pointer"
-                  >
-                    Aktivieren
-                  </label>
-                  <Switch
-                    id="feature-toggle"
-                    checked={
-                      qrType === "to-go" ? optimisticToGo : optimisticToStay
-                    }
-                    onCheckedChange={(checked: boolean) =>
-                      handleToggleFeature(qrType, checked)
-                    }
-                    disabled={isPending}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Card className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-12 p-6 bg-white shadow-sm w-full">
-              <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left max-w-sm">
-                <p className="text-2xl md:text-3xl font-black leading-tight text-black whitespace-pre-line">
-                  {t("qrCodeDesc1")}
-                </p>
-                <p className="text-sm text-muted-foreground max-w-[300px] leading-relaxed">
-                  {t("qrCodeSublineBase")}{" "}
-                  {qrType === "to-stay"
-                    ? t("qrCodeSublineToStay")
-                    : t("qrCodeSublineToGo")}
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center w-[220px]">
-                {qrType === "to-stay" ? (
-                  <p className="text-3xl font-black leading-tight text-center">
-                    {t("table")} {tableNum || "1"}
-                  </p>
-                ) : qrType === "to-go" ? (
-                  <p className="text-3xl font-black leading-tight text-center">
-                    {t("pickup")}
-                  </p>
-                ) : (
-                  <div className="h-[36px]" />
-                )}
-
-                <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-                  <StyledQRCode value={qrUrl} size={220} />
-                </div>
-              </div>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="hidden print:flex items-start justify-center bg-white pt-20">
-        <div className="relative origin-top print-color-adjust-exact">
-          <div className="absolute -top-[14px] left-10 hidden print:block text-gray-400 bg-white px-2 z-10">
-            <Scissors size={24} weight="fill" className="-rotate-90" />
-          </div>
-          <Card className="flex flex-row items-start justify-center gap-12 p-6 bg-white shadow-sm print:shadow-none w-max print:border-dashed print:border-2 print:border-gray-400">
-            <div className="flex flex-col gap-4 text-left max-w-sm">
-              <p className="text-3xl font-black leading-tight text-black whitespace-pre-line">
-                {t("qrCodeDesc1")}
+          <div className={cn("flex flex-col items-center w-[280px] gap-2 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
+            <div className="text-center w-full flex flex-col justify-center mb-1">
+              <p className="text-[40px] font-black uppercase leading-[0.9] tracking-tighter text-foreground whitespace-nowrap">
+                {t("qrCodeTitleLine1")}<br />
+                {t("qrCodeTitleLine2")}
               </p>
-              <p className="text-sm text-muted-foreground max-w-[300px] leading-relaxed">
-                {t("qrCodeSublineBase")}{" "}
+              <div className="w-full border-b-[4px] border-foreground/10 my-4 rounded-full" />
+              <p className="text-[40px] font-black uppercase tracking-tighter text-foreground leading-none">
                 {qrType === "to-stay"
-                  ? t("qrCodeSublineToStay")
-                  : t("qrCodeSublineToGo")}
+                  ? `${t("table")} ${selectedTables.length > 0 ? selectedTables[0] : "?"}`
+                  : t("pickup")}
               </p>
             </div>
 
-            <div className="flex flex-col items-center w-[220px]">
-              {qrType === "to-stay" ? (
-                <p className="text-3xl font-black leading-tight text-center">
-                  {t("table")} {tableNum || "1"}
-                </p>
-              ) : qrType === "to-go" ? (
-                <p className="text-3xl font-black leading-tight text-center">
-                  {t("pickup")}
-                </p>
+            <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
+              <StyledQRCode value={qrUrl} size={280} />
+            </div>
+          </div>
+        </Card>
+
+        {/* Right Card: QR Code Management */}
+        <Card className="h-full flex flex-col">
+          <CardHeader className="flex flex-col gap-4 pb-4">
+            <div className="flex flex-col gap-1.5">
+              <h3 className="text-lg font-semibold">{t("qrCodeGenerator")}</h3>
+              <p className="text-sm text-muted-foreground text-balance leading-relaxed">
+                {qrType === "to-go"
+                  ? t("qrCodeAdminDescToGo")
+                  : t("qrCodeAdminDescToStay")}
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              {isActive ? (
+                <Button
+                  variant="destructive"
+                  onClick={() => handleToggleFeature(qrType, false)}
+                  disabled={isPending}
+                  className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {t("deactivate")}
+                </Button>
               ) : (
-                <div className="h-[36px]" />
+                <Button
+                  variant="default"
+                  onClick={() => handleToggleFeature(qrType, true)}
+                  disabled={isPending}
+                  className="flex-1"
+                >
+                  {t("activate")}
+                </Button>
               )}
 
-              <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-                <StyledQRCode value={qrUrl} size={220} />
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="default" className="flex-1 bg-primary text-secondary" />}>
+                  {qrType === "to-go" ? t("toGo") : t("toStay")}
+                  <CaretDown className="ml-2 h-4 w-4 shrink-0" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setQrType("to-go")}>
+                    {t("toGo")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setQrType("to-stay")}>
+                    {t("toStay")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </Card>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function KitchenSessionsCard({
-  kitchenSessions,
-  organization,
-  baseUrl,
-}: {
-  kitchenSessions: KitchenSession[];
-  organization: Organization;
-  baseUrl: string;
-}) {
-  const { t } = useTranslation();
-  const [isPending, startTransition] = useTransition();
-
-  const [optimisticSessions, modifyOptimisticSessions] = useOptimistic(
-    kitchenSessions,
-    (
-      state,
-      action:
-        | { type: "add"; session: KitchenSession }
-        | { type: "delete"; id: string },
-    ) => {
-      if (action.type === "delete")
-        return state.filter((s) => s.$id !== action.id);
-      return [action.session, ...state];
-    },
-  );
-
-  function handleCreateSession() {
-    startTransition(async () => {
-      const result = await createKitchenSessionAction(organization.$id);
-      if (result.success && result.session) {
-        toast.success(t("linkCopied"));
-      }
-    });
-  }
-
-  function handleDeleteSession(sessionId: string) {
-    startTransition(async () => {
-      modifyOptimisticSessions({ type: "delete", id: sessionId });
-      await deleteKitchenSessionAction(sessionId, organization.$id);
-    });
-  }
-
-  function copyKitchenLink(token: string) {
-    const link = `${baseUrl}/orders/${organization.$id}?token=${token}`;
-    navigator.clipboard.writeText(link);
-    toast.success(t("linkCopied"));
-  }
-
-  return (
-    <Card className="print:hidden">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
-        <div className="flex flex-col gap-1.5">
-          <h3 className="text-lg font-semibold">{t("kitchenSessions")}</h3>
-          <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
-            {t("kitchenSessionsDesc")}
-          </p>
-        </div>
-        <Button
-          onClick={handleCreateSession}
-          size="sm"
-          className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto"
-          disabled={isPending}
-        >
-          <Plus data-icon="inline-start" className="mr-2" />
-          {t("createSession")}
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {optimisticSessions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("noActiveOrders")}</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {optimisticSessions.map((session) => (
-              <div
-                key={session.$id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="flex items-center gap-2">
-                  <LinkSimple className="text-muted-foreground" />
-                  <code className="text-xs text-muted-foreground">
-                    {session.token.slice(0, 8)}...
-                  </code>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyKitchenLink(session.token)}
+          </CardHeader>
+          
+          <CardContent className="flex-1 flex flex-col min-h-0">
+            {qrType === "to-stay" && (
+              <div className="flex-1 min-w-0 w-full flex flex-col gap-4 h-full min-h-0">
+                <div className="flex flex-row items-center gap-2 w-full">
+                  <div 
+                    className={cn(
+                      "flex items-center justify-center h-8 w-8 rounded-full border transition-colors select-none shrink-0",
+                      (organization.tables || []).length === 0 
+                        ? "opacity-50 cursor-not-allowed border-border bg-background" 
+                        : "cursor-pointer",
+                      selectedTables.length === (organization.tables || []).length && selectedTables.length > 0
+                        ? "bg-primary border-primary text-primary-foreground"
+                        : "bg-background border-border hover:bg-muted"
+                    )}
+                    onClick={() => {
+                      if (optimisticTables.length === 0) return;
+                      if (selectedTables.length === optimisticTables.length) {
+                        setSelectedTables([]);
+                      } else {
+                        setSelectedTables(optimisticTables);
+                      }
+                    }}
                   >
-                    <Copy data-icon="inline-start" className="mr-2" />
-                    {t("copyLink")}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => handleDeleteSession(session.$id)}
-                    disabled={isPending}
-                  >
-                    <Trash />
-                  </Button>
+                    {selectedTables.length === optimisticTables.length && selectedTables.length > 0 && (
+                      <Check className="h-4 w-4" weight="bold" />
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-1 gap-2">
+                    {isAddingTable ? (
+                      <Input
+                        autoFocus
+                        placeholder={t("tableNr")}
+                        value={newTableInput}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          if (val.length <= 4) setNewTableInput(val);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleAddTable(newTableInput);
+                          } else if (e.key === "Escape") {
+                            setIsAddingTable(false);
+                            setNewTableInput("");
+                          }
+                        }}
+                        onBlur={() => {
+                          if (newTableInput) {
+                            handleAddTable(newTableInput);
+                          } else {
+                            setIsAddingTable(false);
+                          }
+                        }}
+                        maxLength={4}
+                        className="flex-1 min-w-0"
+                      />
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsAddingTable(true)}
+                        className="flex-1"
+                      >
+                        {t("addTable")}
+                      </Button>
+                    )}
+                    
+                    {selectedTables.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        onClick={handleRemoveSelectedTables}
+                        className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {selectedTables.length} {t("delete")}
+                      </Button>
+                    )}
+                  </div>
                 </div>
+
+                <ScrollArea className="w-full h-[280px]">
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={optimisticTables}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-4 gap-2 pb-4">
+                        {optimisticTables.map((tNum) => (
+                          <SortableTableItem
+                            key={tNum}
+                            tNum={tNum}
+                            isSelected={selectedTables.includes(tNum)}
+                            onToggle={() => toggleTableSelection(tNum)}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </ScrollArea>
               </div>
-            ))}
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="hidden print:grid print:grid-cols-2 print:gap-y-16 print:gap-x-8 bg-white print:content-start">
+        {qrType === "to-stay" ? (
+          selectedTables.map((tNum) => {
+            const tableQrUrl = `${baseUrl}/to-stay/${organization.$id}?table=${tNum}`;
+            return (
+              <div key={tNum} className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
+                <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none w-max print:border-dashed print:border print:border-black/40">
+                    <div className="flex flex-col items-center w-[220px] gap-1.5">
+                      <div className="text-center w-full flex flex-col justify-center mb-1">
+                        <p className="text-[32px] font-black uppercase leading-[0.9] tracking-tighter text-foreground whitespace-nowrap">
+                          {t("qrCodeTitleLine1")}<br />
+                          {t("qrCodeTitleLine2")}
+                        </p>
+                        <div className="w-full border-b-[3px] border-foreground/10 my-3 rounded-full" />
+                        <p className="text-[32px] font-black uppercase tracking-tighter text-foreground leading-none">
+                          {`${t("table")} ${tNum}`}
+                        </p>
+                      </div>
+      
+                      <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                        <StyledQRCode value={tableQrUrl} size={220} />
+                      </div>
+                    </div>
+                </Card>
+              </div>
+            );
+          })
+        ) : (
+          <div className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
+            <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none w-max print:border-dashed print:border print:border-black/40">
+                <div className="flex flex-col items-center w-[220px] gap-1.5">
+                  <div className="text-center w-full flex flex-col justify-center mb-1">
+                    <p className="text-[32px] font-black uppercase leading-[0.9] tracking-tighter text-foreground whitespace-nowrap">
+                      {t("qrCodeTitleLine1")}<br />
+                      {t("qrCodeTitleLine2")}
+                    </p>
+                    <div className="w-full border-b-[3px] border-foreground/10 my-3 rounded-full" />
+                    <p className="text-[32px] font-black uppercase tracking-tighter text-foreground leading-none">
+                      {t("pickup")}
+                    </p>
+                  </div>
+  
+                  <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                    <StyledQRCode value={qrUrl} size={220} />
+                  </div>
+                </div>
+            </Card>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      <Dialog open={deactivateDialog.isOpen} onOpenChange={(isOpen) => setDeactivateDialog(prev => ({ ...prev, isOpen }))}>
+        <DialogContent className="bg-primary text-primary-foreground border-border/20">
+          <DialogHeader>
+            <DialogTitle>{t("confirmAction")}</DialogTitle>
+            <DialogDescription className="text-primary-foreground/80">
+              {t("confirmDeactivate")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex w-full gap-3 mt-2">
+            <Button variant="outline" onClick={() => setDeactivateDialog({ isOpen: false, type: null })} className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground">
+              {t("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={confirmDeactivate} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t("deactivate")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteTablesDialogOpen} onOpenChange={setDeleteTablesDialogOpen}>
+        <DialogContent className="bg-primary text-primary-foreground border-border/20">
+          <DialogHeader>
+            <DialogTitle>{t("confirmAction")}</DialogTitle>
+            <DialogDescription className="text-primary-foreground/80">
+              {t("confirmDeleteTables")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex w-full gap-3 mt-2">
+            <Button variant="outline" onClick={() => setDeleteTablesDialogOpen(false)} className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground">
+              {t("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={confirmRemoveTables} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t("delete")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
 interface OverviewContentProps {
   organization: Organization;
   orders: Order[];
-  kitchenSessions: KitchenSession[];
 }
 
 export function OverviewContent({
   organization,
   orders,
-  kitchenSessions,
 }: OverviewContentProps) {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<TimePeriod>("30d");
@@ -624,12 +758,12 @@ export function OverviewContent({
 
   return (
     <>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between print:hidden">
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center justify-between space-y-2 print:hidden">
           <div>
-            <h1 className="text-2xl font-semibold">{t("overview")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("overview")}</h1>
             {organization.address && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground">
                 {organization.address}
               </p>
             )}
@@ -637,7 +771,7 @@ export function OverviewContent({
           <RefreshButton />
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 print:hidden">
+        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 print:block">
           <StatisticsCard
             orders={orders}
             period={period}
@@ -645,16 +779,66 @@ export function OverviewContent({
             isMobile={isMobile}
             mounted={mounted}
           />
-          <QuickLinksCard organization={organization} />
+          <QrCodeGeneratorCard organization={organization} baseUrl={baseUrl} />
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-          <QrCodeGeneratorCard organization={organization} baseUrl={baseUrl} />
-          <KitchenSessionsCard
-            kitchenSessions={kitchenSessions}
-            organization={organization}
-            baseUrl={baseUrl}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 print:hidden">
+          <Link
+            href={`/dashboard/${organization.$id}/menu`}
+            className="flex items-start gap-3 p-4 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
+          >
+            <div className="bg-primary text-secondary p-2.5 rounded-full shrink-0">
+              <ForkKnife className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-semibold text-lg leading-none">{t("menu")}</span>
+              <span className="text-sm text-muted-foreground leading-relaxed text-balance">
+                Kategorien und Produkte für deinen Shop bearbeiten
+              </span>
+            </div>
+          </Link>
+          <Link
+            href={`/dashboard/${organization.$id}/live-orders`}
+            className="flex items-start gap-3 p-4 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
+          >
+            <div className="bg-primary text-secondary p-2.5 rounded-full shrink-0">
+              <ClipboardText className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-semibold text-lg leading-none">{t("orders")}</span>
+              <span className="text-sm text-muted-foreground leading-relaxed text-balance">
+                Aktive Bestellungen in Echtzeit verwalten
+              </span>
+            </div>
+          </Link>
+          <Link
+            href={`/dashboard/${organization.$id}/archive`}
+            className="flex items-start gap-3 p-4 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
+          >
+            <div className="bg-primary text-secondary p-2.5 rounded-full shrink-0">
+              <Archive className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-semibold text-lg leading-none">{t("archive")}</span>
+              <span className="text-sm text-muted-foreground leading-relaxed text-balance">
+                Vergangene Bestellungen ansehen und exportieren
+              </span>
+            </div>
+          </Link>
+          <Link
+            href={`/dashboard/${organization.$id}/settings`}
+            className="flex items-start gap-3 p-4 bg-background border rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
+          >
+            <div className="bg-primary text-secondary p-2.5 rounded-full shrink-0">
+              <Gear className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-semibold text-lg leading-none">{t("settings")}</span>
+              <span className="text-sm text-muted-foreground leading-relaxed text-balance">
+                Allgemeine Einstellungen deines Shops anpassen
+              </span>
+            </div>
+          </Link>
         </div>
       </div>
     </>

@@ -92,3 +92,23 @@ export async function toggleFeatureAction(
     return { error: message };
   }
 }
+
+export async function updateTablesAction(
+  organizationId: string,
+  tables: string[],
+): Promise<SettingsActionState> {
+  const user = await getUser();
+  if (!user) return { error: "Nicht authentifiziert." };
+
+  try {
+    await updateOrganization(organizationId, { tables });
+    revalidatePath(`/dashboard/${organizationId}/overview`);
+    return { success: true };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Tische konnten nicht aktualisiert werden.";
+    return { error: message };
+  }
+}

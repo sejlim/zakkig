@@ -1,5 +1,5 @@
 import { getOrders, getOrganization } from "@/lib/appwrite/database";
-import { KitchenBoard } from "@/components/kitchen/kitchen-board";
+import { LiveOrdersContent } from "@/components/dashboard/live-orders-content";
 
 export const metadata = { title: "Kitchen Board" };
 
@@ -10,7 +10,7 @@ export default async function KitchenBoardPage({
   params: Promise<{ organizationId: string }>;
   searchParams: Promise<{ token?: string }>;
 }) {
-  const [{ organizationId }, { token }] = await Promise.all([
+  const [{ organizationId }] = await Promise.all([
     params,
     searchParams,
   ]);
@@ -26,9 +26,22 @@ export default async function KitchenBoardPage({
     return <div className="p-8 text-center">Organization not found</div>;
 
   return (
-    <KitchenBoard
-      organization={structuredClone(organization)}
-      initialOrders={structuredClone(initialOrders)}
-    />
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b bg-primary text-primary-foreground px-6 shadow-sm">
+        <h1 className="text-xl font-bold tracking-tight">
+          zakkig{" "}
+          <span className="font-normal opacity-80 ml-2">
+            Kitchen Board
+          </span>
+        </h1>
+        <div className="font-medium">{organization.name}</div>
+      </header>
+      <main className="flex-1 overflow-y-auto p-6">
+        <LiveOrdersContent
+          organizationId={organizationId}
+          orders={structuredClone(initialOrders)}
+        />
+      </main>
+    </div>
   );
 }

@@ -87,7 +87,7 @@ export default function OverviewChart({
   xAxisTicks: string[];
 }) {
   return (
-    <ChartContainer config={chartConfig} className="h-[250px] w-full mt-4">
+    <ChartContainer config={chartConfig} className="h-[340px] w-full mt-4">
       <ChartInner chartData={chartData} xAxisTicks={xAxisTicks} />
     </ChartContainer>
   );

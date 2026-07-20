@@ -1,7 +1,6 @@
 import {
   getOrganization,
   getOrders,
-  getKitchenSessions,
 } from "@/lib/appwrite/database";
 import { OverviewContent } from "@/components/dashboard/overview-content";
 
@@ -13,10 +12,9 @@ export default async function OverviewPage({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  const [organization, orders, sessions] = await Promise.all([
+  const [organization, orders] = await Promise.all([
     getOrganization(organizationId),
     getOrders(organizationId),
-    getKitchenSessions(organizationId),
   ]);
 
   if (!organization) return null;
@@ -25,7 +23,6 @@ export default async function OverviewPage({
     <OverviewContent
       organization={structuredClone(organization)}
       orders={structuredClone(orders)}
-      kitchenSessions={structuredClone(sessions)}
     />
   );
 }

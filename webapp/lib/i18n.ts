@@ -39,9 +39,9 @@ const translations = {
     createAccount: "Konto erstellen",
     emailNotFound: "Kein Konto mit dieser E-Mail-Adresse gefunden.",
     signInDescription:
-      "Melde dich an, um auf dein Dashboard zu gelangen. Dort hast du dein Menü und Bestellungen immer im Blick.",
+      "Melde dich an, um auf dein Dashboard zu gelangen. Dort hast du dein Menü und Live-Bestellungen immer im Blick.",
     signUpDescription:
-      "Erstelle einen Account für deinen Gastronomie-Betrieb, um digitale Bestellungen vor Ort entgegenzunehmen.",
+      "Erstelle einen Account für deinen Gastronomie-Betrieb, um digitale Live-Bestellungen vor Ort entgegenzunehmen.",
     restaurantName: "Betriebsname",
     invalidOtp: "Der eingegebene Code ist falsch.",
     authError: "Die Anmeldung ist fehlgeschlagen. Bitte überprüfe deine Daten.",
@@ -73,7 +73,8 @@ const translations = {
     // Dashboard
     dashboard: "Dashboard",
     overview: "Übersicht",
-    orders: "Bestellungen",
+    orders: "Live-Bestellungen",
+    archive: "Archiv",
     menu: "Menü",
     settings: "Einstellungen",
     language: "Sprache",
@@ -90,11 +91,11 @@ const translations = {
     quickLinks: "Schnellzugriffe",
     kitchenSessions: "Bestellübersicht Sitzungen",
     kitchenSessionsDesc:
-      "Erstelle eine Sitzung und öffne den Link auf einem Tablet, zugänglich zur Bedienung und ggf. Küche. Eingehende Bestellungen erscheinen dort mit allen Details in Echtzeit und können verwaltet werden.",
+      "Erstelle eine Sitzung und öffne den Link auf einem Tablet, zugänglich zur Bedienung und ggf. Küche. Eingehende Live-Bestellungen erscheinen dort mit allen Details in Echtzeit und können verwaltet werden.",
     createSession: "Neue Session erstellen",
     copyLink: "Link kopieren",
     linkCopied: "Link kopiert!",
-    qrCodeGenerator: "QR-Codes Verwaltung",
+    qrCodeGenerator: "QR-Code Verwaltung",
     generateQR: "QR-Code erstellen",
     toGo: "Abholung",
     pickup: "Abholung",
@@ -104,6 +105,8 @@ const translations = {
     printQrCode: "Drucken",
     qrCodeDesc1: "Menü &\nBestellsystem",
     qrCodeDesc2: "Bestellsystem",
+    qrCodeTitleLine1: "Menü &",
+    qrCodeTitleLine2: "Bestellung",
     qrCodeSublineBase:
       "Bestelle entweder wie gewohnt beim Personal oder füge gewünschte Artikel deinem Warenkorb hinzu und bezahle direkt über das Handy.",
     qrCodeSublineToStay:
@@ -111,9 +114,9 @@ const translations = {
     qrCodeSublineToGo:
       "Nach Abschluss der Bezahlung wirst du auf eine Warteseite weitergeleitet, auf der du sehen kannst ob deine Bestellung abholbereit ist.",
     qrCodeAdminDescToGo:
-      "Drucke diesen QR-Code aus und platziere ihn gut sichtbar für deine Kunden. Sobald das Feature aktiviert ist, können Kunden direkt darüber bestellen.",
+      "Drucke diesen QR-Code aus und platziere ihn gut sichtbar für deine Kunden.",
     qrCodeAdminDescToStay:
-      "Trage die gewünschte Tischnummer ein, drucke den QR-Code aus und platziere ihn auf dem entsprechenden Tisch. Sobald das Feature aktiviert ist, können Kunden direkt von dort bestellen.",
+      "Trage die gewünschten Tischnummern ein, drucke die QR-Codes aus und platziere sie auf den entsprechenden Tischen.",
 
     // Orders
     liveView: "Live-Ansicht",
@@ -130,10 +133,28 @@ const translations = {
     completed: "Abgeschlossen",
     exportCSV: "DATEV CSV-Export",
     search: "Suchen...",
-    noOrders: "Noch keine Bestellungen vorhanden.",
+    noOrders: "Noch keine Live-Bestellungen vorhanden.",
+    noArchiveOrders: "Keine Bestellungen im Archiv.",
     dineIn: "Vor Ort",
     takeaway: "Zum Mitnehmen",
     table: "Tisch",
+    tableNr: "Tisch Nr.",
+
+    manageTables: "Tischnummern verwalten",
+    selectAll: "Alle auswählen",
+    addTable: "Hinzufügen",
+    noTablesCreated: "Noch keine Tische angelegt.",
+    tableExists: "Tischnummer existiert bereits",
+    tablesDeleted: "Tische gelöscht",
+    featureEnabled: "Funktion aktiviert",
+    featureDisabled: "Funktion deaktiviert",
+    confirmAction: "Aktion bestätigen",
+    confirmDeactivate: "Möchten Sie diese Funktion wirklich deaktivieren?",
+    confirmDeleteTables: "Möchten Sie die ausgewählten Tische wirklich löschen?",
+    activate: "Aktivieren",
+    deactivate: "Deaktivieren",
+    printMultipleCodes: "{{count}} QR-Codes drucken",
+
 
     // Menu
     categories: "Kategorien",
@@ -180,7 +201,8 @@ const translations = {
     done: "Abgeschlossen",
     markDone: "Als fertig markieren",
     clearOrder: "Bestellung entfernen",
-    noActiveOrders: "Keine aktiven Bestellungen.",
+    noActiveOrders: "Keine aktiven Live-Bestellungen.",
+    newOrder: "Neue Bestellung",
 
     // Guest
     menuTab: "Menü",
@@ -259,9 +281,9 @@ const translations = {
     createAccount: "Create Account",
     emailNotFound: "No account found with this email address.",
     signInDescription:
-      "Sign in to access your dashboard. Keep your menu and orders in view at all times.",
+      "Sign in to access your dashboard. Keep track of your menu and live orders.",
     signUpDescription:
-      "Create an account for your hospitality business to accept digital orders on-site.",
+      "Create an account for your hospitality business to receive digital live orders on-site.",
     restaurantName: "Business name",
     invalidOtp: "The entered code is invalid.",
     authError: "Sign in failed. Please check your credentials.",
@@ -292,7 +314,8 @@ const translations = {
     // Dashboard
     dashboard: "Dashboard",
     overview: "Overview",
-    orders: "Orders",
+    orders: "Live Orders",
+    archive: "Archive",
     menu: "Menu",
     settings: "Settings",
     language: "Language",
@@ -309,11 +332,11 @@ const translations = {
     quickLinks: "Quick Links",
     kitchenSessions: "Order Overview Sessions",
     kitchenSessionsDesc:
-      "Create a session and open the link on a tablet, accessible to the staff and kitchen if needed. Incoming orders appear there with all details in real time and can be managed.",
+      "Create a session and open the link on a tablet, accessible to service staff and kitchen if needed. Incoming live orders will appear there in real-time with all details and can be managed.",
     createSession: "Create new session",
     copyLink: "Copy link",
     linkCopied: "Link copied!",
-    qrCodeGenerator: "QR Codes Management",
+    qrCodeGenerator: "QR Code Management",
     generateQR: "Generate QR Code",
     toGo: "Pickup",
     pickup: "Pickup",
@@ -323,6 +346,8 @@ const translations = {
     printQrCode: "Print",
     qrCodeDesc1: "Menu &\nOrdering system",
     qrCodeDesc2: "Ordering system",
+    qrCodeTitleLine1: "Menu &",
+    qrCodeTitleLine2: "Order",
     qrCodeSublineBase:
       "Order as usual with our staff or add your desired items to the cart and pay directly via your phone.",
     qrCodeSublineToStay:
@@ -330,9 +355,9 @@ const translations = {
     qrCodeSublineToGo:
       "After payment, you will be redirected to a waiting page where you can see whether your order is ready for pickup.",
     qrCodeAdminDescToGo:
-      "Print out this QR code and place it in a clearly visible spot for your customers. Once the feature is activated, customers can order directly through it.",
+      "Print out this QR code and place it in a clearly visible spot for your customers.",
     qrCodeAdminDescToStay:
-      "Enter the desired table number, print out the QR code and place it on the corresponding table. Once the feature is activated, customers can order directly from there.",
+      "Enter the desired table numbers, print out the QR codes and place them on the corresponding tables.",
 
     // Orders
     liveView: "Live View",
@@ -349,10 +374,28 @@ const translations = {
     completed: "Completed",
     exportCSV: "DATEV CSV Export",
     search: "Search...",
-    noOrders: "No orders yet.",
+    noOrders: "No live orders yet.",
+    noArchiveOrders: "No orders in archive.",
     dineIn: "Dine-in",
     takeaway: "Takeaway",
     table: "Table",
+    tableNr: "Table No.",
+
+    manageTables: "Manage table numbers",
+    selectAll: "Select all",
+    addTable: "Add",
+    noTablesCreated: "No tables created yet.",
+    tableExists: "Table number already exists",
+    tablesDeleted: "Tables deleted",
+    featureEnabled: "Feature enabled",
+    featureDisabled: "Feature disabled",
+    confirmAction: "Confirm action",
+    confirmDeactivate: "Do you really want to deactivate this feature?",
+    confirmDeleteTables: "Do you really want to delete the selected tables?",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    printMultipleCodes: "Print {{count}} QR codes",
+
 
     // Menu
     categories: "Categories",
@@ -398,7 +441,8 @@ const translations = {
     done: "Done",
     markDone: "Mark as done",
     clearOrder: "Clear order",
-    noActiveOrders: "No active orders.",
+    noActiveOrders: "No active live orders.",
+    newOrder: "New order",
 
     // Guest
     menuTab: "Menu",
