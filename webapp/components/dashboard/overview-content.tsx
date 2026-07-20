@@ -504,7 +504,7 @@ function QrCodeGeneratorCard({
                 text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                 className="text-foreground"
               />
-              <p className="text-right w-full text-zinc-500 font-bold text-lg leading-none uppercase">
+              <p className="text-right w-full text-foreground font-bold text-lg leading-none uppercase">
                 {qrType === "to-stay" ? t("qrCodeAt") : t("qrCodeFor")}
               </p>
               <ScaledText 
@@ -708,7 +708,7 @@ function QrCodeGeneratorCard({
                           text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                           className="text-foreground"
                         />
-                        <p className="text-right w-full text-zinc-500 font-bold text-base leading-none uppercase">
+                        <p className="text-right w-full text-foreground font-bold text-base leading-none uppercase">
                           {t("qrCodeAt")}
                         </p>
                         <ScaledText 
@@ -734,7 +734,7 @@ function QrCodeGeneratorCard({
                       text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                       className="text-foreground"
                     />
-                    <p className="text-right w-full text-zinc-500 font-bold text-base leading-none uppercase">
+                    <p className="text-right w-full text-foreground font-bold text-base leading-none uppercase">
                       {t("qrCodeFor")}
                     </p>
                     <ScaledText 
@@ -857,7 +857,7 @@ export function OverviewContent({
             <div className="flex flex-col gap-1.5">
               <span className="font-semibold text-lg leading-none">{t("menu")}</span>
               <span className="text-sm text-muted-foreground leading-relaxed text-balance">
-                Kategorien und Produkte für deinen Shop bearbeiten
+                {t("quickMenuDesc")}
               </span>
             </div>
           </Link>
@@ -871,7 +871,7 @@ export function OverviewContent({
             <div className="flex flex-col gap-1.5">
               <span className="font-semibold text-lg leading-none">{t("orders")}</span>
               <span className="text-sm text-muted-foreground leading-relaxed text-balance">
-                Aktive Bestellungen in Echtzeit verwalten
+                {t("quickOrdersDesc")}
               </span>
             </div>
           </Link>
@@ -885,7 +885,7 @@ export function OverviewContent({
             <div className="flex flex-col gap-1.5">
               <span className="font-semibold text-lg leading-none">{t("archive")}</span>
               <span className="text-sm text-muted-foreground leading-relaxed text-balance">
-                Vergangene Bestellungen ansehen und exportieren
+                {t("quickArchiveDesc")}
               </span>
             </div>
           </Link>
@@ -899,7 +899,7 @@ export function OverviewContent({
             <div className="flex flex-col gap-1.5">
               <span className="font-semibold text-lg leading-none">{t("settings")}</span>
               <span className="text-sm text-muted-foreground leading-relaxed text-balance">
-                Allgemeine Einstellungen deines Shops anpassen
+                {t("quickSettingsDesc")}
               </span>
             </div>
           </Link>

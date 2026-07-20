@@ -89,6 +89,10 @@ const translations = {
     last30d: "Letzte 30 Tage",
     last90d: "Letzte 90 Tage",
     quickLinks: "Schnellzugriffe",
+    quickMenuDesc: "Kategorien und Artikel für deinen Betrieb bearbeiten",
+    quickOrdersDesc: "Bestellungen in Echtzeit einsehen und verwalten",
+    quickArchiveDesc: "Alle Bestellungen, inklusive vergangener einsehen und exportieren",
+    quickSettingsDesc: "Allgemeines einstellen und deinen Betrieb verwalten",
     kitchenSessions: "Bestellübersicht Sitzungen",
     kitchenSessionsDesc:
       "Erstelle eine Sitzung und öffne den Link auf einem Tablet, zugänglich zur Bedienung und ggf. Küche. Eingehende Live-Bestellungen erscheinen dort mit allen Details in Echtzeit und können verwaltet werden.",
@@ -331,7 +335,11 @@ const translations = {
     last24h: "Last 24 hours",
     last30d: "Last 30 days",
     last90d: "Last 90 days",
-    quickLinks: "Quick Links",
+    quickLinks: "Quick links",
+    quickMenuDesc: "Edit categories and items for your business",
+    quickOrdersDesc: "View and manage orders in real-time",
+    quickArchiveDesc: "View and export all orders, including past ones",
+    quickSettingsDesc: "Adjust general settings and manage your business",
     kitchenSessions: "Order Overview Sessions",
     kitchenSessionsDesc:
       "Create a session and open the link on a tablet, accessible to service staff and kitchen if needed. Incoming live orders will appear there in real-time with all details and can be managed.",
