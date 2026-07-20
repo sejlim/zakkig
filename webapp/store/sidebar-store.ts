@@ -1,10 +1,10 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface SidebarState {
-  isExpanded: boolean
-  toggleSidebar: () => void
-  setExpanded: (expanded: boolean) => void
+  isExpanded: boolean;
+  toggleSidebar: () => void;
+  setExpanded: (expanded: boolean) => void;
 }
 
 export const useSidebarStore = create<SidebarState>()(
@@ -15,7 +15,7 @@ export const useSidebarStore = create<SidebarState>()(
       setExpanded: (expanded: boolean) => set({ isExpanded: expanded }),
     }),
     {
-      name: 'sidebar-storage',
-    }
-  )
-)
+      name: "sidebar-storage",
+    },
+  ),
+);

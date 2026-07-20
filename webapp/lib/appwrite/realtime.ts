@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { type RealtimeResponseEvent } from 'appwrite'
-import { client } from './client'
-import { DATABASE_ID, COLLECTIONS } from '@/lib/constants'
+import { type RealtimeResponseEvent } from "appwrite";
+import { client } from "./client";
+import { DATABASE_ID, COLLECTIONS } from "@/lib/constants";
 
 /**
  * Subscribe to real-time order changes for a specific organization.
@@ -12,16 +12,16 @@ export function subscribeToOrders(
   organizationId: string,
   callback: (event: RealtimeResponseEvent<Record<string, unknown>>) => void,
 ) {
-  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORDERS}.documents`
+  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORDERS}.documents`;
 
-  const subscription = client.subscribe(channel, (response) => {
-    const payload = response.payload as Record<string, unknown>
+  const subscription = client.subscribe(channel, (response: any) => {
+    const payload = response.payload as Record<string, unknown>;
     if (payload.organizationId === organizationId) {
-      callback(response as RealtimeResponseEvent<Record<string, unknown>>)
+      callback(response as RealtimeResponseEvent<Record<string, unknown>>);
     }
-  })
+  });
 
-  return subscription
+  return subscription;
 }
 
 /**
@@ -31,7 +31,10 @@ export function subscribeToOrder(
   orderId: string,
   callback: (event: RealtimeResponseEvent<Record<string, unknown>>) => void,
 ) {
-  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORDERS}.documents.${orderId}`
+  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORDERS}.documents.${orderId}`;
 
-  return client.subscribe(channel, callback as (event: RealtimeResponseEvent<unknown>) => void)
+  return client.subscribe(
+    channel,
+    callback as (event: RealtimeResponseEvent<unknown>) => void,
+  );
 }

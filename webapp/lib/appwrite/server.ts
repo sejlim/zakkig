@@ -1,8 +1,20 @@
-import 'server-only'
+import "server-only";
 
-import { Client, Account, Databases, Storage, Users, type Models } from 'node-appwrite'
-import { cookies, headers } from 'next/headers'
-import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_API_KEY, SESSION_COOKIE_NAME } from '@/lib/constants'
+import {
+  Client,
+  Account,
+  Databases,
+  Storage,
+  Users,
+  type Models,
+} from "node-appwrite";
+import { cookies, headers } from "next/headers";
+import {
+  APPWRITE_ENDPOINT,
+  APPWRITE_PROJECT_ID,
+  APPWRITE_API_KEY,
+  SESSION_COOKIE_NAME,
+} from "@/lib/constants";
 
 /**
  * Admin client — uses API key, singleton.
@@ -12,7 +24,7 @@ export function createAdminClient() {
   const client = new Client()
     .setEndpoint(APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT_ID)
-    .setKey(APPWRITE_API_KEY)
+    .setKey(APPWRITE_API_KEY);
 
   return {
     client,
@@ -20,25 +32,7 @@ export function createAdminClient() {
     tablesDB: new Databases(client),
     storage: new Storage(client),
     users: new Users(client),
-  }
-}
-
-/**
- * Create a client with an explicit session secret.
- * Useful when the cookie is not yet available in the same request.
- */
-export function createClientWithSession(sessionSecret: string) {
-  const client = new Client()
-    .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT_ID)
-    .setSession(sessionSecret)
-
-  return {
-    client,
-    account: new Account(client),
-    tablesDB: new Databases(client),
-    storage: new Storage(client),
-  }
+  };
 }
 
 /**
@@ -47,23 +41,23 @@ export function createClientWithSession(sessionSecret: string) {
  * Returns null if no session cookie exists.
  */
 export async function createSessionClient() {
-  const cookieStore = await cookies()
-  const session = cookieStore.get(SESSION_COOKIE_NAME)?.value
+  const cookieStore = await cookies();
+  const session = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!session) {
-    return null
+    return null;
   }
 
-  const headersList = await headers()
-  const userAgent = headersList.get('user-agent') || ''
+  const headersList = await headers();
+  const userAgent = headersList.get("user-agent") || "";
 
   const client = new Client()
     .setEndpoint(APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT_ID)
-    .setSession(session)
+    .setSession(session);
 
   if (userAgent) {
-    client.setForwardedUserAgent(userAgent)
+    client.setForwardedUserAgent(userAgent);
   }
 
   return {
@@ -71,20 +65,20 @@ export async function createSessionClient() {
     account: new Account(client),
     tablesDB: new Databases(client),
     storage: new Storage(client),
-  }
+  };
 }
 
 /**
  * Get the current logged-in user, or null if not authenticated.
  */
 export async function getUser(): Promise<Models.User<Models.Preferences> | null> {
-  const sessionClient = await createSessionClient()
-  if (!sessionClient) return null
+  const sessionClient = await createSessionClient();
+  if (!sessionClient) return null;
 
   try {
-    return await sessionClient.account.get()
+    return await sessionClient.account.get();
   } catch (error) {
-    console.error("getUser error:", error)
-    return null
+    console.error("getUser error:", error);
+    return null;
   }
 }

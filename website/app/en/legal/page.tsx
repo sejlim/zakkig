@@ -1,22 +1,22 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: 'zakkig: Legal Notice',
-  description: 'Legal Notice of zakkig.',
-  robots: 'noindex, follow',
+  title: "zakkig: Legal Notice",
+  description: "Legal Notice of zakkig.",
+  robots: "noindex, follow",
   alternates: {
-    canonical: 'https://www.zakkig.de/en/legal',
+    canonical: "https://www.zakkig.de/en/legal",
   },
   openGraph: {
-    locale: 'en_US',
-    title: 'zakkig: Legal Notice',
-    description: 'Legal Notice of zakkig.',
-    images: ['/full.jpg'],
-    type: 'website',
+    locale: "en_US",
+    title: "zakkig: Legal Notice",
+    description: "Legal Notice of zakkig.",
+    images: ["/full.jpg"],
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
   },
 };
 
@@ -52,12 +52,12 @@ export default function Legal() {
           <p>
             <strong>Contact:</strong>
             <br />
-            Phone:{' '}
+            Phone:{" "}
             <a href="tel:+4962186037315" className="text-white hover:underline">
               +49-621 86037315
             </a>
             <br />
-            Email:{' '}
+            Email:{" "}
             <a
               href="mailto:selim@zakkig.de"
               className="text-white hover:underline"
@@ -74,7 +74,7 @@ export default function Legal() {
             consumer arbitration board and are not obliged to do so.
           </p>
           <p>
-            Privacy Policy:{' '}
+            Privacy Policy:{" "}
             <a
               href="https://www.zakkig.de/en/privacy"
               className="text-white hover:underline"

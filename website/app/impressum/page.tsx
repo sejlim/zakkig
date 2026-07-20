@@ -1,21 +1,21 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+import { Metadata } from "next";
+import Link from "next/link";
 export const metadata: Metadata = {
-  title: 'zakkig: Impressum',
-  description: 'Impressum von zakkig.',
-  robots: 'noindex, follow',
+  title: "zakkig: Impressum",
+  description: "Impressum von zakkig.",
+  robots: "noindex, follow",
   alternates: {
-    canonical: 'https://www.zakkig.de/impressum',
+    canonical: "https://www.zakkig.de/impressum",
   },
   openGraph: {
-    locale: 'de_DE',
-    title: 'zakkig: Impressum',
-    description: 'Impressum von zakkig.',
-    images: ['/full.jpg'],
-    type: 'website',
+    locale: "de_DE",
+    title: "zakkig: Impressum",
+    description: "Impressum von zakkig.",
+    images: ["/full.jpg"],
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
   },
 };
 
@@ -49,12 +49,12 @@ export default function Impressum() {
           <p>
             <strong>Kontakt:</strong>
             <br />
-            Telefon:{' '}
+            Telefon:{" "}
             <a href="tel:+4962186037315" className="text-white hover:underline">
               +49-621 86037315
             </a>
             <br />
-            E-Mail:{' '}
+            E-Mail:{" "}
             <a
               href="mailto:selim@zakkig.de"
               className="text-white hover:underline"
@@ -72,7 +72,7 @@ export default function Impressum() {
             verpflichtet.
           </p>
           <p>
-            Datenschutzerklärung:{' '}
+            Datenschutzerklärung:{" "}
             <a
               href="https://www.zakkig.de/datenschutz"
               className="text-white hover:underline"

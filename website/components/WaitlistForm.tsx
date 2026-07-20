@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useState } from 'react';
-import { useTranslation } from '../lib/i18n';
-import { addToWaitlist } from '../app/actions/waitlist';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { Check, CircleNotch } from '@phosphor-icons/react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
+import { useTranslation } from "../lib/i18n";
+import { addToWaitlist } from "../app/actions/waitlist";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { Check, CircleNotch } from "@phosphor-icons/react";
 
 const waitlistSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -19,40 +19,42 @@ type FormData = z.infer<typeof waitlistSchema>;
 
 export function WaitlistForm() {
   const { t, locale } = useTranslation();
-  const privacyHref = locale === 'en' ? '/en/privacy' : '/datenschutz';
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const privacyHref = locale === "en" ? "/en/privacy" : "/datenschutz";
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [showRedText, setShowRedText] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(waitlistSchema),
     defaultValues: {
-      email: '',
+      email: "",
     },
   });
 
   const onSubmit = async (data: FormData) => {
-    setStatus('loading');
+    setStatus("loading");
     try {
       const response = await addToWaitlist({ email: data.email });
       if (response.success) {
-        setStatus('success');
-        toast.success(t('formSuccess'), {
-          icon: <Check weight="bold" />
+        setStatus("success");
+        toast.success(t("formSuccess"), {
+          icon: <Check weight="bold" />,
         });
         form.reset();
       } else {
-        setStatus('error');
+        setStatus("error");
         toast.error(
-          response.errorCode === 'EMAIL_ALREADY_EXISTS'
-            ? t('formDuplicateError')
-            : t('formError')
+          response.errorCode === "EMAIL_ALREADY_EXISTS"
+            ? t("formDuplicateError")
+            : t("formError"),
         );
         setShowRedText(true);
       }
     } catch (err) {
       console.error(err);
-      setStatus('error');
-      toast.error(t('formError'));
+      setStatus("error");
+      toast.error(t("formError"));
       setShowRedText(true);
     }
   };
@@ -60,10 +62,10 @@ export function WaitlistForm() {
   const onInvalid = () => {
     const error = form.formState.errors.email;
     if (error) {
-      const val = form.getValues('email');
-      const isEmpty = !val || val.trim() === '';
+      const val = form.getValues("email");
+      const isEmpty = !val || val.trim() === "";
       toast.error(
-        isEmpty ? t('formRequiredError') : t('formInvalidEmailError')
+        isEmpty ? t("formRequiredError") : t("formInvalidEmailError"),
       );
       setShowRedText(true);
     }
@@ -78,13 +80,13 @@ export function WaitlistForm() {
       >
         <div className="w-full sm:w-80 sm:flex-none flex flex-col">
           <Input
-            aria-label={t('formPlaceholder')}
+            aria-label={t("formPlaceholder")}
             id="email"
             type="email"
-            placeholder={t('formPlaceholder')}
-            disabled={status === 'loading'}
-            className={`w-full h-12 px-6 rounded-full bg-white/10 hover:bg-white/15 focus:outline-none focus:bg-white/15 border-none transition-colors text-base placeholder:text-zinc-500 ${showRedText ? 'text-destructive' : 'text-white'}`}
-            {...form.register('email', {
+            placeholder={t("formPlaceholder")}
+            disabled={status === "loading"}
+            className={`w-full h-12 px-6 rounded-full bg-white/10 hover:bg-white/15 focus:outline-none focus:bg-white/15 border-none transition-colors text-base placeholder:text-zinc-500 ${showRedText ? "text-destructive" : "text-white"}`}
+            {...form.register("email", {
               onChange: () => {
                 if (showRedText) setShowRedText(false);
               },
@@ -93,24 +95,25 @@ export function WaitlistForm() {
         </div>
         <Button
           type="submit"
-          disabled={status === 'loading'}
+          disabled={status === "loading"}
           className="h-12 px-8 bg-white text-black hover:bg-zinc-200 rounded-full font-semibold text-base sm:w-auto w-full transition-colors flex items-center justify-center"
         >
-          {status === 'loading' && <CircleNotch className="w-5 h-5 mr-2 animate-spin" weight="bold" />}
-          {t('formButton')}
+          {status === "loading" && (
+            <CircleNotch className="w-5 h-5 mr-2 animate-spin" weight="bold" />
+          )}
+          {t("formButton")}
         </Button>
       </form>
       <p className="mt-4 text-xs text-zinc-500 font-light text-left leading-normal px-4">
-        {t('waitlistConsentPrefix')}{' '}
+        {t("waitlistConsentPrefix")}{" "}
         <a
           href={privacyHref}
           className="text-white hover:underline font-normal"
         >
-          {t('waitlistConsentLinkText')}
-        </a>{' '}
-        {t('waitlistConsentSuffix')}
+          {t("waitlistConsentLinkText")}
+        </a>{" "}
+        {t("waitlistConsentSuffix")}
       </p>
-
     </div>
   );
 }

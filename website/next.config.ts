@@ -1,11 +1,11 @@
-import type { NextConfig } from "next"
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      allowedOrigins: ['zakkig.de', 'www.zakkig.de'],
+      allowedOrigins: ["zakkig.de", "www.zakkig.de"],
     },
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

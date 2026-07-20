@@ -1,48 +1,33 @@
-'use client'
+"use client";
 
-import { useLanguageStore } from '@/store/language-store'
-import { Button } from '@/components/ui/button'
-import { Globe } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useLanguageStore } from "@/store/language-store";
+import { Button } from "@/components/ui/button";
+import { Globe } from "@phosphor-icons/react";
 
-export function LanguageSwitcher({ 
+export function LanguageSwitcher({
   className,
   variant = "outline",
   size = "default",
-}: { 
-  className?: string
-  variant?: React.ComponentProps<typeof Button>["variant"]
-  size?: React.ComponentProps<typeof Button>["size"]
+}: {
+  className?: string;
+  variant?: React.ComponentProps<typeof Button>["variant"];
+  size?: React.ComponentProps<typeof Button>["size"];
 }) {
-  const { locale, setLocale } = useLanguageStore()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const { locale, setLocale } = useLanguageStore();
 
   const toggleLanguage = () => {
-    setLocale(locale === 'de' ? 'en' : 'de')
-  }
-
-  if (!mounted) {
-    return (
-      <Button variant={variant} size={size} className={`gap-2 ${className || ''}`} disabled>
-        <Globe weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
-        <span>{locale.toUpperCase()}</span>
-      </Button>
-    )
-  }
+    setLocale(locale === "de" ? "en" : "de");
+  };
 
   return (
-    <Button 
-      variant={variant} 
-      size={size} 
-      className={`gap-2 ${className || ''}`} 
+    <Button
+      variant={variant}
+      size={size}
+      className={`gap-2 ${className || ""}`}
       onClick={toggleLanguage}
     >
-      <Globe weight="regular" className={size === 'sm' ? 'w-4 h-4' : ''} />
-      <span>{locale.toUpperCase()}</span>
+      <Globe weight="regular" className={size === "sm" ? "w-4 h-4" : ""} />
+      <span suppressHydrationWarning>{locale.toUpperCase()}</span>
     </Button>
-  )
+  );
 }

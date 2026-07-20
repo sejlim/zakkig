@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useTranslation } from '../lib/i18n';
-import { WaitlistForm } from './WaitlistForm';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { useTranslation } from "../lib/i18n";
+import { WaitlistForm } from "./WaitlistForm";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function MainPage() {
   const { t, locale } = useTranslation();
-  const isEn = locale === 'en';
+  const isEn = locale === "en";
 
   return (
     <div className="w-full">
@@ -30,10 +31,10 @@ export function MainPage() {
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10 pt-32 pb-24 flex flex-col items-start justify-center text-left">
           <h1 className="text-5xl sm:text-7xl md:text-8xl font-semibold tracking-tighter leading-[1.03] max-w-[16ch] mb-8 text-white">
-            {t('heroTitle')}
+            {t("heroTitle")}
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light max-w-[54ch] leading-relaxed mb-12">
-            {t('heroSubline')}
+            {t("heroSubline")}
           </p>
           <WaitlistForm />
         </div>
@@ -45,9 +46,11 @@ export function MainPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left side: Waiting Line Image */}
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
-              <img
+              <Image
                 src="/waiting_line.png"
-                alt={t('waitingLineImageAlt')}
+                alt={t("waitingLineImageAlt")}
+                width={400}
+                height={533}
                 className="aspect-[3/4] w-full max-w-sm object-cover rounded-[2rem]"
               />
             </div>
@@ -55,16 +58,16 @@ export function MainPage() {
             {/* Right side: text starts at column 7 */}
             <div className="lg:col-start-7 lg:col-span-6 flex flex-col items-start text-left">
               <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tighter leading-tight mb-8">
-                {t('painTitle')
-                  .split('\n')
-                  .map((line, idx) => (
-                    <span key={idx} className="block">
+                {t("painTitle")
+                  .split("\n")
+                  .map((line) => (
+                    <span key={line} className="block">
                       {line}
                     </span>
                   ))}
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-zinc-600 font-light leading-relaxed max-w-[36ch]">
-                {t('painText')}
+                {t("painText")}
               </p>
             </div>
           </div>
@@ -78,16 +81,16 @@ export function MainPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 mb-24 md:mb-32">
             <div className="lg:col-span-6">
               <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tighter leading-tight mb-6">
-                {t('solutionTitle')}
+                {t("solutionTitle")}
               </h2>
             </div>
             <div className="lg:col-span-6 flex flex-col justify-between">
               <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light leading-relaxed mb-6">
-                {t('solutionIntro')}
+                {t("solutionIntro")}
               </p>
               <div className="pt-6">
                 <p className="text-base sm:text-lg md:text-xl text-zinc-500 font-light leading-relaxed">
-                  {t('solutionPrereq')}
+                  {t("solutionPrereq")}
                 </p>
               </div>
             </div>
@@ -96,31 +99,31 @@ export function MainPage() {
           {/* 3.1 zakkig auf einen Blick */}
           <div className="mb-24 md:mb-32">
             <h3 className="text-2xl md:text-4xl font-semibold tracking-tight mb-8 pb-4">
-              {t('glanceTitle')}
+              {t("glanceTitle")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="flex flex-col">
                 <h4 className="text-xl font-medium mb-3 text-white">
-                  {t('glanceYouTitle')}
+                  {t("glanceYouTitle")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('glanceYouText')}
+                  {t("glanceYouText")}
                 </p>
               </div>
               <div className="flex flex-col">
                 <h4 className="text-xl font-medium mb-3 text-white">
-                  {t('glanceCustomersTitle')}
+                  {t("glanceCustomersTitle")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('glanceCustomersText')}
+                  {t("glanceCustomersText")}
                 </p>
               </div>
               <div className="flex flex-col">
                 <h4 className="text-xl font-medium mb-3 text-white">
-                  {t('glanceKitchenTitle')}
+                  {t("glanceKitchenTitle")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('glanceKitchenText')}
+                  {t("glanceKitchenText")}
                 </p>
               </div>
             </div>
@@ -129,31 +132,31 @@ export function MainPage() {
           {/* 3.2 In 3 einfachen Schritten startklar */}
           <div className="mb-24 md:mb-32">
             <h3 className="text-2xl md:text-4xl font-semibold tracking-tight mb-12 pb-4">
-              {t('stepsTitle')}
+              {t("stepsTitle")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="flex flex-col">
                 <h4 className="text-xl font-medium mb-3 text-white">
-                  {t('step1Title')}
+                  {t("step1Title")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('step1Text')}
+                  {t("step1Text")}
                 </p>
               </div>
               <div className="flex flex-col">
                 <h4 className="text-xl font-medium mb-3 text-white">
-                  {t('step2Title')}
+                  {t("step2Title")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('step2Text')}
+                  {t("step2Text")}
                 </p>
               </div>
               <div className="flex flex-col">
                 <h4 className="text-xl font-medium mb-3 text-white">
-                  {t('step3Title')}
+                  {t("step3Title")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('step3Text')}
+                  {t("step3Text")}
                 </p>
               </div>
             </div>
@@ -164,18 +167,18 @@ export function MainPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
               <div>
                 <h4 className="text-2xl font-semibold tracking-tight mb-4 text-white">
-                  {t('accountingTitle')}
+                  {t("accountingTitle")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('accountingText')}
+                  {t("accountingText")}
                 </p>
               </div>
               <div>
                 <h4 className="text-2xl font-semibold tracking-tight mb-4 text-white">
-                  {t('pricingTitle')}
+                  {t("pricingTitle")}
                 </h4>
                 <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t('pricingText')}
+                  {t("pricingText")}
                 </p>
               </div>
             </div>
@@ -191,7 +194,7 @@ export function MainPage() {
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
               <div className="w-full max-w-sm flex flex-col items-center gap-6">
                 <div className="aspect-[3/4] w-full bg-zinc-100 flex flex-col items-center justify-center text-zinc-400 font-light text-sm rounded-[2rem]">
-                  <span>{t('portraitPlaceholderText')}</span>
+                  <span>{t("portraitPlaceholderText")}</span>
                 </div>
                 {/* Trust Badge - MARS Logo */}
                 <a
@@ -200,9 +203,11 @@ export function MainPage() {
                   rel="noopener noreferrer"
                   className="inline-flex"
                 >
-                  <img
+                  <Image
                     src="/mars_full.svg"
-                    alt={t('marsLogoAlt')}
+                    alt={t("marsLogoAlt")}
+                    width={200}
+                    height={64}
                     className="h-16 w-auto object-contain block filter grayscale brightness-50 hover:grayscale-0 hover:brightness-100 transition-all duration-300"
                   />
                 </a>
@@ -212,11 +217,11 @@ export function MainPage() {
             {/* Right side: Story (starts at column 7) */}
             <div className="lg:col-start-7 lg:col-span-6 flex flex-col items-start text-left">
               <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tighter leading-tight mb-8 max-w-[20ch]">
-                {t('aboutTitle')}
+                {t("aboutTitle")}
               </h2>
               <div className="space-y-6 text-zinc-600 font-light leading-relaxed text-base sm:text-lg md:text-xl max-w-[52ch]">
-                <p>{t('aboutText')}</p>
-                <p>{t('trustText')}</p>
+                <p>{t("aboutText")}</p>
+                <p>{t("trustText")}</p>
               </div>
             </div>
           </div>
@@ -229,19 +234,19 @@ export function MainPage() {
           <div className="pb-20 mb-12 flex flex-col gap-10">
             <div className="flex flex-col gap-6">
               <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tighter leading-tight">
-                {t('footerTitle')
-                  .split('\n')
-                  .map((line, idx) => (
-                    <span key={idx} className="block">
+                {t("footerTitle")
+                  .split("\n")
+                  .map((line) => (
+                    <span key={line} className="block">
                       {line}
                     </span>
                   ))}
               </h2>
               <p className="text-zinc-400 font-light leading-relaxed max-w-[36ch] text-base sm:text-lg md:text-xl">
-                {t('footerText')
-                  .split('\n')
-                  .map((line, idx) => (
-                    <span key={idx} className="block">
+                {t("footerText")
+                  .split("\n")
+                  .map((line) => (
+                    <span key={line} className="block">
                       {line}
                     </span>
                   ))}
@@ -252,7 +257,7 @@ export function MainPage() {
 
             <div className="pt-4 flex flex-col gap-2 items-end text-right">
               <p className="text-zinc-500 font-light text-base sm:text-lg md:text-xl">
-                {t('footerContact')}
+                {t("footerContact")}
               </p>
               <a
                 href="mailto:selim@zakkig.de"
@@ -268,29 +273,31 @@ export function MainPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="flex items-center cursor-pointer hover:opacity-80 transition-opacity duration-200 bg-transparent min-w-0 w-auto h-auto min-h-0 p-0"
-              aria-label={t('scrollToTopLabel')}
+              aria-label={t("scrollToTopLabel")}
             >
-              <img
+              <Image
                 src="/full.svg"
                 alt="zakkig Logo"
+                width={120}
+                height={40}
                 className="h-9 md:h-10 w-auto block"
-                style={{ filter: 'brightness(0) invert(1)' }}
+                style={{ filter: "brightness(0) invert(1)" }}
               />
             </Button>
             <div className="flex flex-col items-end gap-1 text-right text-sm md:flex-row md:gap-8 md:text-base tracking-widest">
               <Link
-                href={isEn ? '/en/legal' : '/impressum'}
+                href={isEn ? "/en/legal" : "/impressum"}
                 className="font-bold uppercase hover:text-white transition-colors duration-200"
               >
-                {t('legalLink')}
+                {t("legalLink")}
               </Link>
               <Link
-                href={isEn ? '/en/privacy' : '/datenschutz'}
+                href={isEn ? "/en/privacy" : "/datenschutz"}
                 className="font-bold uppercase hover:text-white transition-colors duration-200"
               >
-                {t('privacyLink')}
+                {t("privacyLink")}
               </Link>
             </div>
           </div>

@@ -231,69 +231,106 @@ export function MenuContent({ categories, items, organizationId }: MenuContentPr
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showItemDialog} onOpenChange={setShowItemDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingItem ? t('editItem') : t('addItem')}
-            </DialogTitle>
-          </DialogHeader>
-          <form action={itemAction} noValidate className="flex flex-col gap-4 py-4" id="item-form">
-            <input type="hidden" name="organizationId" value={organizationId} />
-            <input type="hidden" name="categoryId" value={selectedCategoryId} />
-            {editingItem && (
-              <>
-                <input type="hidden" name="itemId" value={editingItem.$id} />
-                <input type="hidden" name="existingImageId" value={editingItem.imageId} />
-                <input type="hidden" name="available" value={String(editingItem.available)} />
-              </>
-            )}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="item-name" className="text-sm font-medium">{t('itemName')}</label>
-              <Input
-                id="item-name"
-                name="name"
-                defaultValue={editingItem?.name ?? ''}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="item-description" className="text-sm font-medium">{t('description')}</label>
-              <TextArea
-                id="item-description"
-                name="description"
-                defaultValue={editingItem?.description ?? ''}
-                rows={2}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="item-price" className="text-sm font-medium">{t('price')} (€)</label>
-              <Input
-                id="item-price"
-                name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={editingItem ? (editingItem.price / 100).toFixed(2) : ''}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="item-image" className="text-sm font-medium">{t('image')}</label>
-              <Input id="item-image" name="image" type="file" accept="image/*" />
-            </div>
-            <input type="hidden" name="sortOrder" value={editingItem?.sortOrder ?? 0} />
-            {itemState.error && (
-              <p className="text-sm text-destructive">{itemState.error}</p>
-            )}
-          </form>
-          <DialogFooter>
-            <Button type="submit" form="item-form" disabled={isItemPending} variant="default">
-              {t('save')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ItemFormDialog 
+        open={showItemDialog}
+        onOpenChange={setShowItemDialog}
+        editingItem={editingItem}
+        selectedCategoryId={selectedCategoryId}
+        organizationId={organizationId}
+        itemAction={itemAction}
+        isItemPending={isItemPending}
+        itemState={itemState}
+      />
     </div>
+  )
+}
+
+interface ItemFormDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  editingItem: MenuItem | null
+  selectedCategoryId: string
+  organizationId: string
+  itemAction: (payload: FormData) => void
+  isItemPending: boolean
+  itemState: { error?: string }
+}
+
+function ItemFormDialog({
+  open,
+  onOpenChange,
+  editingItem,
+  selectedCategoryId,
+  organizationId,
+  itemAction,
+  isItemPending,
+  itemState
+}: ItemFormDialogProps) {
+  const { t } = useTranslation()
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {editingItem ? t('editItem') : t('addItem')}
+          </DialogTitle>
+        </DialogHeader>
+        <form action={itemAction} noValidate className="flex flex-col gap-4 py-4" id="item-form">
+          <input type="hidden" name="organizationId" value={organizationId} />
+          <input type="hidden" name="categoryId" value={selectedCategoryId} />
+          {editingItem && (
+            <>
+              <input type="hidden" name="itemId" value={editingItem.$id} />
+              <input type="hidden" name="existingImageId" value={editingItem.imageId} />
+              <input type="hidden" name="available" value={String(editingItem.available)} />
+            </>
+          )}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="item-name" className="text-sm font-medium">{t('itemName')}</label>
+            <Input
+              id="item-name"
+              name="name"
+              defaultValue={editingItem?.name ?? ''}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="item-description" className="text-sm font-medium">{t('description')}</label>
+            <TextArea
+              id="item-description"
+              name="description"
+              defaultValue={editingItem?.description ?? ''}
+              rows={2}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="item-price" className="text-sm font-medium">{t('price')} (€)</label>
+            <Input
+              id="item-price"
+              name="price"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={editingItem ? (editingItem.price / 100).toFixed(2) : ''}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="item-image" className="text-sm font-medium">{t('image')}</label>
+            <Input id="item-image" name="image" type="file" accept="image/*" />
+          </div>
+          <input type="hidden" name="sortOrder" value={editingItem?.sortOrder ?? 0} />
+          {itemState.error && (
+            <p className="text-sm text-destructive">{itemState.error}</p>
+          )}
+        </form>
+        <DialogFooter>
+          <Button type="submit" form="item-form" disabled={isItemPending} variant="default">
+            {t('save')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

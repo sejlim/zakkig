@@ -1,6 +1,7 @@
-import type { NextConfig } from "next"
+import type { NextConfig } from "next";
 
-const appwriteEndpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+const appwriteEndpoint =
+  process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1";
 const appwriteHostname = new URL(appwriteEndpoint).hostname;
 
 const nextConfig: NextConfig = {
@@ -10,15 +11,15 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
+        protocol: "https",
         hostname: appwriteHostname,
       },
       {
-        protocol: 'https',
-        hostname: 'zakkig.de',
+        protocol: "https",
+        hostname: "zakkig.de",
       },
     ],
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

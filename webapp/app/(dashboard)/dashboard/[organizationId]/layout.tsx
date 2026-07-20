@@ -1,34 +1,34 @@
-import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/appwrite/server'
-import { getOrganization } from '@/lib/appwrite/database'
-import { DashboardShell } from '@/components/dashboard/dashboard-shell'
+import { redirect } from "next/navigation";
+import { getUser } from "@/lib/appwrite/server";
+import { getOrganization } from "@/lib/appwrite/database";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default async function DashboardLayout({
   children,
   params,
 }: {
-  children: React.ReactNode
-  params: Promise<{ organizationId: string }>
+  children: React.ReactNode;
+  params: Promise<{ organizationId: string }>;
 }) {
-  const user = await getUser()
+  const user = await getUser();
 
   if (!user) {
-    redirect('/sign-in')
+    redirect("/sign-in");
   }
 
-  const { organizationId } = await params
+  const { organizationId } = await params;
   let organization = null;
 
-  if (organizationId !== 'new') {
-    organization = await getOrganization(organizationId)
+  if (organizationId !== "new") {
+    organization = await getOrganization(organizationId);
 
     if (!organization) {
-      redirect('/sign-in')
+      redirect("/sign-in");
     }
 
     // Verify ownership
     if (organization.ownerId !== user.$id) {
-      redirect('/sign-in')
+      redirect("/sign-in");
     }
   }
 
@@ -39,5 +39,5 @@ export default async function DashboardLayout({
     >
       {children}
     </DashboardShell>
-  )
+  );
 }
