@@ -257,7 +257,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
 
       <CardContent>
         {/* Progress Bar (Dynamic Segments) */}
-        <div className="flex w-full gap-4 mb-6">
+        <div className="flex w-full gap-2 mb-6">
           {[1, 2, 3].map((s) => (
             <div 
               key={s} 
