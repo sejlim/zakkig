@@ -78,11 +78,9 @@ import { CSS } from '@dnd-kit/utilities';
 
 const OverviewChart = dynamic(() => import("./overview-chart"), { ssr: false });
 
-function handlePrint() {
-  setTimeout(() => {
-    window.print();
-  }, 150);
-}
+const handlePrint = () => {
+  window.print();
+};
 
 function StyledQRCode({ value, size }: { value: string; size: number }) {
   return (
@@ -299,9 +297,7 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
 }
 
 
-  const handlePrint = () => {
-    window.print();
-  };
+
 
 function QrCodeGeneratorCard({
   organization,
