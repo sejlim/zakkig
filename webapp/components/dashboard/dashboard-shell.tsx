@@ -83,7 +83,7 @@ export function DashboardShell({
         <button
           type="button"
           aria-label="Close sidebar"
-          className="fixed inset-0 z-40 bg-black/50 md:hidden block w-full h-full cursor-default border-none p-0"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden block w-full h-full cursor-default border-none p-0"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -91,22 +91,22 @@ export function DashboardShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-l border-primary-foreground/10 bg-primary text-primary-foreground transition-transform duration-300 md:transition-none md:relative print:hidden",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-l border-primary-foreground/10 bg-primary text-primary-foreground transition-transform duration-300 lg:transition-none lg:relative print:hidden",
           isExpanded ? "w-64" : "w-16",
-          "max-md:w-64", // Always wide on mobile
-          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          "max-lg:w-64", // Always wide on mobile
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div
           className={cn(
             "flex h-16 items-center border-b border-primary-foreground/10 shrink-0",
             isExpanded ? "justify-between px-4" : "justify-center px-2",
-            "max-md:justify-end max-md:px-4",
+            "max-lg:justify-end max-lg:px-4",
           )}
         >
           {/* Desktop Logo */}
           {isExpanded && (
-            <div className="hidden md:flex flex-1">
+            <div className="hidden lg:flex flex-1">
               <Link
                 href={zakkigUrl}
                 target="_blank"
@@ -129,7 +129,7 @@ export function DashboardShell({
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="hidden md:flex shrink-0 h-9 w-9 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="hidden lg:flex shrink-0 h-9 w-9 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             {isExpanded ? (
               <CaretLeft weight="bold" />
@@ -143,7 +143,7 @@ export function DashboardShell({
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileOpen(false)}
-            className="md:hidden shrink-0 h-9 w-9 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="lg:hidden shrink-0 h-9 w-9 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             <CaretLeft weight="bold" className="h-5 w-5" />
           </Button>
@@ -255,8 +255,8 @@ export function DashboardShell({
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background md:rounded-l-[1.5rem] shadow-sm print:overflow-visible print:block print:bg-white print:shadow-none">
-        <header className="flex h-16 shrink-0 items-center justify-start gap-2 border-b border-primary-foreground/10 px-4 md:hidden print:hidden bg-primary text-primary-foreground">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background lg:rounded-l-[1.5rem] shadow-sm print:overflow-visible print:block print:bg-white print:shadow-none">
+        <header className="flex h-16 shrink-0 items-center justify-start gap-2 border-b border-primary-foreground/10 px-4 lg:hidden print:hidden bg-primary text-primary-foreground">
           <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer">
             <Image
               src="https://www.zakkig.de/full.svg"
@@ -275,7 +275,7 @@ export function DashboardShell({
             <CaretRight weight="bold" className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 md:pt-4 print:overflow-visible print:p-0 print:block">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 lg:pt-4 print:overflow-visible print:p-0 print:block">{children}</main>
       </div>
     </div>
   );

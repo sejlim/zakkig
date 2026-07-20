@@ -98,7 +98,7 @@ const translations = {
     qrCodeGenerator: "QR-Code Verwaltung",
     generateQR: "QR-Code erstellen",
     toGo: "Abholung",
-    pickup: "Abholung",
+    pickup: "Abholen",
     toStay: "Tisch",
     tableNumber: "Tischnummer",
     downloadPDF: "Als PDF herunterladen",
@@ -106,7 +106,9 @@ const translations = {
     qrCodeDesc1: "Menü &\nBestellsystem",
     qrCodeDesc2: "Bestellsystem",
     qrCodeTitleLine1: "Menü &",
-    qrCodeTitleLine2: "Bestellung",
+    qrCodeTitleLine2: "Bestellen",
+    qrCodeAt: "an",
+    qrCodeFor: "zum",
     qrCodeSublineBase:
       "Bestelle entweder wie gewohnt beim Personal oder füge gewünschte Artikel deinem Warenkorb hinzu und bezahle direkt über das Handy.",
     qrCodeSublineToStay:
@@ -348,6 +350,8 @@ const translations = {
     qrCodeDesc2: "Ordering system",
     qrCodeTitleLine1: "Menu &",
     qrCodeTitleLine2: "Order",
+    qrCodeAt: "at",
+    qrCodeFor: "for",
     qrCodeSublineBase:
       "Order as usual with our staff or add your desired items to the cart and pay directly via your phone.",
     qrCodeSublineToStay:

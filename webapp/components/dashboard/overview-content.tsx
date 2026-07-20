@@ -104,6 +104,39 @@ function StyledQRCode({ value, size }: { value: string; size: number }) {
   );
 }
 
+function ScaledText({ text, className }: { text: string; className?: string }) {
+  const textRef = useRef<SVGTextElement>(null);
+  const [viewBox, setViewBox] = useState(() => {
+    const estWidth = Math.max(text.length * 15, 50);
+    return `0 -15 ${estWidth} 30`;
+  });
+  
+  useEffect(() => {
+    if (textRef.current) {
+      try {
+        const bbox = textRef.current.getBBox();
+        setViewBox(`${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+      } catch (e) {}
+    }
+  }, [text]);
+
+  return (
+    <svg viewBox={viewBox} className={cn("w-full h-auto overflow-visible", className)}>
+      <text
+        ref={textRef}
+        x="0"
+        y="0"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="currentColor"
+        className="font-black uppercase tracking-tighter"
+      >
+        {text}
+      </text>
+    </svg>
+  );
+}
+
 type TimePeriod = "24h" | "30d" | "90d";
 
 function filterOrdersByPeriod(orders: Order[], period: TimePeriod): Order[] {
@@ -466,17 +499,20 @@ function QrCodeGeneratorCard({
           </div>
 
           <div className={cn("flex flex-col items-center w-[280px] gap-2 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
-            <div className="text-center w-full flex flex-col justify-center mb-1">
-              <p className="text-[40px] font-black uppercase leading-[0.9] tracking-tighter text-foreground whitespace-nowrap">
-                {t("qrCodeTitleLine1")}<br />
-                {t("qrCodeTitleLine2")}
+            <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-1.5 -mb-4">
+              <ScaledText 
+                text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
+                className="text-foreground"
+              />
+              <p className="text-right w-full text-zinc-500 font-bold text-lg leading-none uppercase">
+                {qrType === "to-stay" ? t("qrCodeAt") : t("qrCodeFor")}
               </p>
-              <div className="w-full border-b-[4px] border-foreground/10 my-4 rounded-full" />
-              <p className="text-[40px] font-black uppercase tracking-tighter text-foreground leading-none">
-                {qrType === "to-stay"
+              <ScaledText 
+                text={qrType === "to-stay"
                   ? `${t("table")} ${selectedTables.length > 0 ? selectedTables[0] : "?"}`
                   : t("pickup")}
-              </p>
+                className="text-foreground"
+              />
             </div>
 
             <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
@@ -487,7 +523,7 @@ function QrCodeGeneratorCard({
 
         {/* Right Card: QR Code Management */}
         <Card className="h-full flex flex-col">
-          <CardHeader className="flex flex-col gap-4 pb-4">
+          <CardHeader className="flex flex-col gap-4 pb-4 shrink-0">
             <div className="flex flex-col gap-1.5">
               <h3 className="text-lg font-semibold">{t("qrCodeGenerator")}</h3>
               <p className="text-sm text-muted-foreground text-balance leading-relaxed">
@@ -503,7 +539,7 @@ function QrCodeGeneratorCard({
                   variant="destructive"
                   onClick={() => handleToggleFeature(qrType, false)}
                   disabled={isPending}
-                  className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="w-full sm:w-auto sm:flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   {t("deactivate")}
                 </Button>
@@ -512,14 +548,14 @@ function QrCodeGeneratorCard({
                   variant="default"
                   onClick={() => handleToggleFeature(qrType, true)}
                   disabled={isPending}
-                  className="flex-1"
+                  className="w-full sm:w-auto sm:flex-1"
                 >
                   {t("activate")}
                 </Button>
               )}
 
               <DropdownMenu>
-                <DropdownMenuTrigger render={<Button variant="default" className="flex-1 bg-primary text-secondary" />}>
+                <DropdownMenuTrigger render={<Button variant="default" className="w-full sm:w-auto sm:flex-1 bg-primary text-secondary" />}>
                   {qrType === "to-go" ? t("toGo") : t("toStay")}
                   <CaretDown className="ml-2 h-4 w-4 shrink-0" />
                 </DropdownMenuTrigger>
@@ -659,23 +695,26 @@ function QrCodeGeneratorCard({
         </Card>
       </div>
 
-      <div className="hidden print:grid print:grid-cols-2 print:gap-y-16 print:gap-x-8 bg-white print:content-start">
+      <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none print:static print:opacity-100 print:pointer-events-auto print:grid print:grid-cols-2 print:gap-y-16 print:gap-x-8 bg-white print:content-start">
         {qrType === "to-stay" ? (
           selectedTables.map((tNum) => {
             const tableQrUrl = `${baseUrl}/to-stay/${organization.$id}?table=${tNum}`;
             return (
               <div key={tNum} className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
-                <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none w-max print:border-dashed print:border print:border-black/40">
+                <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
                     <div className="flex flex-col items-center w-[220px] gap-1.5">
-                      <div className="text-center w-full flex flex-col justify-center mb-1">
-                        <p className="text-[32px] font-black uppercase leading-[0.9] tracking-tighter text-foreground whitespace-nowrap">
-                          {t("qrCodeTitleLine1")}<br />
-                          {t("qrCodeTitleLine2")}
+                      <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-1.5 -mb-4">
+                        <ScaledText 
+                          text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
+                          className="text-foreground"
+                        />
+                        <p className="text-right w-full text-zinc-500 font-bold text-base leading-none uppercase">
+                          {t("qrCodeAt")}
                         </p>
-                        <div className="w-full border-b-[3px] border-foreground/10 my-3 rounded-full" />
-                        <p className="text-[32px] font-black uppercase tracking-tighter text-foreground leading-none">
-                          {`${t("table")} ${tNum}`}
-                        </p>
+                        <ScaledText 
+                          text={`${t("table")} ${tNum}`}
+                          className="text-foreground"
+                        />
                       </div>
       
                       <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
@@ -688,17 +727,20 @@ function QrCodeGeneratorCard({
           })
         ) : (
           <div className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
-            <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none w-max print:border-dashed print:border print:border-black/40">
+            <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
                 <div className="flex flex-col items-center w-[220px] gap-1.5">
-                  <div className="text-center w-full flex flex-col justify-center mb-1">
-                    <p className="text-[32px] font-black uppercase leading-[0.9] tracking-tighter text-foreground whitespace-nowrap">
-                      {t("qrCodeTitleLine1")}<br />
-                      {t("qrCodeTitleLine2")}
+                  <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-1.5 -mb-4">
+                    <ScaledText 
+                      text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
+                      className="text-foreground"
+                    />
+                    <p className="text-right w-full text-zinc-500 font-bold text-base leading-none uppercase">
+                      {t("qrCodeFor")}
                     </p>
-                    <div className="w-full border-b-[3px] border-foreground/10 my-3 rounded-full" />
-                    <p className="text-[32px] font-black uppercase tracking-tighter text-foreground leading-none">
-                      {t("pickup")}
-                    </p>
+                    <ScaledText 
+                      text={t("pickup")}
+                      className="text-foreground"
+                    />
                   </div>
   
                   <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
