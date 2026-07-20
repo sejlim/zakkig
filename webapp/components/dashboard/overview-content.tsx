@@ -46,6 +46,7 @@ import {
 import { toggleFeatureAction } from "@/actions/settings-actions";
 import { RefreshButton } from "./refresh-button";
 import type { Organization, Order, KitchenSession } from "@/lib/types";
+import { ReactQRCode } from "@lglab/react-qr-code";
 
 const OverviewChart = dynamic(() => import("./overview-chart"), { ssr: false });
 
@@ -56,49 +57,25 @@ function handlePrint() {
 }
 
 function StyledQRCode({ value, size }: { value: string; size: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-
-    import("qr-code-styling").then(({ default: QRCodeStyling }) => {
-      const qrCode = new QRCodeStyling({
-        width: size,
-        height: size,
-        type: "svg",
-        data: value,
-        image:
-          "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20110%2038%22%20width%3D%22110%22%20height%3D%2238%22%3E%3C%2Fsvg%3E",
-        dotsOptions: {
-          color: "#000000",
-          type: "rounded",
-        },
-        cornersSquareOptions: {
-          type: "extra-rounded",
-          color: "#000000",
-        },
-        cornersDotOptions: {
-          type: "dot",
-          color: "#000000",
-        },
-        qrOptions: {
-          errorCorrectionLevel: "H",
-        },
-        imageOptions: {
-          crossOrigin: "anonymous",
-          margin: size > 200 ? 25 : 12,
-          imageSize: 0.55,
-        },
-      });
-
-      if (ref.current) {
-        ref.current.innerHTML = "";
-        qrCode.append(ref.current);
-      }
-    });
-  }, [value, size]);
-
-  return <div ref={ref} className="flex items-center justify-center" />;
+  return (
+    <div className="flex items-center justify-center">
+      <ReactQRCode
+        value={value}
+        size={size}
+        level="H"
+        background="#FFFFFF"
+        dataModulesSettings={{ color: "#000000", style: "square-sm" }}
+        finderPatternOuterSettings={{ color: "#000000", style: "square" }}
+        finderPatternInnerSettings={{ color: "#000000", style: "square" }}
+        imageSettings={{
+          src: "https://www.zakkig.de/icon.png",
+          height: 70,
+          width: 70,
+          excavate: true,
+        }}
+      />
+    </div>
+  );
 }
 
 type TimePeriod = "24h" | "30d" | "90d";
@@ -350,7 +327,7 @@ function QrCodeGeneratorCard({
 
   return (
     <>
-      <Card className="h-full flex flex-col">
+      <Card className="h-full flex flex-col print:hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
           <div className="flex flex-col gap-1.5">
             <h3 className="text-lg font-semibold">{t("qrCodeGenerator")}</h3>
@@ -429,7 +406,7 @@ function QrCodeGeneratorCard({
               </div>
             </div>
 
-            <Card className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-12 p-6 bg-white shadow-sm w-full print:hidden">
+            <Card className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-12 p-6 bg-white shadow-sm w-full">
               <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left max-w-sm">
                 <p className="text-2xl md:text-3xl font-black leading-tight text-black whitespace-pre-line">
                   {t("qrCodeDesc1")}
@@ -457,15 +434,6 @@ function QrCodeGeneratorCard({
 
                 <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
                   <StyledQRCode value={qrUrl} size={220} />
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <Image
-                      src="https://www.zakkig.de/full.svg"
-                      alt="Zakkig"
-                      width={110}
-                      height={28}
-                      className="w-[110px] h-auto"
-                    />
-                  </div>
                 </div>
               </div>
             </Card>
@@ -506,15 +474,6 @@ function QrCodeGeneratorCard({
 
               <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
                 <StyledQRCode value={qrUrl} size={220} />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src="https://www.zakkig.de/full.svg"
-                    alt="Zakkig"
-                    width={110}
-                    height={28}
-                    className="w-[110px] h-auto"
-                  />
-                </div>
               </div>
             </div>
           </Card>
@@ -573,7 +532,7 @@ function KitchenSessionsCard({
   }
 
   return (
-    <Card>
+    <Card className="print:hidden">
       <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
         <div className="flex flex-col gap-1.5">
           <h3 className="text-lg font-semibold">{t("kitchenSessions")}</h3>
@@ -665,8 +624,8 @@ export function OverviewContent({
 
   return (
     <>
-      <div className="flex flex-col gap-6 print:hidden">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between print:hidden">
           <div>
             <h1 className="text-2xl font-semibold">{t("overview")}</h1>
             {organization.address && (
@@ -678,7 +637,7 @@ export function OverviewContent({
           <RefreshButton />
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 print:hidden">
           <StatisticsCard
             orders={orders}
             period={period}
