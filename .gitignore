@@ -46,4 +46,4 @@ yarn-error.log*
 next-env.d.ts
 
 .react-doctor/
-*diagnostics.json
+*diagnostics*.json

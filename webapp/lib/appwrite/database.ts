@@ -222,6 +222,7 @@ export async function createMenuItem(
       available: data.available ?? true,
       sortOrder: data.sortOrder ?? 0,
       taxRate: data.taxRate ?? 19.0,
+      customizations: data.customizations ?? "[]",
     },
     [
       Permission.read(Role.any()),
@@ -256,6 +257,34 @@ export async function deleteMenuItem(id: string) {
     DATABASE_ID,
     COLLECTIONS.MENU_ITEMS,
     id,
+  );
+}
+
+export async function updateCategorySortOrders(
+  updates: { id: string; sortOrder: number }[],
+) {
+  const { tablesDB } = createAdminClient();
+
+  await Promise.all(
+    updates.map((u) =>
+      tablesDB.updateDocument(DATABASE_ID, COLLECTIONS.MENU_CATEGORIES, u.id, {
+        sortOrder: u.sortOrder,
+      }),
+    ),
+  );
+}
+
+export async function updateItemSortOrders(
+  updates: { id: string; sortOrder: number }[],
+) {
+  const { tablesDB } = createAdminClient();
+
+  await Promise.all(
+    updates.map((u) =>
+      tablesDB.updateDocument(DATABASE_ID, COLLECTIONS.MENU_ITEMS, u.id, {
+        sortOrder: u.sortOrder,
+      }),
+    ),
   );
 }
 

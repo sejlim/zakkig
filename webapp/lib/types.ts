@@ -54,6 +54,26 @@ export interface CreateMenuCategoryData {
 
 // ─── Menu Items ─────────────────────────────────────────────────
 
+export interface CustomizationOption {
+  id: string;
+  name: string;
+  nameEn?: string;
+  extraPrice: number; // in cents, 0 if included
+  available: boolean;
+  sortOrder: number;
+}
+
+export interface CustomizationStep {
+  id: string;
+  name: string;
+  nameEn?: string;
+  minSelections: number;
+  maxSelections: number;
+  includedCount: number; // how many selections are free
+  sortOrder: number;
+  options: CustomizationOption[];
+}
+
 export interface MenuItem extends AppwriteDocument {
   organizationId: string;
   categoryId: string;
@@ -64,6 +84,7 @@ export interface MenuItem extends AppwriteDocument {
   available: boolean;
   sortOrder: number;
   taxRate: number;
+  customizations: string; // JSON serialized CustomizationStep[]
 }
 
 export interface CreateMenuItemData {
@@ -77,6 +98,7 @@ export interface CreateMenuItemData {
   sortOrder?: number;
   ownerId: string;
   taxRate?: number;
+  customizations?: string;
 }
 
 // ─── Orders ─────────────────────────────────────────────────────

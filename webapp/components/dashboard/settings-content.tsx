@@ -40,7 +40,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("settings")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("settings")}</h1>
         <RefreshButton />
       </div>
 
