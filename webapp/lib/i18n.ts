@@ -161,7 +161,8 @@ const translations = {
     confirmDeleteTables: "Möchten Sie die ausgewählten Tische wirklich löschen?",
     activate: "Aktivieren",
     deactivate: "Deaktivieren",
-    printMultipleCodes: "{{count}} QR-Codes drucken",
+    printMultipleCodes: "{{count}} drucken",
+    qrCodeWith: "MIT",
 
 
     // Menu
@@ -460,7 +461,8 @@ const translations = {
     confirmDeleteTables: "Do you really want to delete the selected tables?",
     activate: "Activate",
     deactivate: "Deactivate",
-    printMultipleCodes: "Print {{count}} QR codes",
+    printMultipleCodes: "Print {{count}}",
+    qrCodeWith: "WITH",
 
 
     // Menu

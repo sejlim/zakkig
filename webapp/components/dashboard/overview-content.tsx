@@ -95,9 +95,9 @@ function StyledQRCode({ value, size }: { value: string; size: number }) {
         finderPatternOuterSettings={{ color: "#000000", style: "square" }}
         finderPatternInnerSettings={{ color: "#000000", style: "square" }}
         imageSettings={{
-          src: "https://www.zakkig.de/icon.png",
-          height: 70,
-          width: 70,
+          src: "https://zakkig.de/full_qr.png",
+          height: 23,
+          width: 72,
           excavate: true,
         }}
       />
@@ -122,7 +122,7 @@ function ScaledText({ text, className }: { text: string; className?: string }) {
   }, [text]);
 
   return (
-    <svg viewBox={viewBox} className={cn("w-full h-auto overflow-visible", className)}>
+    <svg viewBox={viewBox} className={cn("w-full block overflow-visible", className)}>
       <text
         ref={textRef}
         x="0"
@@ -500,13 +500,13 @@ function QrCodeGeneratorCard({
             </Button>
           </div>
 
-          <div className={cn("flex flex-col items-center w-[280px] gap-2 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
-            <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-1.5 -mb-4">
+          <div className={cn("flex flex-col items-center w-[280px] gap-1 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
+            <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-0.5">
               <ScaledText 
                 text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                 className="text-foreground"
               />
-              <p className="text-right w-full text-foreground font-bold text-lg leading-none uppercase">
+              <p className="text-right w-full text-foreground font-black text-sm leading-none uppercase py-0.5">
                 {qrType === "to-stay" ? t("qrCodeAt") : t("qrCodeFor")}
               </p>
               <ScaledText 
@@ -515,6 +515,9 @@ function QrCodeGeneratorCard({
                   : t("pickup")}
                 className="text-foreground"
               />
+              <p className="text-left w-full text-foreground font-black text-sm leading-none uppercase py-0.5">
+                {t("qrCodeWith")}
+              </p>
             </div>
 
             <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
@@ -681,21 +684,24 @@ function QrCodeGeneratorCard({
             return (
               <div key={tNum} className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
                 <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
-                    <div className="flex flex-col items-center w-[220px] gap-1.5">
-                      <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-1.5 -mb-4">
+                    <div className="flex flex-col items-center w-[220px] gap-1">
+                      <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-0.5">
                         <ScaledText 
                           text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                           className="text-foreground"
                         />
-                        <p className="text-right w-full text-foreground font-bold text-base leading-none uppercase">
+                        <p className="text-right w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
                           {t("qrCodeAt")}
                         </p>
                         <ScaledText 
                           text={`${t("table")} ${tNum}`}
                           className="text-foreground"
                         />
+                        <p className="text-left w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
+                          {t("qrCodeWith")}
+                        </p>
                       </div>
-      
+
                       <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
                         <StyledQRCode value={tableQrUrl} size={220} />
                       </div>
@@ -707,21 +713,24 @@ function QrCodeGeneratorCard({
         ) : (
           <div className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
             <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
-                <div className="flex flex-col items-center w-[220px] gap-1.5">
-                  <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-1.5 -mb-4">
+                <div className="flex flex-col items-center w-[220px] gap-1">
+                  <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-0.5">
                     <ScaledText 
                       text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                       className="text-foreground"
                     />
-                    <p className="text-right w-full text-foreground font-bold text-base leading-none uppercase">
+                    <p className="text-right w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
                       {t("qrCodeFor")}
                     </p>
                     <ScaledText 
                       text={t("pickup")}
                       className="text-foreground"
                     />
+                    <p className="text-left w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
+                      {t("qrCodeWith")}
+                    </p>
                   </div>
-  
+
                   <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
                     <StyledQRCode value={qrUrl} size={220} />
                   </div>
