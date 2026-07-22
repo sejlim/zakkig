@@ -24,6 +24,7 @@ import {
   Archive,
   CheckSquare,
   Check,
+  SelectionAll,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -429,7 +430,7 @@ function QrCodeGeneratorCard({
     }
     setNewTableInput("");
     setIsAddingTable(false);
-    const updatedTables = [...currentTables, val];
+    const updatedTables = [val, ...currentTables];
     startTransition(async () => {
       setOptimisticTables(updatedTables);
       const result = await updateTablesAction(organization.$id, updatedTables);
@@ -437,7 +438,7 @@ function QrCodeGeneratorCard({
         toast.error(result.error as string);
         setNewTableInput(val);
       } else {
-        setSelectedTables(prev => [...prev, val]);
+        setSelectedTables(prev => [val, ...prev]);
       }
     });
   };
@@ -482,12 +483,13 @@ function QrCodeGeneratorCard({
         {/* Left Card: QR Code Preview */}
         <Card className="relative flex flex-col items-center justify-end p-6 shadow-sm w-full h-full min-h-[600px] transition-all duration-200 bg-white">
           
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-4 left-6 right-4 flex items-center justify-between gap-2">
+            <h3 className="text-lg font-semibold text-foreground">{t("qrPreview")}</h3>
             <Button
               onClick={handlePrint}
               variant="default"
               disabled={qrType === "to-stay" && selectedTables.length === 0}
-              className="bg-primary text-secondary shadow-sm"
+              className="bg-primary text-secondary shadow-sm shrink-0"
             >
               <Printer className="mr-2 h-4 w-4" />
               {qrType === "to-go" 
@@ -523,39 +525,13 @@ function QrCodeGeneratorCard({
 
         {/* Right Card: QR Code Management */}
         <Card className="h-full flex flex-col">
-          <CardHeader className="flex flex-col gap-4 pb-4 shrink-0">
-            <div className="flex flex-col gap-1.5">
-              <h3 className="text-lg font-semibold">{t("qrCodeGenerator")}</h3>
-              <p className="text-sm text-muted-foreground text-balance leading-relaxed">
-                {qrType === "to-go"
-                  ? t("qrCodeAdminDescToGo")
-                  : t("qrCodeAdminDescToStay")}
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
-              {isActive ? (
-                <Button
-                  variant="destructive"
-                  onClick={() => handleToggleFeature(qrType, false)}
-                  disabled={isPending}
-                  className="w-full sm:w-auto sm:flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {t("deactivate")}
-                </Button>
-              ) : (
-                <Button
-                  variant="default"
-                  onClick={() => handleToggleFeature(qrType, true)}
-                  disabled={isPending}
-                  className="w-full sm:w-auto sm:flex-1"
-                >
-                  {t("activate")}
-                </Button>
-              )}
+          <CardHeader className="flex flex-col gap-3 pb-4 shrink-0">
+            {/* Title & Mode Selection Dropdown Row */}
+            <div className="flex items-center justify-between gap-4 w-full">
+              <h3 className="text-lg font-semibold">{t("qrManagement")}</h3>
 
               <DropdownMenu>
-                <DropdownMenuTrigger render={<Button variant="default" className="w-full sm:w-auto sm:flex-1 bg-primary text-secondary" />}>
+                <DropdownMenuTrigger render={<Button variant="default" className="w-auto bg-primary text-secondary shrink-0" />}>
                   {qrType === "to-go" ? t("toGo") : t("toStay")}
                   <CaretDown className="ml-2 h-4 w-4 shrink-0" />
                 </DropdownMenuTrigger>
@@ -569,22 +545,33 @@ function QrCodeGeneratorCard({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+
+            {/* Description & Feature Toggle Switch Row */}
+            <div className="flex items-center justify-between gap-4 w-full">
+              <p className="text-sm text-muted-foreground text-balance leading-relaxed flex-1">
+                {qrType === "to-go"
+                  ? t("qrCodeAdminDescToGo")
+                  : t("qrCodeAdminDescToStay")}
+              </p>
+              
+              <div className="flex items-center gap-2 shrink-0">
+                <Switch
+                  checked={isActive}
+                  onCheckedChange={(checked) => handleToggleFeature(qrType, checked)}
+                  disabled={isPending}
+                />
+              </div>
+            </div>
           </CardHeader>
           
           <CardContent className="flex-1 flex flex-col min-h-0">
             {qrType === "to-stay" && (
               <div className="flex-1 min-w-0 w-full flex flex-col gap-4 h-full min-h-0">
                 <div className="flex flex-row items-center gap-2 w-full">
-                  <div 
-                    className={cn(
-                      "flex items-center justify-center h-8 w-8 rounded-full border transition-colors select-none shrink-0",
-                      (organization.tables || []).length === 0 
-                        ? "opacity-50 cursor-not-allowed border-border bg-background" 
-                        : "cursor-pointer",
-                      selectedTables.length === (organization.tables || []).length && selectedTables.length > 0
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "bg-background border-border hover:bg-muted"
-                    )}
+                  <Button
+                    type="button"
+                    variant={selectedTables.length === optimisticTables.length && selectedTables.length > 0 ? "default" : "outline"}
+                    disabled={optimisticTables.length === 0}
                     onClick={() => {
                       if (optimisticTables.length === 0) return;
                       if (selectedTables.length === optimisticTables.length) {
@@ -593,74 +580,28 @@ function QrCodeGeneratorCard({
                         setSelectedTables(optimisticTables);
                       }
                     }}
-                    role="checkbox"
-                    aria-checked={selectedTables.length === optimisticTables.length && selectedTables.length > 0}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        if (optimisticTables.length === 0) return;
-                        if (selectedTables.length === optimisticTables.length) {
-                          setSelectedTables([]);
-                        } else {
-                          setSelectedTables(optimisticTables);
-                        }
-                      }
-                    }}
+                    className={cn(
+                      "h-9 px-3 rounded-full gap-2 font-medium text-xs transition-colors",
+                      selectedTables.length > 0 ? "flex-1" : "w-full"
+                    )}
                   >
-                    {selectedTables.length === optimisticTables.length && selectedTables.length > 0 && (
-                      <Check className="h-4 w-4" weight="bold" />
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-1 gap-2">
-                    {isAddingTable ? (
-                      <Input
-                        autoFocus
-                        placeholder={t("tableNr")}
-                        value={newTableInput}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "");
-                          if (val.length <= 4) setNewTableInput(val);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleAddTable(newTableInput);
-                          } else if (e.key === "Escape") {
-                            setIsAddingTable(false);
-                            setNewTableInput("");
-                          }
-                        }}
-                        onBlur={() => {
-                          if (newTableInput) {
-                            handleAddTable(newTableInput);
-                          } else {
-                            setIsAddingTable(false);
-                          }
-                        }}
-                        maxLength={4}
-                        className="flex-1 min-w-0"
-                      />
-                    ) : (
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsAddingTable(true)}
-                        className="flex-1"
-                      >
-                        {t("addTable")}
-                      </Button>
-                    )}
-                    
-                    {selectedTables.length > 0 && (
-                      <Button
-                        variant="destructive"
-                        onClick={handleRemoveSelectedTables}
-                        className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {selectedTables.length} {t("delete")}
-                      </Button>
-                    )}
-                  </div>
+                    <SelectionAll
+                      className="h-4 w-4 shrink-0"
+                      weight="bold"
+                    />
+                    <span>{t("selectAll")}</span>
+                  </Button>
+
+                  {selectedTables.length > 0 && (
+                    <Button
+                      variant="destructive"
+                      onClick={handleRemoveSelectedTables}
+                      className="h-9 px-3 rounded-full gap-2 text-xs font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1 shrink-0"
+                    >
+                      <Trash className="h-4 w-4 shrink-0" weight="bold" />
+                      <span>{selectedTables.length} {t("delete")}</span>
+                    </Button>
+                  )}
                 </div>
 
                 <ScrollArea className="w-full h-[280px]">
@@ -674,6 +615,44 @@ function QrCodeGeneratorCard({
                       strategy={rectSortingStrategy}
                     >
                       <div className="grid grid-cols-4 gap-2 pb-4">
+                        {isAddingTable ? (
+                          <Input
+                            autoFocus
+                            placeholder="Nr."
+                            value={newTableInput}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "");
+                              if (val.length <= 4) setNewTableInput(val);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleAddTable(newTableInput);
+                              } else if (e.key === "Escape") {
+                                setIsAddingTable(false);
+                                setNewTableInput("");
+                              }
+                            }}
+                            onBlur={() => {
+                              if (newTableInput) {
+                                handleAddTable(newTableInput);
+                              } else {
+                                setIsAddingTable(false);
+                              }
+                            }}
+                            maxLength={4}
+                            className="h-10 text-center text-sm font-medium border-2 border-dashed border-primary px-2 rounded-md focus-visible:ring-0"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setIsAddingTable(true)}
+                            className="flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-muted/30 rounded-md px-3 py-2 h-10 transition-colors text-center font-medium shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+                            title={t("addTable")}
+                          >
+                            <Plus className="h-4 w-4" weight="bold" />
+                          </button>
+                        )}
+
                         {(() => {
                           const selectedTablesSet = new Set(selectedTables);
                           return optimisticTables.map((tNum) => (
@@ -681,9 +660,9 @@ function QrCodeGeneratorCard({
                               key={tNum}
                               tNum={tNum}
                               isSelected={selectedTablesSet.has(tNum)}
-                            onToggle={() => toggleTableSelection(tNum)}
-                          />
-                        ));
+                              onToggle={() => toggleTableSelection(tNum)}
+                            />
+                          ));
                         })()}
                       </div>
                     </SortableContext>
