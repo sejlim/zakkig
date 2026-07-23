@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   ChartContainer,
@@ -14,12 +15,21 @@ const ChartInner = dynamic(
       return function ChartInnerComponent({
         chartData,
         xAxisTicks,
+        width,
+        height,
       }: {
         chartData: any[];
         xAxisTicks: string[];
+        width?: number;
+        height?: number;
       }) {
+        const w = width && width > 0 ? width : 320;
+        const h = height && height > 0 ? height : 340;
+
         return (
           <AreaChart
+            width={w}
+            height={h}
             data={chartData}
             margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
           >
