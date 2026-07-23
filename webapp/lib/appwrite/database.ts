@@ -1,7 +1,7 @@
 import "server-only";
 
 import { ID, Query, Permission, Role } from "node-appwrite";
-import { createAdminClient, createSessionClient } from "./server";
+import { createAdminClient } from "./server";
 import { DATABASE_ID, COLLECTIONS } from "@/lib/constants";
 import type {
   Organization,
@@ -142,10 +142,8 @@ export async function updateMenuCategory(
   id: string,
   data: { name?: string; sortOrder?: number },
 ) {
-  const sessionClient = await createSessionClient();
-  if (!sessionClient) throw new Error("Not authenticated");
-
-  return sessionClient.tablesDB.updateDocument(
+  const { tablesDB } = createAdminClient();
+  return tablesDB.updateDocument(
     DATABASE_ID,
     COLLECTIONS.MENU_CATEGORIES,
     id,
@@ -154,10 +152,8 @@ export async function updateMenuCategory(
 }
 
 export async function deleteMenuCategory(id: string) {
-  const sessionClient = await createSessionClient();
-  if (!sessionClient) throw new Error("Not authenticated");
-
-  return sessionClient.tablesDB.deleteDocument(
+  const { tablesDB } = createAdminClient();
+  return tablesDB.deleteDocument(
     DATABASE_ID,
     COLLECTIONS.MENU_CATEGORIES,
     id,
@@ -238,10 +234,8 @@ export async function updateMenuItem(
   id: string,
   data: Partial<CreateMenuItemData>,
 ) {
-  const sessionClient = await createSessionClient();
-  if (!sessionClient) throw new Error("Not authenticated");
-
-  return sessionClient.tablesDB.updateDocument(
+  const { tablesDB } = createAdminClient();
+  return tablesDB.updateDocument(
     DATABASE_ID,
     COLLECTIONS.MENU_ITEMS,
     id,
@@ -250,10 +244,8 @@ export async function updateMenuItem(
 }
 
 export async function deleteMenuItem(id: string) {
-  const sessionClient = await createSessionClient();
-  if (!sessionClient) throw new Error("Not authenticated");
-
-  return sessionClient.tablesDB.deleteDocument(
+  const { tablesDB } = createAdminClient();
+  return tablesDB.deleteDocument(
     DATABASE_ID,
     COLLECTIONS.MENU_ITEMS,
     id,
@@ -412,10 +404,9 @@ export async function createKitchenSession(
 }
 
 export async function deleteKitchenSession(id: string) {
-  const sessionClient = await createSessionClient();
-  if (!sessionClient) throw new Error("Not authenticated");
+  const { tablesDB } = createAdminClient();
 
-  return sessionClient.tablesDB.deleteDocument(
+  return tablesDB.deleteDocument(
     DATABASE_ID,
     COLLECTIONS.KITCHEN_SESSIONS,
     id,

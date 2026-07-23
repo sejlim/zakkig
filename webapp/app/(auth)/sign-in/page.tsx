@@ -202,6 +202,7 @@ function SignInForm({ state, formAction, isPending }: { state: any, formAction: 
               type="email"
               placeholder={t('emailPlaceholder')}
               autoComplete="email"
+              maxLength={100}
               className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
             />
             {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
@@ -220,6 +221,7 @@ function SignInForm({ state, formAction, isPending }: { state: any, formAction: 
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
+                maxLength={100}
                 className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.password ? "border-destructive pr-10" : "pr-10"}`}
               />
               <button

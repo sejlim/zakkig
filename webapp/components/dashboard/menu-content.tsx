@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useActionState, useTransition, useOptimistic } from 'react'
+import { useState, useEffect, useActionState, useTransition, useOptimistic } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -28,29 +28,22 @@ import {
   SlidersHorizontal,
   CaretDown,
   CaretUp,
+  Check,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { RefreshButton } from './refresh-button'
 import { ItemWorkspace } from './menu/item-workspace'
 
@@ -229,8 +222,17 @@ export function MenuContent({
     setDeleteConfirm(null)
   }
 
-  async function handleToggleAvailability(itemId: string, available: boolean) {
-    await toggleMenuItemAvailability(itemId, available, organizationId)
+  function handleToggleAvailability(itemId: string, available: boolean) {
+    const updatedItems = items.map((i) =>
+      i.$id === itemId ? { ...i, available } : i,
+    )
+    startTransition(async () => {
+      setOptimisticItems(updatedItems)
+      const res = await toggleMenuItemAvailability(itemId, available, organizationId)
+      if (res?.error) {
+        toast.error(res.error)
+      }
+    })
   }
 
   return (
@@ -271,6 +273,7 @@ export function MenuContent({
         </Card>
       ) : (
         <DndContext
+          id="menu-categories-dnd"
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleCategoryDragEnd}
@@ -279,7 +282,7 @@ export function MenuContent({
             items={categories.map((c) => c.$id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               {categories.map((category) => {
                 const categoryItems = getItemsByCategory(category.$id)
                 const isCollapsed = collapsedCategories[category.$id] ?? false
@@ -322,9 +325,9 @@ export function MenuContent({
 
       {/* Category Create/Edit Dialog */}
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="bg-primary text-primary-foreground border-border/20 sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-primary-foreground font-bold text-lg">
               {editingCategory ? t('editCategory') : t('addCategory')}
             </DialogTitle>
           </DialogHeader>
@@ -339,8 +342,8 @@ export function MenuContent({
               <input type="hidden" name="categoryId" value={editingCategory.$id} />
             )}
             <div className="flex flex-col gap-2">
-              <label htmlFor="category-name" className="text-sm font-medium">
-                {t('categoryName')} <span className="text-destructive">*</span>
+              <label htmlFor="category-name" className="text-sm font-medium text-primary-foreground">
+                {t('categoryName')} <span className="text-destructive-foreground/80">*</span>
               </label>
               <Input
                 id="category-name"
@@ -348,7 +351,8 @@ export function MenuContent({
                 defaultValue={editingCategory?.name ?? ''}
                 placeholder="z.B. Vorspeisen, Hauptgerichte, Getränke"
                 required
-                className="h-11"
+                maxLength={50}
+                className="h-11 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 focus-visible:ring-primary-foreground/30"
               />
             </div>
             <input
@@ -357,16 +361,17 @@ export function MenuContent({
               value={editingCategory?.sortOrder ?? categories.length}
             />
             {categoryState.error && (
-              <p className="text-sm text-destructive font-medium">
+              <p className="text-sm text-destructive-foreground font-medium">
                 {categoryState.error}
               </p>
             )}
           </form>
-          <DialogFooter>
+          <div className="flex w-full gap-3 mt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setShowCategoryDialog(false)}
+              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground"
             >
               {t('cancel')}
             </Button>
@@ -374,12 +379,11 @@ export function MenuContent({
               type="submit"
               form="category-form"
               disabled={isCategoryPending}
-              variant="default"
-              className="gap-2 font-semibold"
+              className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold"
             >
               {t('save')}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -396,31 +400,43 @@ export function MenuContent({
         itemState={itemState}
       />
 
-      {/* Delete Confirmation Alert Dialog */}
-      <AlertDialog
+      {/* Delete Confirmation Dialog */}
+      <Dialog
         open={!!deleteConfirm}
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('confirmDelete')}</AlertDialogTitle>
-            <AlertDialogDescription>
+        <DialogContent showCloseButton={false} className="bg-primary text-primary-foreground border-border/20 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-primary-foreground text-lg font-bold">
               {deleteConfirm?.type === 'category'
-                ? t('confirmDeleteCategoryDesc')
-                : t('confirmDeleteDescription')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                ? `Kategorie "${deleteConfirm?.name}" wirklich löschen?`
+                : `Artikel "${deleteConfirm?.name}" wirklich löschen?`}
+            </DialogTitle>
+            <DialogDescription className="text-primary-foreground/80 text-sm leading-relaxed mt-1">
+              {deleteConfirm?.type === 'category'
+                ? `Möchtest du die Kategorie "${deleteConfirm?.name}" und alle darin enthaltenen Artikel wirklich unwiderruflich aus deiner Speisekarte entfernen?`
+                : `Möchtest du den Artikel "${deleteConfirm?.name}" wirklich unwiderruflich aus deiner Speisekarte entfernen?`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex w-full gap-3 mt-3">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirm(null)}
+              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground"
             >
-              {t('delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2 font-semibold"
+            >
+              <Trash className="h-4 w-4 shrink-0" weight="bold" />
+              <span>{t('delete')}</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -459,6 +475,39 @@ function SortableCategoryCard({
   sensors,
 }: SortableCategoryCardProps) {
   const { t } = useTranslation()
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameVal, setNameVal] = useState(category.name)
+  const [isSavingName, setIsSavingName] = useState(false)
+
+  useEffect(() => {
+    setNameVal(category.name)
+  }, [category.name])
+
+  const handleSaveName = async () => {
+    const trimmed = nameVal.trim()
+    if (!trimmed || trimmed === category.name) {
+      setNameVal(category.name)
+      setIsEditingName(false)
+      return
+    }
+    setIsSavingName(true)
+    const formData = new FormData()
+    formData.append('categoryId', category.$id)
+    formData.append('organizationId', category.organizationId)
+    formData.append('name', trimmed)
+    formData.append('sortOrder', category.sortOrder.toString())
+
+    const res = await updateCategoryAction({}, formData)
+    setIsSavingName(false)
+    if (res?.error) {
+      toast.error(res.error)
+      setNameVal(category.name)
+    } else {
+      toast.success(t('categoryUpdated' as any) || 'Kategorie aktualisiert')
+    }
+    setIsEditingName(false)
+  }
+
   const {
     attributes,
     listeners,
@@ -479,7 +528,7 @@ function SortableCategoryCard({
     <div ref={setNodeRef} style={style}>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
             <button
               type="button"
               {...attributes}
@@ -489,16 +538,49 @@ function SortableCategoryCard({
             >
               <DotsSixVertical className="h-5 w-5" weight="bold" />
             </button>
-            <button
-              type="button"
-              className="text-lg font-semibold tracking-tight truncate hover:opacity-80 transition-opacity text-left bg-transparent border-0 p-0 cursor-pointer"
-              onClick={onToggleCollapse}
-            >
-              {category.name}
-            </button>
-            <Badge variant="secondary" className="font-semibold text-xs shrink-0">
-              {categoryItems.length}
-            </Badge>
+            {isEditingName ? (
+              <div className="flex items-center gap-1.5 flex-1 max-w-xs">
+                <Input
+                  value={nameVal}
+                  onChange={(e) => setNameVal(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveName()
+                    if (e.key === 'Escape') {
+                      setNameVal(category.name)
+                      setIsEditingName(false)
+                    }
+                  }}
+                  autoFocus
+                  maxLength={50}
+                  disabled={isSavingName}
+                  className="h-8 text-base font-semibold px-2 py-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSaveName}
+                  disabled={isSavingName}
+                  className="h-8 w-8 text-primary hover:text-primary shrink-0"
+                  title="Speichern"
+                >
+                  <Check className="h-4 w-4" weight="bold" />
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="text-lg font-semibold tracking-tight truncate hover:opacity-80 transition-opacity text-left bg-transparent border-0 p-0 cursor-pointer"
+                onClick={onToggleCollapse}
+              >
+                {category.name}
+              </button>
+            )}
+            {!isEditingName && (
+              <Badge variant="secondary" className="font-semibold text-xs shrink-0">
+                {categoryItems.length}
+              </Badge>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -506,7 +588,7 @@ function SortableCategoryCard({
               variant="ghost"
               size="icon"
               onClick={onToggleCollapse}
-              className="h-8 w-8 text-muted-foreground"
+              className="text-muted-foreground"
               title={isCollapsed ? 'Aufklappen' : 'Einklappen'}
             >
               {isCollapsed ? (
@@ -519,48 +601,41 @@ function SortableCategoryCard({
             <Button
               variant="ghost"
               size="icon"
-              onClick={onEditCategory}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                if (isEditingName) {
+                  handleSaveName()
+                } else {
+                  setIsEditingName(true)
+                }
+              }}
+              className="text-muted-foreground hover:text-foreground"
+              title="Kategoriename bearbeiten"
             >
               <PencilSimple className="h-4 w-4" />
             </Button>
             <Button
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="default"
               onClick={onDeleteCategory}
-              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              className="gap-2 font-medium text-sm border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
             >
-              <Trash className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="default"
-              onClick={onNewItem}
-              className="ml-2 gap-2"
-            >
-              <Plus className="h-4 w-4" weight="bold" />
-              {t('addItem')}
+              <Trash className="h-4 w-4 shrink-0" weight="bold" />
+              <span>{t('delete')}</span>
             </Button>
           </div>
         </CardHeader>
 
         {!isCollapsed && (
-          <CardContent className="pt-2">
+          <CardContent className="pt-2 flex flex-col gap-3">
             {categoryItems.length === 0 ? (
-              <div className="py-8 text-center flex flex-col items-center justify-center gap-2 border border-dashed rounded-lg bg-muted/10">
+              <div className="py-6 text-center flex flex-col items-center justify-center gap-1 border border-dashed rounded-lg bg-muted/10">
                 <p className="text-sm font-medium text-muted-foreground">
                   {t('noItems')}
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={onNewItem}
-                  className="gap-2 mt-2"
-                >
-                  <Plus className="h-4 w-4" weight="bold" />
-                  {t('addItem')}
-                </Button>
               </div>
             ) : (
               <DndContext
+                id={`category-items-dnd-${category.$id}`}
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={onItemDragEnd}
@@ -576,8 +651,8 @@ function SortableCategoryCard({
                         item={item}
                         onEdit={() => onEditItem(item)}
                         onDelete={() => onDeleteItem(item)}
-                        onToggleAvailability={() =>
-                          onToggleAvailability(item.$id, !item.available)
+                        onToggleAvailability={(newAvailable: boolean) =>
+                          onToggleAvailability(item.$id, newAvailable)
                         }
                       />
                     ))}
@@ -585,6 +660,16 @@ function SortableCategoryCard({
                 </SortableContext>
               </DndContext>
             )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onNewItem}
+              className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
+            >
+              <Plus className="h-4 w-4 shrink-0" weight="bold" />
+              <span>{t('addItem')}</span>
+            </Button>
           </CardContent>
         )}
       </Card>
@@ -600,7 +685,7 @@ interface SortableItemRowProps {
   item: MenuItem
   onEdit: () => void
   onDelete: () => void
-  onToggleAvailability: () => void
+  onToggleAvailability: (available: boolean) => void
 }
 
 function SortableItemRow({
@@ -689,36 +774,30 @@ function SortableItemRow({
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center gap-1 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleAvailability}
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+      {/* Action Controls */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Switch
+          checked={item.available}
+          onCheckedChange={(checked) => onToggleAvailability(checked)}
+          className="mr-1"
           title={item.available ? t('available') : t('unavailable')}
-        >
-          {item.available ? (
-            <Eye className="h-4 w-4" />
-          ) : (
-            <EyeSlash className="h-4 w-4 text-muted-foreground/50" />
-          )}
-        </Button>
+        />
         <Button
           variant="ghost"
           size="icon"
           onClick={onEdit}
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
         >
           <PencilSimple className="h-4 w-4" />
         </Button>
         <Button
-          variant="ghost"
-          size="icon"
+          variant="outline"
+          size="default"
           onClick={onDelete}
-          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+          className="gap-2 font-medium text-sm border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
         >
-          <Trash className="h-4 w-4" />
+          <Trash className="h-4 w-4 shrink-0" weight="bold" />
+          <span>{t('delete')}</span>
         </Button>
       </div>
     </div>

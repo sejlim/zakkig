@@ -139,6 +139,7 @@ export default function ResetPasswordPage() {
                   type="email"
                   placeholder={t("emailPlaceholder")}
                   autoComplete="email"
+                  maxLength={100}
                   className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
                 />
                 {fieldErrors.email && (

@@ -97,6 +97,7 @@ export function ArchiveContent({ orders, organizationId }: ArchiveContentProps) 
             placeholder={t("search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            maxLength={100}
             className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
           />
         </div>

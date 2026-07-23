@@ -280,6 +280,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                 type="text"
                 placeholder={t('businessPlaceholder')}
                 autoComplete="organization"
+                maxLength={80}
                 className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.restaurantName ? "border-destructive" : ""}`}
               />
               {fieldErrors.restaurantName && <span className="text-sm text-destructive">{fieldErrors.restaurantName}</span>}
@@ -293,6 +294,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                 type="text"
                 placeholder={t('namePlaceholder')}
                 autoComplete="name"
+                maxLength={80}
                 className="h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground"
               />
             </div>
@@ -310,6 +312,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                 type="email"
                 placeholder={t('emailPlaceholder')}
                 autoComplete="email"
+                maxLength={100}
                 className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
               />
               {fieldErrors.email && <span className="text-sm text-destructive">{fieldErrors.email}</span>}
@@ -327,6 +330,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                   autoComplete="new-password"
                   value={passwordValue}
                   onChange={(e) => setPasswordValue(e.target.value)}
+                  maxLength={100}
                   className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.password ? "border-destructive pr-10" : "pr-10"}`}
                 />
                 <button
@@ -374,6 +378,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
+                  maxLength={100}
                   className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground ${fieldErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}`}
                 />
                 <button

@@ -129,8 +129,9 @@ export function CustomizationBuilder({ steps, onChange }: CustomizationBuilderPr
 
   return (
     <Card className="border border-primary-foreground/20 bg-transparent overflow-hidden flex flex-col gap-4 p-4">
-      {steps.length > 0 && (
+      {steps.length > 0 ? (
         <DndContext
+          id="customization-steps-dnd"
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
@@ -156,16 +157,22 @@ export function CustomizationBuilder({ steps, onChange }: CustomizationBuilderPr
             ))}
           </SortableContext>
         </DndContext>
+      ) : (
+        <div className="p-4 text-center border border-dashed border-primary-foreground/20 rounded-xl">
+          <p className="text-sm text-primary-foreground/70 font-medium">
+            {t('noStepsAdded') || 'Noch keine Schritte hinzugefügt.'}
+          </p>
+        </div>
       )}
 
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         onClick={addStep}
-        className="w-full border-dashed border-primary-foreground/20 h-12 gap-2 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground shrink-0"
+        className="w-full border-2 border-dashed border-primary-foreground/40 hover:border-primary-foreground font-semibold text-sm text-primary-foreground hover:text-primary-foreground bg-transparent hover:bg-primary-foreground/15 shrink-0 gap-2 transition-colors"
       >
-        <Plus className="w-4 h-4" weight="bold" />
-        {t('addStep')}
+        <Plus className="w-4 h-4 shrink-0" weight="bold" />
+        <span>{t('addStep')}</span>
       </Button>
     </Card>
   )
@@ -249,9 +256,6 @@ function SortableStepCard({
           <DotsSixVertical className="w-4 h-4 text-primary-foreground/50 shrink-0" weight="bold" />
         </div>
         <div className="flex items-center gap-2 flex-1 min-w-0" onClick={(e) => isEditingName && e.stopPropagation()}>
-          <Badge variant="secondary" className="text-xs shrink-0 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">
-            {t('stepNumber').replace('{{number}}', String(stepIndex + 1))}
-          </Badge>
           {isEditingName ? (
             <Input
               autoFocus
@@ -262,6 +266,7 @@ function SortableStepCard({
                 if (e.key === 'Enter') setIsEditingName(false)
                 if (e.key === 'Escape') setIsEditingName(false)
               }}
+              maxLength={50}
               className="h-7 text-sm font-medium bg-transparent border-primary-foreground/30 text-primary-foreground px-2"
               placeholder={t('stepName')}
             />
@@ -274,29 +279,29 @@ function SortableStepCard({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground/50 hover:text-primary-foreground shrink-0"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10 shrink-0"
                 onClick={(e) => {
                   e.stopPropagation()
                   setIsEditingName(true)
                 }}
               >
-                <PencilSimple className="w-3.5 h-3.5" />
+                <PencilSimple className="w-4 h-4" />
               </Button>
             </div>
           )}
         </div>
-        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <span className="text-xs text-primary-foreground/70 ml-1">
+        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+          <span className="text-xs text-primary-foreground/70 font-medium">
             {step.options.length} {t('options')}
           </span>
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-destructive hover:text-destructive"
+            variant="outline"
             onClick={onRemove}
+            className="gap-1.5 font-medium text-xs bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
           >
-            <Trash className="w-3.5 h-3.5" weight="bold" />
+            <Trash className="w-3.5 h-3.5 shrink-0" weight="bold" />
+            <span>{t('delete')}</span>
           </Button>
         </div>
       </div>
@@ -434,6 +439,7 @@ function SortableStepCard({
               </p>
             ) : (
               <DndContext
+                id={`step-options-dnd-${step.id}`}
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={(event) => {
@@ -468,12 +474,11 @@ function SortableStepCard({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="w-full border border-dashed border-primary-foreground/20 gap-1.5 bg-transparent text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              className="w-full border-2 border-dashed border-primary-foreground/40 hover:border-primary-foreground font-semibold text-sm text-primary-foreground hover:text-primary-foreground bg-transparent hover:bg-primary-foreground/15 gap-2 transition-colors"
               onClick={onAddOption}
             >
-              <Plus className="w-3.5 h-3.5" weight="bold" />
-              {t('addOption')}
+              <Plus className="w-4 h-4 shrink-0" weight="bold" />
+              <span>{t('addOption')}</span>
             </Button>
           </div>
         </div>
@@ -519,6 +524,7 @@ function OptionRow({ option, optionIndex, onUpdate, onRemove }: OptionRowProps) 
           value={option.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
           placeholder={t('optionName')}
+          maxLength={60}
           className="h-8 text-sm bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
         />
         <div className="flex items-center gap-2">
@@ -527,9 +533,11 @@ function OptionRow({ option, optionIndex, onUpdate, onRemove }: OptionRowProps) 
               type="number"
               step="0.01"
               min="0"
+              max="99999"
               value={option.extraPrice === 0 ? '' : (option.extraPrice / 100).toFixed(2)}
               onChange={(e) => {
                 const val = e.target.value
+                if (val.length > 8) return
                 onUpdate({
                   extraPrice: val ? Math.round(parseFloat(val) * 100) : 0,
                 })
@@ -548,12 +556,12 @@ function OptionRow({ option, optionIndex, onUpdate, onRemove }: OptionRowProps) 
           />
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-destructive hover:text-destructive shrink-0"
+            variant="outline"
             onClick={onRemove}
+            className="gap-1.5 font-medium text-xs bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
           >
-            <Trash className="w-3.5 h-3.5" weight="bold" />
+            <Trash className="w-3.5 h-3.5 shrink-0" weight="bold" />
+            <span>{t('delete')}</span>
           </Button>
         </div>
       </div>

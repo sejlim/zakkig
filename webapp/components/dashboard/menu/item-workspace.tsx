@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Tooltip,
   TooltipContent,
@@ -205,8 +206,8 @@ export function ItemWorkspace({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto bg-primary text-primary-foreground border-border/20">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-xl md:max-w-2xl h-[85vh] max-h-[750px] p-0 flex flex-col bg-primary text-primary-foreground border-border/20 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 border-b border-primary-foreground/10 shrink-0">
           <DialogTitle>
             {editingItem ? t('editItem') : t('addItem')}
           </DialogTitle>
@@ -216,160 +217,168 @@ export function ItemWorkspace({
           id="workspace-item-form"
           noValidate
           onSubmit={handleSubmit}
-          className="flex flex-col gap-6 mt-4"
+          className="flex-1 flex flex-col min-h-0 overflow-hidden"
         >
-          {/* SECTION 1: DETAILS */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
-                <Tag className="w-5 h-5 text-primary-foreground/70" />
-                Details
-              </h3>
-              
-              {/* Verfügbar Switcher moved to header */}
-              <div className="flex items-center gap-2">
-                <Label htmlFor="ws-item-available" className="text-sm font-semibold text-primary-foreground cursor-pointer">
-                  {t('available')}
-                </Label>
-                <Switch
-                  id="ws-item-available"
-                  checked={available}
-                  onCheckedChange={setAvailable}
-                  className="data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column (Bild) */}
-              <div className="flex flex-col gap-2 h-full">
-                <Label className="text-sm font-semibold text-primary-foreground">
-                  Bild
-                </Label>
-                <ImageUpload
-                  className="flex-1"
-                  existingImageId={editingItem?.imageId}
-                  onFileSelect={(file) => {
-                    setSelectedFile(file)
-                    setRemoveImage(false)
-                  }}
-                  onRemoveExisting={() => {
-                    setRemoveImage(true)
-                    setSelectedFile(null)
-                  }}
-                />
-              </div>
-
-              {/* Right Column (Details) */}
+          <ScrollArea className="flex-1 min-h-0 w-full">
+            <div className="p-6 space-y-6">
+              {/* SECTION 1: DETAILS */}
               <div className="space-y-4">
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-item-name" className={`text-sm font-semibold ${errors.name ? 'text-destructive' : 'text-primary-foreground'}`}>
-                    Name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="ws-item-name"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value)
-                      if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
-                    }}
-                    placeholder="z.B. Cheeseburger Deluxe, Pizza Margherita, Döner Special"
-                    className={`bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.name ? 'border-destructive' : ''}`}
-                  />
-                  {errors.name && (
-                    <span className="text-sm text-destructive">{errors.name}</span>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-item-desc" className="text-sm font-semibold text-primary-foreground">
-                    {t('description')}
-                  </Label>
-                  <Textarea
-                    id="ws-item-desc"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Zutaten, Zubereitung oder Allergen-Hinweise..."
-                    rows={4}
-                    className="resize-none bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 min-h-[100px]"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-item-price" className={`text-sm font-semibold ${errors.price ? 'text-destructive' : 'text-primary-foreground'}`}>
-                    {t('price')} (€) <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="ws-item-price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={price}
-                      onChange={(e) => {
-                        setPrice(e.target.value)
-                        if (errors.price) setErrors((prev) => ({ ...prev, price: undefined }))
-                      }}
-                      placeholder="0.00"
-                      className={`pr-7 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.price ? 'border-destructive' : ''}`}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
+                    <Tag className="w-5 h-5 text-primary-foreground/70" />
+                    Details
+                  </h3>
+                  
+                  {/* Verfügbar Switcher moved to header */}
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="ws-item-available" className="text-sm font-semibold text-primary-foreground cursor-pointer">
+                      {t('available')}
+                    </Label>
+                    <Switch
+                      id="ws-item-available"
+                      checked={available}
+                      onCheckedChange={setAvailable}
+                      className="data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-primary-foreground/50 font-medium">
-                      €
-                    </span>
                   </div>
-                  {errors.price && (
-                    <span className="text-sm text-destructive">{errors.price}</span>
-                  )}
                 </div>
 
-              </div>
-            </div>
-          </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left Column (Bild) */}
+                  <div className="flex flex-col gap-2 h-full">
+                    <Label className="text-sm font-semibold text-primary-foreground">
+                      Bild
+                    </Label>
+                    <ImageUpload
+                      className="flex-1"
+                      existingImageId={editingItem?.imageId}
+                      onFileSelect={(file) => {
+                        setSelectedFile(file)
+                        setRemoveImage(false)
+                      }}
+                      onRemoveExisting={() => {
+                        setRemoveImage(true)
+                        setSelectedFile(null)
+                      }}
+                    />
+                  </div>
 
-          <Separator className="bg-border/20" />
+                  {/* Right Column (Details) */}
+                  <div className="space-y-4">
 
-          {/* SECTION 2: ZUSAMMENSTELLUNG & PRESETS */}
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
-                <SlidersHorizontal className="w-5 h-5 text-primary-foreground/70" />
-                {t('customization')}
-                <TooltipProvider delay={100}>
-                  <Tooltip>
-                    <TooltipTrigger className="flex items-center">
-                      <Info 
-                        className="w-4 h-4 text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-help" 
-                        weight="fill"
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="ws-item-name" className={`text-sm font-semibold ${errors.name ? 'text-destructive' : 'text-primary-foreground'}`}>
+                        Name <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="ws-item-name"
+                        value={name}
+                        onChange={(e) => {
+                          setName(e.target.value)
+                          if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
+                        }}
+                        placeholder="z.B. Cheeseburger Deluxe, Pizza Margherita, Döner Special"
+                        maxLength={60}
+                        className={`bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.name ? 'border-destructive' : ''}`}
                       />
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-[250px]">
-                      <p>{t('customizationDesc')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </h3>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={enableCustomizations}
-                  onCheckedChange={setEnableCustomizations}
-                  className="data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
-                />
+                      {errors.name && (
+                        <span className="text-sm text-destructive">{errors.name}</span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="ws-item-desc" className="text-sm font-semibold text-primary-foreground">
+                        {t('description')}
+                      </Label>
+                      <Textarea
+                        id="ws-item-desc"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Zutaten, Zubereitung oder Allergen-Hinweise..."
+                        rows={4}
+                        maxLength={500}
+                        className="resize-none bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 min-h-[100px]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="ws-item-price" className={`text-sm font-semibold ${errors.price ? 'text-destructive' : 'text-primary-foreground'}`}>
+                        {t('price')} (€) <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="ws-item-price"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="99999"
+                          value={price}
+                          onChange={(e) => {
+                            if (e.target.value.length > 10) return
+                            setPrice(e.target.value)
+                            if (errors.price) setErrors((prev) => ({ ...prev, price: undefined }))
+                          }}
+                          placeholder="0.00"
+                          className={`pr-7 bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.price ? 'border-destructive' : ''}`}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-primary-foreground/50 font-medium">
+                          €
+                        </span>
+                      </div>
+                      {errors.price && (
+                        <span className="text-sm text-destructive">{errors.price}</span>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="bg-border/20" />
+
+              {/* SECTION 2: ZUSAMMENSTELLUNG & PRESETS */}
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
+                    <SlidersHorizontal className="w-5 h-5 text-primary-foreground/70" />
+                    {t('customization')}
+                    <TooltipProvider delay={100}>
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center">
+                          <Info 
+                            className="w-4 h-4 text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-help" 
+                            weight="fill"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[250px]">
+                          <p>{t('customizationDesc')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={enableCustomizations}
+                      onCheckedChange={setEnableCustomizations}
+                      className="data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
+                    />
+                  </div>
+                </div>
+
+                {enableCustomizations && (
+                  <div className="space-y-5 pt-1">
+                    <CustomizationBuilder
+                      steps={customizationSteps}
+                      onChange={setCustomizationSteps}
+                    />
+                  </div>
+                )}
               </div>
             </div>
+          </ScrollArea>
 
-            {enableCustomizations && (
-              <div className="space-y-5 pt-1">
-                <CustomizationBuilder
-                  steps={customizationSteps}
-                  onChange={setCustomizationSteps}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Buttons Block (No specific DialogFooter component to maintain flex column flow, or inside DialogFooter if preferred) */}
-          <div className="flex flex-row items-center gap-3 w-full mt-4">
+          {/* Fixed Footer Action Buttons */}
+          <div className="flex flex-row items-center gap-3 w-full p-6 pt-4 border-t border-primary-foreground/10 shrink-0 bg-primary">
             <Button
               type="button"
               onClick={() => onOpenChange(false)}

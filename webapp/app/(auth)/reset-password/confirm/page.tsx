@@ -232,6 +232,7 @@ function PasswordResetFormContent({
                   autoComplete="new-password"
                   value={passwordValue}
                   onChange={(e: any) => setPasswordValue(e.target.value)}
+                  maxLength={100}
                   className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground pr-10 ${fieldErrors.password ? "border-destructive" : ""}`}
                 />
                 <button
@@ -368,6 +369,7 @@ function PasswordResetFormContent({
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
+                  maxLength={100}
                   className={`h-11 border-primary-foreground/20 placeholder:text-primary-foreground/50 text-primary-foreground pr-10 ${fieldErrors.confirmPassword ? "border-destructive" : ""}`}
                 />
                 <button

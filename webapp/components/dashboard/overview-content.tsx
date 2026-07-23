@@ -578,7 +578,7 @@ function QrCodeGeneratorCard({
                       }
                     }}
                     className={cn(
-                      "h-9 px-3 rounded-full gap-2 font-medium text-xs transition-colors",
+                      "gap-2 font-medium text-sm transition-colors",
                       selectedTables.length > 0 ? "flex-1" : "w-full"
                     )}
                   >
@@ -591,9 +591,9 @@ function QrCodeGeneratorCard({
 
                   {selectedTables.length > 0 && (
                     <Button
-                      variant="destructive"
+                      variant="outline"
                       onClick={handleRemoveSelectedTables}
-                      className="h-9 px-3 rounded-full gap-2 text-xs font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1 shrink-0"
+                      className="gap-2 text-sm font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors flex-1 shrink-0"
                     >
                       <Trash className="h-4 w-4 shrink-0" weight="bold" />
                       <span>{selectedTables.length} {t("delete")}</span>
@@ -603,6 +603,7 @@ function QrCodeGeneratorCard({
 
                 <ScrollArea className="w-full h-[295px] pr-2">
                   <DndContext
+                    id="tables-dnd-context"
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
@@ -611,6 +612,13 @@ function QrCodeGeneratorCard({
                       items={optimisticTables}
                       strategy={rectSortingStrategy}
                     >
+                      {optimisticTables.length === 0 && !isAddingTable && (
+                        <div className="p-4 text-center border border-dashed rounded-xl mb-3">
+                          <p className="text-sm text-muted-foreground font-medium">
+                            {t("noTablesAdded") || "Noch keine Tische hinzugefügt."}
+                          </p>
+                        </div>
+                      )}
                       <div className="grid grid-cols-4 gap-2 pb-3">
                         {(() => {
                           const selectedTablesSet = new Set(selectedTables);
@@ -653,17 +661,18 @@ function QrCodeGeneratorCard({
                           }
                         }}
                         maxLength={4}
-                        className="w-full h-10 text-center text-sm font-medium border-2 border-dashed border-primary rounded-md focus-visible:ring-0"
+                        className="w-full h-8 text-center text-sm font-medium border-2 border-dashed border-primary rounded-lg focus-visible:ring-0"
                       />
                     ) : (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => setIsAddingTable(true)}
-                        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-muted/30 rounded-md h-10 transition-colors text-center font-medium cursor-pointer text-muted-foreground hover:text-foreground"
+                        className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
                       >
                         <Plus className="h-4 w-4 shrink-0" weight="bold" />
                         <span>{t("addTableFull")}</span>
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </ScrollArea>

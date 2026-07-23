@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { CircleNotch, FloppyDisk, SlidersHorizontal, Image as ImageIcon, Tag, Percent } from '@phosphor-icons/react'
 import { useTranslation } from '@/lib/i18n'
 import { ImageUpload } from './image-upload'
@@ -163,177 +164,181 @@ export function ItemFormSheet({
         <form
           id="item-form-sheet"
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto p-6 space-y-6"
+          className="flex-1 flex flex-col min-h-0 overflow-hidden"
         >
-          {/* Category Picker */}
-          {categories.length > 1 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">{t('categories')}</Label>
-              <Select value={categoryId} onValueChange={(val) => val && setCategoryId(val)}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder={t('categoryName')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.$id} value={c.$id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <ScrollArea className="flex-1 min-h-0 w-full">
+            <div className="p-6 space-y-6">
+              {/* Category Picker */}
+              {categories.length > 1 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">{t('categories')}</Label>
+                  <Select value={categoryId} onValueChange={(val) => val && setCategoryId(val)}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder={t('categoryName')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.$id} value={c.$id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-          {/* Section 1: Basic Info */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Tag className="w-4 h-4" />
-              {t('basicInfo')}
-            </h3>
+              {/* Section 1: Basic Info */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  {t('basicInfo')}
+                </h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="item-sheet-name" className="text-sm font-medium">
-                {t('itemName')} <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="item-sheet-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="z.B. Cheeseburger, Pizza Margherita, Wrap"
-                required
-                className="h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="item-sheet-desc" className="text-sm font-medium">
-                {t('description')}
-              </Label>
-              <Textarea
-                id="item-sheet-desc"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Zutaten, Zubereitung oder Allergen-Hinweise..."
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="item-sheet-price" className="text-sm font-medium">
-                  {t('price')} (€) <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
+                <div className="space-y-2">
+                  <Label htmlFor="item-sheet-name" className="text-sm font-medium">
+                    {t('itemName')} <span className="text-destructive">*</span>
+                  </Label>
                   <Input
-                    id="item-sheet-price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="0.00"
+                    id="item-sheet-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="z.B. Cheeseburger, Pizza Margherita, Wrap"
                     required
-                    className="h-11 pr-8"
+                    className="h-11"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold">
-                    €
-                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="item-sheet-desc" className="text-sm font-medium">
+                    {t('description')}
+                  </Label>
+                  <Textarea
+                    id="item-sheet-desc"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Zutaten, Zubereitung oder Allergen-Hinweise..."
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="item-sheet-price" className="text-sm font-medium">
+                      {t('price')} (€) <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="item-sheet-price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="0.00"
+                        required
+                        className="h-11 pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold">
+                        €
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="item-sheet-tax" className="text-sm font-medium flex items-center gap-1">
+                      <Percent className="w-3.5 h-3.5" />
+                      {t('taxRatePercent')}
+                    </Label>
+                    <Select value={taxRate} onValueChange={(val) => val && setTaxRate(val)}>
+                      <SelectTrigger id="item-sheet-tax" className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="19.0">19% (Standard)</SelectItem>
+                        <SelectItem value="7.0">7% (Ermäßigt)</SelectItem>
+                        <SelectItem value="0.0">0% (Befreit)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="item-sheet-tax" className="text-sm font-medium flex items-center gap-1">
-                  <Percent className="w-3.5 h-3.5" />
-                  {t('taxRatePercent')}
-                </Label>
-                <Select value={taxRate} onValueChange={(val) => val && setTaxRate(val)}>
-                  <SelectTrigger id="item-sheet-tax" className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="19.0">19% (Standard)</SelectItem>
-                    <SelectItem value="7.0">7% (Ermäßigt)</SelectItem>
-                    <SelectItem value="0.0">0% (Befreit)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+              <Separator />
 
-          <Separator />
-
-          {/* Section 2: Image */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" />
-              {t('imageSection')}
-            </h3>
-            <ImageUpload
-              existingImageId={editingItem?.imageId}
-              onFileSelect={(file) => {
-                setSelectedFile(file)
-                setRemoveImage(false)
-              }}
-              onRemoveExisting={() => {
-                setRemoveImage(true)
-                setSelectedFile(null)
-              }}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Section 3: Availability */}
-          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border">
-            <div className="space-y-0.5">
-              <Label className="text-base font-semibold">{t('available')}</Label>
-              <p className="text-xs text-muted-foreground">
-                {available ? t('available') : t('unavailable')}
-              </p>
-            </div>
-            <Switch
-              checked={available}
-              onCheckedChange={setAvailable}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Section 4: Customization (Subway style step-by-step) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <h3 className="text-base font-semibold flex items-center gap-2">
-                  <SlidersHorizontal className="w-5 h-5 text-primary" weight="bold" />
-                  {t('customization')}
+              {/* Section 2: Image */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  {t('imageSection')}
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  {t('customizationDesc')}
-                </p>
-              </div>
-              <Switch
-                checked={enableCustomizations}
-                onCheckedChange={setEnableCustomizations}
-              />
-            </div>
-
-            {enableCustomizations && (
-              <div className="pt-2">
-                <CustomizationBuilder
-                  steps={customizationSteps}
-                  onChange={setCustomizationSteps}
+                <ImageUpload
+                  existingImageId={editingItem?.imageId}
+                  onFileSelect={(file) => {
+                    setSelectedFile(file)
+                    setRemoveImage(false)
+                  }}
+                  onRemoveExisting={() => {
+                    setRemoveImage(true)
+                    setSelectedFile(null)
+                  }}
                 />
               </div>
-            )}
-          </div>
 
-          {/* Error display */}
-          {itemState.error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg font-medium">
-              {itemState.error}
+              <Separator />
+
+              {/* Section 3: Availability */}
+              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-semibold">{t('available')}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {available ? t('available') : t('unavailable')}
+                  </p>
+                </div>
+                <Switch
+                  checked={available}
+                  onCheckedChange={setAvailable}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Section 4: Customization (Subway style step-by-step) */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <h3 className="text-base font-semibold flex items-center gap-2">
+                      <SlidersHorizontal className="w-5 h-5 text-primary" weight="bold" />
+                      {t('customization')}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t('customizationDesc')}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enableCustomizations}
+                    onCheckedChange={setEnableCustomizations}
+                  />
+                </div>
+
+                {enableCustomizations && (
+                  <div className="pt-2">
+                    <CustomizationBuilder
+                      steps={customizationSteps}
+                      onChange={setCustomizationSteps}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Error display */}
+              {itemState.error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg font-medium">
+                  {itemState.error}
+                </div>
+              )}
             </div>
-          )}
+          </ScrollArea>
         </form>
 
         {/* Footer */}

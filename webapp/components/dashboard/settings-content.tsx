@@ -99,6 +99,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 name="name"
                 defaultValue={organization.name}
                 required
+                maxLength={80}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -110,6 +111,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 name="address"
                 defaultValue={organization.address}
                 rows={2}
+                maxLength={300}
               />
             </div>
             <div className="flex flex-col gap-2">
