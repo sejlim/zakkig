@@ -122,9 +122,9 @@ const translations = {
     qrCodeSublineToGo:
       "Nach Abschluss der Bezahlung wirst du auf eine Warteseite weitergeleitet, auf der du sehen kannst ob deine Bestellung abholbereit ist.",
     qrCodeAdminDescToGo:
-      "Drucke diesen QR-Code aus und platziere ihn gut sichtbar für deine Kunden.",
+      "Ermöglicht Kunden die kontaktlose Bestellung & Bezahlung zum Mitnehmen inklusive Bestellnummer und Live-Status für die Abholung.",
     qrCodeAdminDescToStay:
-      "Trage die gewünschten Tischnummern ein, drucke die QR-Codes aus und platziere sie auf den entsprechenden Tischen.",
+      "Ermöglicht Kunden das direkte Bestellen & Bezahlen am Tisch, damit alle Speisen und Getränke direkt an den Tisch serviert werden können.",
 
     // Orders
     liveView: "Live-Ansicht",
@@ -151,6 +151,7 @@ const translations = {
     manageTables: "Tischnummern verwalten",
     selectAll: "Alle auswählen",
     addTable: "Hinzufügen",
+    addTableFull: "Tisch hinzufügen",
     noTablesCreated: "Noch keine Tische angelegt.",
     tableExists: "Tischnummer existiert bereits",
     tablesDeleted: "Tische gelöscht",
@@ -159,10 +160,13 @@ const translations = {
     confirmAction: "Aktion bestätigen",
     confirmDeactivate: "Möchten Sie diese Funktion wirklich deaktivieren?",
     confirmDeleteTables: "Möchten Sie die ausgewählten Tische wirklich löschen?",
+    deleteTablesTitle: "Ausgewählte Tische löschen",
+    deleteTablesDesc: "Bist du sicher, dass du die ausgewählten Tische unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
     activate: "Aktivieren",
     deactivate: "Deaktivieren",
     printMultipleCodes: "{{count}} drucken",
     qrCodeWith: "MIT",
+    openQrLink: "Link in neuem Tab öffnen",
 
 
     // Menu
@@ -422,9 +426,9 @@ const translations = {
     qrCodeSublineToGo:
       "After payment, you will be redirected to a waiting page where you can see whether your order is ready for pickup.",
     qrCodeAdminDescToGo:
-      "Print out this QR code and place it in a clearly visible spot for your customers.",
+      "Enables customers to order & pay contactless for takeaway, including an order number and live status for pickup.",
     qrCodeAdminDescToStay:
-      "Enter the desired table numbers, print out the QR codes and place them on the corresponding tables.",
+      "Enables customers to order & pay directly at their table, ensuring all food and drinks can be served straight to their table.",
 
     // Orders
     liveView: "Live View",
@@ -451,6 +455,7 @@ const translations = {
     manageTables: "Manage table numbers",
     selectAll: "Select all",
     addTable: "Add",
+    addTableFull: "Add Table",
     noTablesCreated: "No tables created yet.",
     tableExists: "Table number already exists",
     tablesDeleted: "Tables deleted",
@@ -459,10 +464,13 @@ const translations = {
     confirmAction: "Confirm action",
     confirmDeactivate: "Do you really want to deactivate this feature?",
     confirmDeleteTables: "Do you really want to delete the selected tables?",
+    deleteTablesTitle: "Delete Selected Tables",
+    deleteTablesDesc: "Are you sure you want to permanently remove the selected tables from your QR code management?",
     activate: "Activate",
     deactivate: "Deactivate",
     printMultipleCodes: "Print {{count}}",
     qrCodeWith: "WITH",
+    openQrLink: "Open link in new tab",
 
 
     // Menu

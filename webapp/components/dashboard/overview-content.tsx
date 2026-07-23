@@ -84,6 +84,9 @@ const handlePrint = () => {
 };
 
 function StyledQRCode({ value, size }: { value: string; size: number }) {
+  const logoWidth = Math.round((157 * size) / 280);
+  const logoHeight = Math.round((50 * size) / 280);
+
   return (
     <div className="flex items-center justify-center">
       <ReactQRCode
@@ -95,9 +98,9 @@ function StyledQRCode({ value, size }: { value: string; size: number }) {
         finderPatternOuterSettings={{ color: "#000000", style: "square" }}
         finderPatternInnerSettings={{ color: "#000000", style: "square" }}
         imageSettings={{
-          src: "https://zakkig.de/full_qr.png",
-          height: 23,
-          width: 72,
+          src: "https://www.zakkig.de/full_qr.png",
+          height: logoHeight,
+          width: logoWidth,
           excavate: true,
         }}
       />
@@ -345,7 +348,6 @@ function QrCodeGeneratorCard({
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [newTableInput, setNewTableInput] = useState("");
   const [isAddingTable, setIsAddingTable] = useState(false);
-  const [deactivateDialog, setDeactivateDialog] = useState<{ isOpen: boolean; type: "to-go" | "to-stay" | null }>({ isOpen: false, type: null });
   const [deleteTablesDialogOpen, setDeleteTablesDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -390,14 +392,6 @@ function QrCodeGeneratorCard({
   };
 
   const handleToggleFeature = (type: "to-go" | "to-stay", checked: boolean) => {
-    if (!checked) {
-      setDeactivateDialog({ isOpen: true, type });
-      return;
-    }
-    executeToggleFeature(type, checked);
-  };
-
-  const executeToggleFeature = (type: "to-go" | "to-stay", checked: boolean) => {
     startTransition(async () => {
       if (type === "to-go") setOptimisticToGo(checked);
       else setOptimisticToStay(checked);
@@ -409,12 +403,6 @@ function QrCodeGeneratorCard({
         toast.success(checked ? t("featureEnabled") : t("featureDisabled"));
       }
     });
-  };
-
-  const confirmDeactivate = () => {
-    if (!deactivateDialog.type) return;
-    executeToggleFeature(deactivateDialog.type, false);
-    setDeactivateDialog({ isOpen: false, type: null });
   };
 
   const handleAddTable = (val: string) => {
@@ -430,7 +418,7 @@ function QrCodeGeneratorCard({
     }
     setNewTableInput("");
     setIsAddingTable(false);
-    const updatedTables = [val, ...currentTables];
+    const updatedTables = [...currentTables, val];
     startTransition(async () => {
       setOptimisticTables(updatedTables);
       const result = await updateTablesAction(organization.$id, updatedTables);
@@ -438,7 +426,7 @@ function QrCodeGeneratorCard({
         toast.error(result.error as string);
         setNewTableInput(val);
       } else {
-        setSelectedTables(prev => [val, ...prev]);
+        setSelectedTables(prev => [...prev, val]);
       }
     });
   };
@@ -500,13 +488,13 @@ function QrCodeGeneratorCard({
             </Button>
           </div>
 
-          <div className={cn("flex flex-col items-center w-[280px] gap-1 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
-            <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-0.5">
+          <div className={cn("flex flex-col items-center w-[280px] gap-0 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
+            <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
               <ScaledText 
                 text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                 className="text-foreground"
               />
-              <p className="text-right w-full text-foreground font-black text-sm leading-none uppercase py-0.5">
+              <p className="text-right w-full text-foreground font-black text-lg leading-none uppercase">
                 {qrType === "to-stay" ? t("qrCodeAt") : t("qrCodeFor")}
               </p>
               <ScaledText 
@@ -515,14 +503,20 @@ function QrCodeGeneratorCard({
                   : t("pickup")}
                 className="text-foreground"
               />
-              <p className="text-left w-full text-foreground font-black text-sm leading-none uppercase py-0.5">
+              <p className="text-left w-full text-foreground font-black text-lg leading-none uppercase">
                 {t("qrCodeWith")}
               </p>
             </div>
 
-            <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
+            <a
+              href={qrUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity"
+              title={t("openQrLink")}
+            >
               <StyledQRCode value={qrUrl} size={280} />
-            </div>
+            </a>
           </div>
         </Card>
 
@@ -607,7 +601,7 @@ function QrCodeGeneratorCard({
                   )}
                 </div>
 
-                <ScrollArea className="w-full h-[280px]">
+                <ScrollArea className="w-full h-[295px] pr-2">
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -617,45 +611,7 @@ function QrCodeGeneratorCard({
                       items={optimisticTables}
                       strategy={rectSortingStrategy}
                     >
-                      <div className="grid grid-cols-4 gap-2 pb-4">
-                        {isAddingTable ? (
-                          <Input
-                            autoFocus
-                            placeholder="Nr."
-                            value={newTableInput}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "");
-                              if (val.length <= 4) setNewTableInput(val);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                handleAddTable(newTableInput);
-                              } else if (e.key === "Escape") {
-                                setIsAddingTable(false);
-                                setNewTableInput("");
-                              }
-                            }}
-                            onBlur={() => {
-                              if (newTableInput) {
-                                handleAddTable(newTableInput);
-                              } else {
-                                setIsAddingTable(false);
-                              }
-                            }}
-                            maxLength={4}
-                            className="h-10 text-center text-sm font-medium border-2 border-dashed border-primary px-2 rounded-md focus-visible:ring-0"
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setIsAddingTable(true)}
-                            className="flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-muted/30 rounded-md px-3 py-2 h-10 transition-colors text-center font-medium shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
-                            title={t("addTable")}
-                          >
-                            <Plus className="h-4 w-4" weight="bold" />
-                          </button>
-                        )}
-
+                      <div className="grid grid-cols-4 gap-2 pb-3">
                         {(() => {
                           const selectedTablesSet = new Set(selectedTables);
                           return optimisticTables.map((tNum) => (
@@ -670,6 +626,46 @@ function QrCodeGeneratorCard({
                       </div>
                     </SortableContext>
                   </DndContext>
+
+                  <div className="w-full pb-4 pt-1">
+                    {isAddingTable ? (
+                      <Input
+                        autoFocus
+                        placeholder={t("tableNr")}
+                        value={newTableInput}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          if (val.length <= 4) setNewTableInput(val);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleAddTable(newTableInput);
+                          } else if (e.key === "Escape") {
+                            setIsAddingTable(false);
+                            setNewTableInput("");
+                          }
+                        }}
+                        onBlur={() => {
+                          if (newTableInput) {
+                            handleAddTable(newTableInput);
+                          } else {
+                            setIsAddingTable(false);
+                          }
+                        }}
+                        maxLength={4}
+                        className="w-full h-10 text-center text-sm font-medium border-2 border-dashed border-primary rounded-md focus-visible:ring-0"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingTable(true)}
+                        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-muted-foreground/30 hover:border-primary hover:bg-muted/30 rounded-md h-10 transition-colors text-center font-medium cursor-pointer text-muted-foreground hover:text-foreground"
+                      >
+                        <Plus className="h-4 w-4 shrink-0" weight="bold" />
+                        <span>{t("addTableFull")}</span>
+                      </button>
+                    )}
+                  </div>
                 </ScrollArea>
               </div>
             )}
@@ -677,33 +673,33 @@ function QrCodeGeneratorCard({
         </Card>
       </div>
 
-      <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none print:static print:opacity-100 print:pointer-events-auto print:grid print:grid-cols-2 print:gap-y-16 print:gap-x-8 bg-white print:content-start">
+      <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none print:static print:opacity-100 print:pointer-events-auto print:grid print:grid-cols-2 print:gap-y-4 print:gap-x-4 bg-white print:content-start">
         {qrType === "to-stay" ? (
           selectedTables.map((tNum) => {
             const tableQrUrl = `${baseUrl}/to-stay/${organization.$id}?table=${tNum}`;
             return (
               <div key={tNum} className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
-                <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
-                    <div className="flex flex-col items-center w-[220px] gap-1">
-                      <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-0.5">
+                <Card className="flex flex-col items-center justify-center p-4 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
+                    <div className="flex flex-col items-center w-[230px] gap-0">
+                      <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
                         <ScaledText 
                           text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                           className="text-foreground"
                         />
-                        <p className="text-right w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
+                        <p className="text-right w-full text-foreground font-black text-base leading-none uppercase">
                           {t("qrCodeAt")}
                         </p>
                         <ScaledText 
                           text={`${t("table")} ${tNum}`}
                           className="text-foreground"
                         />
-                        <p className="text-left w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
+                        <p className="text-left w-full text-foreground font-black text-base leading-none uppercase">
                           {t("qrCodeWith")}
                         </p>
                       </div>
 
                       <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-                        <StyledQRCode value={tableQrUrl} size={220} />
+                        <StyledQRCode value={tableQrUrl} size={230} />
                       </div>
                     </div>
                 </Card>
@@ -712,27 +708,27 @@ function QrCodeGeneratorCard({
           })
         ) : (
           <div className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
-            <Card className="flex flex-col items-center justify-center p-6 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
-                <div className="flex flex-col items-center w-[220px] gap-1">
-                  <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-0.5">
+            <Card className="flex flex-col items-center justify-center p-4 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
+                <div className="flex flex-col items-center w-[230px] gap-0">
+                  <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
                     <ScaledText 
                       text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                       className="text-foreground"
                     />
-                    <p className="text-right w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
+                    <p className="text-right w-full text-foreground font-black text-base leading-none uppercase">
                       {t("qrCodeFor")}
                     </p>
                     <ScaledText 
                       text={t("pickup")}
                       className="text-foreground"
                     />
-                    <p className="text-left w-full text-foreground font-black text-xs leading-none uppercase py-0.5">
+                    <p className="text-left w-full text-foreground font-black text-base leading-none uppercase">
                       {t("qrCodeWith")}
                     </p>
                   </div>
 
                   <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-                    <StyledQRCode value={qrUrl} size={220} />
+                    <StyledQRCode value={qrUrl} size={230} />
                   </div>
                 </div>
             </Card>
@@ -740,31 +736,12 @@ function QrCodeGeneratorCard({
         )}
       </div>
 
-      <Dialog open={deactivateDialog.isOpen} onOpenChange={(isOpen) => setDeactivateDialog(prev => ({ ...prev, isOpen }))}>
-        <DialogContent className="bg-primary text-primary-foreground border-border/20">
-          <DialogHeader>
-            <DialogTitle>{t("confirmAction")}</DialogTitle>
-            <DialogDescription className="text-primary-foreground/80">
-              {t("confirmDeactivate")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex w-full gap-3 mt-2">
-            <Button variant="outline" onClick={() => setDeactivateDialog({ isOpen: false, type: null })} className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground">
-              {t("cancel")}
-            </Button>
-            <Button variant="destructive" onClick={confirmDeactivate} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t("deactivate")}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={deleteTablesDialogOpen} onOpenChange={setDeleteTablesDialogOpen}>
         <DialogContent className="bg-primary text-primary-foreground border-border/20">
           <DialogHeader>
-            <DialogTitle>{t("confirmAction")}</DialogTitle>
+            <DialogTitle>{t("deleteTablesTitle")}</DialogTitle>
             <DialogDescription className="text-primary-foreground/80">
-              {t("confirmDeleteTables")}
+              {t("deleteTablesDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex w-full gap-3 mt-2">
