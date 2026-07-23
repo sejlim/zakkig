@@ -243,6 +243,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
             width={120}
             height={40}
             priority
+            loading="eager"
             className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert"
           />
         </Link>

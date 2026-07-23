@@ -70,6 +70,7 @@ export interface CustomizationStep {
   minSelections: number;
   maxSelections: number;
   includedCount: number; // how many selections are free
+  available?: boolean;
   sortOrder: number;
   options: CustomizationOption[];
 }

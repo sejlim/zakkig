@@ -118,6 +118,8 @@ export function DashboardShell({
                   alt="zakkig logo"
                   width={100}
                   height={24}
+                  priority
+                  loading="eager"
                   className="h-6 w-auto brightness-0 invert"
                 />
               </Link>
@@ -263,6 +265,8 @@ export function DashboardShell({
               alt="Zakkig"
               width={100}
               height={24}
+              priority
+              loading="eager"
               className="h-6 w-auto brightness-0 invert"
             />
           </Link>

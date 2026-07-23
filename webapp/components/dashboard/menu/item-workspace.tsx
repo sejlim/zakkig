@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,7 @@ import { toast } from 'sonner'
 import { ImageUpload } from './image-upload'
 import { CustomizationBuilder } from './customization-builder'
 import { PRESET_TEMPLATES, type PresetTemplate } from '@/lib/preset-templates'
+import { createMenuItemAction, updateMenuItemAction } from '@/actions/menu-actions'
 import type { MenuItem, MenuCategory, CustomizationStep } from '@/lib/types'
 
 interface ItemWorkspaceProps {
@@ -51,9 +52,6 @@ interface ItemWorkspaceProps {
   categories: MenuCategory[]
   selectedCategoryId: string
   organizationId: string
-  itemAction: (payload: FormData) => void
-  isItemPending: boolean
-  itemState: { error?: string; success?: boolean }
 }
 
 export function ItemWorkspace({
@@ -63,11 +61,11 @@ export function ItemWorkspace({
   categories,
   selectedCategoryId,
   organizationId,
-  itemAction,
-  isItemPending,
-  itemState,
 }: ItemWorkspaceProps) {
   const { t, locale } = useTranslation()
+
+  // Submitting state
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Form State
   const [categoryId, setCategoryId] = useState(selectedCategoryId)
@@ -87,6 +85,7 @@ export function ItemWorkspace({
   useEffect(() => {
     if (open) {
       setErrors({})
+      setIsSubmitting(false)
       if (editingItem) {
         setCategoryId(editingItem.categoryId)
         setName(editingItem.name)
@@ -123,20 +122,6 @@ export function ItemWorkspace({
     }
   }, [open, editingItem, selectedCategoryId, categories])
 
-  // Close workspace on successful save
-  useEffect(() => {
-    if (itemState.success && open) {
-      onOpenChange(false)
-    }
-  }, [itemState.success, open, onOpenChange])
-
-  // Show error toast
-  useEffect(() => {
-    if (itemState.error && open) {
-      toast.error(itemState.error)
-    }
-  }, [itemState.error, open])
-
   // Apply a generic preset template
   const applyPreset = (preset: PresetTemplate) => {
     if (preset.steps.length > 0) {
@@ -158,8 +143,9 @@ export function ItemWorkspace({
     }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (isSubmitting) return
 
     // Auth-style client validation
     const newErrors: { name?: string; price?: string } = {}
@@ -201,11 +187,31 @@ export function ItemWorkspace({
     const finalSteps = enableCustomizations ? customizationSteps : []
     formData.append('customizations', JSON.stringify(finalSteps))
 
-    itemAction(formData)
+    setIsSubmitting(true)
+    try {
+      const action = editingItem ? updateMenuItemAction : createMenuItemAction
+      const res = await action({}, formData)
+      if (res?.error) {
+        toast.error(res.error)
+      } else if (res?.success) {
+        onOpenChange(false)
+      }
+    } catch {
+      toast.error('Artikel konnte nicht gespeichert werden.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (!isSubmitting) {
+          onOpenChange(newOpen)
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-xl md:max-w-2xl h-[85vh] max-h-[750px] p-0 flex flex-col bg-primary text-primary-foreground border-border/20 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-primary-foreground/10 shrink-0">
           <DialogTitle>
@@ -344,7 +350,7 @@ export function ItemWorkspace({
                     {t('customization')}
                     <TooltipProvider delay={100}>
                       <Tooltip>
-                        <TooltipTrigger className="flex items-center">
+                        <TooltipTrigger className="hidden sm:inline-flex items-center">
                           <Info 
                             className="w-4 h-4 text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-help" 
                             weight="fill"
@@ -382,17 +388,17 @@ export function ItemWorkspace({
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              disabled={isItemPending}
+              disabled={isSubmitting}
               className="flex-1 bg-transparent border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground disabled:border-primary-foreground/10 disabled:text-primary-foreground/40 disabled:opacity-100"
             >
               {t('cancel')}
             </Button>
             <Button
               type="submit"
-              disabled={isItemPending}
+              disabled={isSubmitting}
               className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100"
             >
-              {isItemPending ? (
+              {isSubmitting ? (
                 <>
                   <CircleNotch className="w-5 h-5 animate-spin mr-2" weight="bold" />
                   {t('saving')}

@@ -79,6 +79,7 @@ export default function ResetPasswordPage() {
             width={120}
             height={40}
             priority
+            loading="eager"
             className="w-auto h-8 hover:opacity-80 transition-opacity brightness-0 invert"
           />
         </Link>

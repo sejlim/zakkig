@@ -91,10 +91,10 @@ export function ImageUpload({
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        role="button"
-        tabIndex={0}
+        role={hasImage ? undefined : "button"}
+        tabIndex={hasImage ? undefined : 0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (!hasImage && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             inputRef.current?.click()
           }

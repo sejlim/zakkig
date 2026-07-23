@@ -18,6 +18,7 @@ import { getUser } from "@/lib/appwrite/server";
 export interface MenuActionState {
   error?: string;
   success?: boolean;
+  categoryId?: string;
 }
 
 // ─── Categories ─────────────────────────────────────────────────
@@ -36,7 +37,7 @@ export async function createCategoryAction(
   if (!name) return { error: "Name ist erforderlich." };
 
   try {
-    await createMenuCategory({
+    const newDoc = await createMenuCategory({
       organizationId,
       name,
       sortOrder,
@@ -44,7 +45,7 @@ export async function createCategoryAction(
     });
 
     revalidatePath(`/dashboard/${organizationId}/menu`);
-    return { success: true };
+    return { success: true, categoryId: newDoc.$id };
   } catch (error: unknown) {
     const message =
       error instanceof Error

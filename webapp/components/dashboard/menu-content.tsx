@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useActionState, useTransition, useOptimistic } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import {
   DndContext,
   closestCenter,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -15,6 +16,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  rectSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -42,7 +44,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import { RefreshButton } from './refresh-button'
 import { ItemWorkspace } from './menu/item-workspace'
@@ -53,8 +54,6 @@ import {
   createCategoryAction,
   updateCategoryAction,
   deleteCategoryAction,
-  createMenuItemAction,
-  updateMenuItemAction,
   deleteMenuItemAction,
   toggleMenuItemAvailability,
   reorderCategoriesAction,
@@ -68,6 +67,18 @@ interface MenuContentProps {
   organizationId: string
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false)
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)')
+    setIsDesktop(media.matches)
+    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    media.addEventListener('change', listener)
+    return () => media.removeEventListener('change', listener)
+  }, [])
+  return isDesktop
+}
+
 export function MenuContent({
   categories: initialCategories,
   items: initialItems,
@@ -75,19 +86,26 @@ export function MenuContent({
 }: MenuContentProps) {
   const { t } = useTranslation()
   const [, startTransition] = useTransition()
+  const isDesktop = useIsDesktop()
 
-  // Optimistic state for categories and items reordering
-  const [categories, setOptimisticCategories] = useOptimistic<MenuCategory[]>(
-    initialCategories,
-  )
-  const [items, setOptimisticItems] = useOptimistic<MenuItem[]>(initialItems)
+  // Persistent client state for categories and items to eliminate drag & drop flickering
+  const [categories, setCategories] = useState<MenuCategory[]>(initialCategories)
+  const [items, setItems] = useState<MenuItem[]>(initialItems)
+
+  useEffect(() => {
+    setCategories(initialCategories)
+  }, [initialCategories])
+
+  useEffect(() => {
+    setItems(initialItems)
+  }, [initialItems])
 
   // Dialog & Sheet states
-  const [showCategoryDialog, setShowCategoryDialog] = useState(false)
   const [showItemSheet, setShowItemSheet] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
+  const [autoEditCategoryId, setAutoEditCategoryId] = useState<string | null>(null)
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
 
   // Collapsed categories state (map of categoryId -> isCollapsed)
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({})
@@ -99,17 +117,6 @@ export function MenuContent({
     name: string
     imageId?: string
   } | null>(null)
-
-  // Form actions
-  const [categoryState, categoryAction, isCategoryPending] = useActionState(
-    editingCategory ? updateCategoryAction : createCategoryAction,
-    {},
-  )
-
-  const [itemState, itemAction, isItemPending] = useActionState(
-    editingItem ? updateMenuItemAction : createMenuItemAction,
-    {},
-  )
 
   // DnD sensors
   const sensors = useSensors(
@@ -129,59 +136,114 @@ export function MenuContent({
   }
 
   // Handle Category Drag End
-  const handleCategoryDragEnd = (event: DragEndEvent) => {
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (over && active.id !== over.id) {
       const oldIndex = categories.findIndex((c) => c.$id === active.id)
       const newIndex = categories.findIndex((c) => c.$id === over.id)
+      const previousCategories = [...categories]
       const newCategories = arrayMove(categories, oldIndex, newIndex)
 
-      startTransition(async () => {
-        setOptimisticCategories(newCategories)
-        const res = await reorderCategoriesAction(
-          organizationId,
-          newCategories.map((c) => c.$id),
-        )
-        if (res?.error) toast.error(res.error)
-      })
+      setCategories(newCategories)
+
+      const res = await reorderCategoriesAction(
+        organizationId,
+        newCategories.map((c) => c.$id),
+      )
+      if (res?.error) {
+        toast.error(res.error)
+        setCategories(previousCategories)
+      }
     }
   }
 
   // Handle Item Drag End
-  const handleItemDragEnd = (categoryId: string, event: DragEndEvent) => {
+  const handleItemDragEnd = async (categoryId: string, event: DragEndEvent) => {
     const { active, over } = event
     if (over && active.id !== over.id) {
       const categoryItems = getItemsByCategory(categoryId)
       const oldIndex = categoryItems.findIndex((i) => i.$id === active.id)
       const newIndex = categoryItems.findIndex((i) => i.$id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return
+
       const reorderedCategoryItems = arrayMove(categoryItems, oldIndex, newIndex)
+      const previousItems = [...items]
 
+      let catIdx = 0
       const newAllItems = items.map((item) => {
-        if (item.categoryId !== categoryId) return item
-        const found = reorderedCategoryItems.find((r) => r.$id === item.$id)
-        return found ?? item
+        if (item.categoryId === categoryId) {
+          const newItem = reorderedCategoryItems[catIdx]
+          catIdx++
+          return newItem
+        }
+        return item
       })
 
-      startTransition(async () => {
-        setOptimisticItems(newAllItems)
-        const res = await reorderItemsAction(
-          organizationId,
-          reorderedCategoryItems.map((i) => i.$id),
-        )
-        if (res?.error) toast.error(res.error)
-      })
+      setItems(newAllItems)
+
+      const res = await reorderItemsAction(
+        organizationId,
+        reorderedCategoryItems.map((i) => i.$id),
+      )
+      if (res?.error) {
+        toast.error(res.error)
+        setItems(previousItems)
+      }
     }
   }
 
-  // Modal Handlers
-  function openNewCategory() {
-    setEditingCategory(null)
-    setShowCategoryDialog(true)
-  }
+  // In-place category creation handler
+  async function openNewCategory() {
+    if (isCreatingCategory) return
+    setIsCreatingCategory(true)
 
-  function openEditCategory(category: MenuCategory) {
-    setEditingCategory(category)
-    setShowCategoryDialog(true)
+    const tempId = `temp-${Date.now()}`
+    const defaultName = t('newCategory')
+    const newSortOrder = categories.length
+
+    const tempCategory: MenuCategory = {
+      $id: tempId,
+      organizationId,
+      name: defaultName,
+      sortOrder: newSortOrder,
+      $createdAt: new Date().toISOString(),
+      $updatedAt: new Date().toISOString(),
+      $permissions: [],
+      $databaseId: '',
+      $collectionId: '',
+    }
+
+    setCategories((prev) => [...prev, tempCategory])
+    setCollapsedCategories((prev) => ({ ...prev, [tempId]: false }))
+    setAutoEditCategoryId(tempId)
+
+    const formData = new FormData()
+    formData.append('organizationId', organizationId)
+    formData.append('name', defaultName)
+    formData.append('sortOrder', newSortOrder.toString())
+
+    try {
+      const res = await createCategoryAction({}, formData)
+      if (res?.error) {
+        toast.error(res.error)
+        setCategories((prev) => prev.filter((c) => c.$id !== tempId))
+        setAutoEditCategoryId(null)
+      } else if (res?.categoryId) {
+        const realId = res.categoryId
+        setCategories((prev) =>
+          prev.map((c) => (c.$id === tempId ? { ...c, $id: realId } : c)),
+        )
+        setCollapsedCategories((prev) => {
+          const next = { ...prev }
+          delete next[tempId]
+          next[realId] = false
+          return next
+        })
+        setAutoEditCategoryId(realId)
+      }
+    } finally {
+      setIsCreatingCategory(false)
+    }
   }
 
   function openNewItem(categoryId: string) {
@@ -197,10 +259,13 @@ export function MenuContent({
   }
 
   function toggleCategoryCollapse(categoryId: string) {
-    setCollapsedCategories((prev) => ({
-      ...prev,
-      [categoryId]: !prev[categoryId],
-    }))
+    setCollapsedCategories((prev) => {
+      const isCurrentlyCollapsed = prev[categoryId] ?? true
+      return {
+        ...prev,
+        [categoryId]: !isCurrentlyCollapsed,
+      }
+    })
   }
 
   // Delete Action Confirmations
@@ -208,93 +273,185 @@ export function MenuContent({
     if (!deleteConfirm) return
     if (deleteConfirm.type === 'category') {
       const res = await deleteCategoryAction(deleteConfirm.id, organizationId)
-      if (res.success) toast.success(t('categoryDeleted'))
-      else if (res.error) toast.error(res.error)
+      if (res?.error) toast.error(res.error)
     } else {
       const res = await deleteMenuItemAction(
         deleteConfirm.id,
         organizationId,
         deleteConfirm.imageId,
       )
-      if (res.success) toast.success(t('itemDeleted'))
-      else if (res.error) toast.error(res.error)
+      if (res?.error) toast.error(res.error)
     }
     setDeleteConfirm(null)
   }
 
   function handleToggleAvailability(itemId: string, available: boolean) {
+    const previousItems = [...items]
     const updatedItems = items.map((i) =>
       i.$id === itemId ? { ...i, available } : i,
     )
+    setItems(updatedItems)
     startTransition(async () => {
-      setOptimisticItems(updatedItems)
       const res = await toggleMenuItemAvailability(itemId, available, organizationId)
       if (res?.error) {
         toast.error(res.error)
+        setItems(previousItems)
       }
     })
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex-1 space-y-4">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between space-y-2 print:hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t('menu')}</h1>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={openNewCategory} variant="default" className="gap-2 font-semibold">
-            <Plus className="h-4 w-4" weight="bold" />
-            {t('addCategory')}
-          </Button>
           <RefreshButton />
         </div>
       </div>
 
       {/* Categories Cards View */}
       {categories.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-16 text-center flex flex-col items-center justify-center gap-3">
-            <div className="p-4 rounded-full bg-primary/10 text-primary">
-              <Plus className="w-8 h-8" weight="bold" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold text-lg">{t('noCategories')}</h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                {t('noCategoriesHint')}
-              </p>
-            </div>
-            <Button onClick={openNewCategory} variant="default" className="mt-2 gap-2">
-              <Plus className="h-4 w-4" weight="bold" />
-              {t('addCategory')}
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="border-2 border-dashed border-border rounded-xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <div className="space-y-1">
+            <h3 className="font-semibold text-lg text-foreground">{t('noCategories')}</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              {t('noCategoriesHint')}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={openNewCategory}
+            className="border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer mt-2"
+          >
+            <Plus className="h-4 w-4 shrink-0" weight="bold" />
+            <span>{t('addCategory')}</span>
+          </Button>
+        </div>
       ) : (
         <DndContext
           id="menu-categories-dnd"
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={rectIntersection}
           onDragEnd={handleCategoryDragEnd}
         >
           <SortableContext
             items={categories.map((c) => c.$id)}
-            strategy={verticalListSortingStrategy}
+            strategy={rectSortingStrategy}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-              {categories.map((category) => {
-                const categoryItems = getItemsByCategory(category.$id)
-                const isCollapsed = collapsedCategories[category.$id] ?? false
+            {isDesktop ? (
+              <div className="flex gap-6 items-start w-full">
+                {/* Left Column (Even Index: 0, 2, 4...) */}
+                <div className="flex flex-col gap-6 flex-1 min-w-0">
+                  {categories
+                    .filter((_, i) => i % 2 === 0)
+                    .map((category) => (
+                      <SortableCategoryCard
+                        key={category.$id}
+                        category={category}
+                        categoryItems={getItemsByCategory(category.$id)}
+                        isCollapsed={collapsedCategories[category.$id] ?? true}
+                        autoEditName={autoEditCategoryId === category.$id}
+                        onEditComplete={() => setAutoEditCategoryId(null)}
+                        onToggleCollapse={() => toggleCategoryCollapse(category.$id)}
+                        onDeleteCategory={() =>
+                          setDeleteConfirm({
+                            type: 'category',
+                            id: category.$id,
+                            name: category.name,
+                          })
+                        }
+                        onNewItem={() => openNewItem(category.$id)}
+                        onEditItem={openEditItem}
+                        onDeleteItem={(item) =>
+                          setDeleteConfirm({
+                            type: 'item',
+                            id: item.$id,
+                            name: item.name,
+                            imageId: item.imageId,
+                          })
+                        }
+                        onToggleAvailability={handleToggleAvailability}
+                        onItemDragEnd={(e) => handleItemDragEnd(category.$id, e)}
+                        sensors={sensors}
+                      />
+                    ))}
+                  {categories.length % 2 === 0 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={openNewCategory}
+                      className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4 shrink-0" weight="bold" />
+                      <span>{t('addCategory')}</span>
+                    </Button>
+                  )}
+                </div>
 
-                return (
+                {/* Right Column (Odd Index: 1, 3, 5...) */}
+                <div className="flex flex-col gap-6 flex-1 min-w-0">
+                  {categories
+                    .filter((_, i) => i % 2 === 1)
+                    .map((category) => (
+                      <SortableCategoryCard
+                        key={category.$id}
+                        category={category}
+                        categoryItems={getItemsByCategory(category.$id)}
+                        isCollapsed={collapsedCategories[category.$id] ?? true}
+                        autoEditName={autoEditCategoryId === category.$id}
+                        onEditComplete={() => setAutoEditCategoryId(null)}
+                        onToggleCollapse={() => toggleCategoryCollapse(category.$id)}
+                        onDeleteCategory={() =>
+                          setDeleteConfirm({
+                            type: 'category',
+                            id: category.$id,
+                            name: category.name,
+                          })
+                        }
+                        onNewItem={() => openNewItem(category.$id)}
+                        onEditItem={openEditItem}
+                        onDeleteItem={(item) =>
+                          setDeleteConfirm({
+                            type: 'item',
+                            id: item.$id,
+                            name: item.name,
+                            imageId: item.imageId,
+                          })
+                        }
+                        onToggleAvailability={handleToggleAvailability}
+                        onItemDragEnd={(e) => handleItemDragEnd(category.$id, e)}
+                        sensors={sensors}
+                      />
+                    ))}
+                  {categories.length % 2 === 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={openNewCategory}
+                      className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4 shrink-0" weight="bold" />
+                      <span>{t('addCategory')}</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6 w-full">
+                {categories.map((category) => (
                   <SortableCategoryCard
                     key={category.$id}
                     category={category}
-                    categoryItems={categoryItems}
-                    isCollapsed={isCollapsed}
+                    categoryItems={getItemsByCategory(category.$id)}
+                    isCollapsed={collapsedCategories[category.$id] ?? true}
+                    autoEditName={autoEditCategoryId === category.$id}
+                    onEditComplete={() => setAutoEditCategoryId(null)}
                     onToggleCollapse={() => toggleCategoryCollapse(category.$id)}
-                    onEditCategory={() => openEditCategory(category)}
                     onDeleteCategory={() =>
                       setDeleteConfirm({
                         type: 'category',
@@ -316,76 +473,21 @@ export function MenuContent({
                     onItemDragEnd={(e) => handleItemDragEnd(category.$id, e)}
                     sensors={sensors}
                   />
-                )
-              })}
-            </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={openNewCategory}
+                  className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
+                >
+                  <Plus className="h-4 w-4 shrink-0" weight="bold" />
+                  <span>{t('addCategory')}</span>
+                </Button>
+              </div>
+            )}
           </SortableContext>
         </DndContext>
       )}
-
-      {/* Category Create/Edit Dialog */}
-      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-        <DialogContent className="bg-primary text-primary-foreground border-border/20 sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-primary-foreground font-bold text-lg">
-              {editingCategory ? t('editCategory') : t('addCategory')}
-            </DialogTitle>
-          </DialogHeader>
-          <form
-            action={categoryAction}
-            noValidate
-            className="flex flex-col gap-4 py-4"
-            id="category-form"
-          >
-            <input type="hidden" name="organizationId" value={organizationId} />
-            {editingCategory && (
-              <input type="hidden" name="categoryId" value={editingCategory.$id} />
-            )}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="category-name" className="text-sm font-medium text-primary-foreground">
-                {t('categoryName')} <span className="text-destructive-foreground/80">*</span>
-              </label>
-              <Input
-                id="category-name"
-                name="name"
-                defaultValue={editingCategory?.name ?? ''}
-                placeholder="z.B. Vorspeisen, Hauptgerichte, Getränke"
-                required
-                maxLength={50}
-                className="h-11 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 focus-visible:ring-primary-foreground/30"
-              />
-            </div>
-            <input
-              type="hidden"
-              name="sortOrder"
-              value={editingCategory?.sortOrder ?? categories.length}
-            />
-            {categoryState.error && (
-              <p className="text-sm text-destructive-foreground font-medium">
-                {categoryState.error}
-              </p>
-            )}
-          </form>
-          <div className="flex w-full gap-3 mt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowCategoryDialog(false)}
-              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground"
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              type="submit"
-              form="category-form"
-              disabled={isCategoryPending}
-              className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold"
-            >
-              {t('save')}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Item Create/Edit Dual-Pane Workspace */}
       <ItemWorkspace
@@ -395,9 +497,6 @@ export function MenuContent({
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         organizationId={organizationId}
-        itemAction={itemAction}
-        isItemPending={isItemPending}
-        itemState={itemState}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -449,8 +548,9 @@ interface SortableCategoryCardProps {
   category: MenuCategory
   categoryItems: MenuItem[]
   isCollapsed: boolean
+  autoEditName?: boolean
+  onEditComplete?: () => void
   onToggleCollapse: () => void
-  onEditCategory: () => void
   onDeleteCategory: () => void
   onNewItem: () => void
   onEditItem: (item: MenuItem) => void
@@ -464,8 +564,9 @@ function SortableCategoryCard({
   category,
   categoryItems,
   isCollapsed,
+  autoEditName = false,
+  onEditComplete,
   onToggleCollapse,
-  onEditCategory,
   onDeleteCategory,
   onNewItem,
   onEditItem,
@@ -475,7 +576,7 @@ function SortableCategoryCard({
   sensors,
 }: SortableCategoryCardProps) {
   const { t } = useTranslation()
-  const [isEditingName, setIsEditingName] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(autoEditName)
   const [nameVal, setNameVal] = useState(category.name)
   const [isSavingName, setIsSavingName] = useState(false)
 
@@ -483,7 +584,14 @@ function SortableCategoryCard({
     setNameVal(category.name)
   }, [category.name])
 
+  useEffect(() => {
+    if (autoEditName) {
+      setIsEditingName(true)
+    }
+  }, [autoEditName])
+
   const handleSaveName = async () => {
+    onEditComplete?.()
     const trimmed = nameVal.trim()
     if (!trimmed || trimmed === category.name) {
       setNameVal(category.name)
@@ -497,15 +605,16 @@ function SortableCategoryCard({
     formData.append('name', trimmed)
     formData.append('sortOrder', category.sortOrder.toString())
 
-    const res = await updateCategoryAction({}, formData)
-    setIsSavingName(false)
-    if (res?.error) {
-      toast.error(res.error)
-      setNameVal(category.name)
-    } else {
-      toast.success(t('categoryUpdated' as any) || 'Kategorie aktualisiert')
+    try {
+      const res = await updateCategoryAction({}, formData)
+      if (res?.error) {
+        toast.error(res.error)
+        setNameVal(category.name)
+      }
+    } finally {
+      setIsSavingName(false)
+      setIsEditingName(false)
     }
-    setIsEditingName(false)
   }
 
   const {
@@ -518,17 +627,17 @@ function SortableCategoryCard({
   } = useSortable({ id: category.$id })
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 0,
-    opacity: isDragging ? 0.7 : 1,
+    opacity: isDragging ? 0.4 : 1,
   }
 
   return (
     <div ref={setNodeRef} style={style}>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-3.5 sm:p-4 pb-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <button
               type="button"
               {...attributes}
@@ -543,9 +652,11 @@ function SortableCategoryCard({
                 <Input
                   value={nameVal}
                   onChange={(e) => setNameVal(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSaveName()
                     if (e.key === 'Escape') {
+                      onEditComplete?.()
                       setNameVal(category.name)
                       setIsEditingName(false)
                     }
@@ -570,7 +681,7 @@ function SortableCategoryCard({
             ) : (
               <button
                 type="button"
-                className="text-lg font-semibold tracking-tight truncate hover:opacity-80 transition-opacity text-left bg-transparent border-0 p-0 cursor-pointer"
+                className="text-base sm:text-lg font-bold tracking-tight text-foreground text-left bg-transparent border-0 p-0 cursor-pointer min-w-0 flex-1 break-words"
                 onClick={onToggleCollapse}
               >
                 {category.name}
@@ -583,12 +694,12 @@ function SortableCategoryCard({
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center justify-end gap-1.5 shrink-0">
             <Button
               variant="ghost"
               size="icon"
               onClick={onToggleCollapse}
-              className="text-muted-foreground"
+              className="rounded-full text-muted-foreground hover:text-foreground"
               title={isCollapsed ? 'Aufklappen' : 'Einklappen'}
             >
               {isCollapsed ? (
@@ -608,7 +719,7 @@ function SortableCategoryCard({
                   setIsEditingName(true)
                 }
               }}
-              className="text-muted-foreground hover:text-foreground"
+              className="rounded-full text-muted-foreground hover:text-foreground"
               title="Kategoriename bearbeiten"
             >
               <PencilSimple className="h-4 w-4" />
@@ -617,7 +728,8 @@ function SortableCategoryCard({
               variant="outline"
               size="default"
               onClick={onDeleteCategory}
-              className="gap-2 font-medium text-sm border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
+              className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
+              title={t('delete')}
             >
               <Trash className="h-4 w-4 shrink-0" weight="bold" />
               <span>{t('delete')}</span>
@@ -705,10 +817,10 @@ function SortableItemRow({
   } = useSortable({ id: item.$id })
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 0,
-    opacity: isDragging ? 0.7 : item.available ? 1 : 0.6,
+    opacity: isDragging ? 0.4 : item.available ? 1 : 0.6,
   }
 
   // Parse customization step count
@@ -724,33 +836,36 @@ function SortableItemRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between rounded-xl border bg-background p-3 hover:border-primary/40 transition-colors gap-3"
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-xl border bg-background p-3 hover:border-primary/40 transition-colors gap-3"
     >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+      {/* Main Content Area */}
+      <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
         {/* Drag Handle */}
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-colors shrink-0 touch-none"
+          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-colors shrink-0 touch-none mt-0.5 sm:mt-0"
         >
           <DotsSixVertical className="h-4 w-4" weight="bold" />
         </button>
 
         {/* Thumbnail */}
         {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageUrl}
-            alt=""
-            className="w-12 h-12 rounded-lg object-cover border border-border shrink-0"
-          />
+          <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-border/40 shrink-0 bg-muted flex items-center justify-center shadow-xs">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
         ) : null}
 
         {/* Info */}
-        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-base truncate">{item.name}</span>
+            <span className="font-semibold text-base text-foreground break-words">{item.name}</span>
             {!item.available && (
               <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
                 {t('unavailable')}
@@ -764,7 +879,7 @@ function SortableItemRow({
             )}
           </div>
           {item.description && (
-            <p className="text-xs text-muted-foreground line-clamp-1">
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
               {item.description}
             </p>
           )}
@@ -774,31 +889,35 @@ function SortableItemRow({
         </div>
       </div>
 
-      {/* Action Controls */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Action Controls - Toolbar Row on Mobile */}
+      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t border-border/40 pt-2 sm:pt-0 sm:border-t-0 mt-1 sm:mt-0 w-full sm:w-auto">
         <Switch
           checked={item.available}
           onCheckedChange={(checked) => onToggleAvailability(checked)}
-          className="mr-1"
           title={item.available ? t('available') : t('unavailable')}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onEdit}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <PencilSimple className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="default"
-          onClick={onDelete}
-          className="gap-2 font-medium text-sm border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
-        >
-          <Trash className="h-4 w-4 shrink-0" weight="bold" />
-          <span>{t('delete')}</span>
-        </Button>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onEdit}
+            className="rounded-full text-muted-foreground hover:text-foreground"
+            title="Bearbeiten"
+          >
+            <PencilSimple className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="default"
+            onClick={onDelete}
+            className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
+            title={t('delete')}
+          >
+            <Trash className="h-4 w-4 shrink-0" weight="bold" />
+            <span>{t('delete')}</span>
+          </Button>
+        </div>
       </div>
     </div>
   )

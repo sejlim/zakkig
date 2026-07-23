@@ -25,6 +25,7 @@ import {
   CheckSquare,
   Check,
   SelectionAll,
+  DotsSixVertical,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -166,33 +167,45 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
   } = useSortable({ id: tNum });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 0,
     opacity: isDragging ? 0.8 : 1,
   };
 
   return (
-    <div 
+    <div
       ref={setNodeRef} 
       style={style}
-      {...attributes}
-      {...listeners}
-      className={cn(
-        "flex items-center justify-center border rounded-md px-3 py-2 h-10 cursor-grab active:cursor-grabbing transition-colors text-center font-medium touch-none", 
-        isSelected ? "border-primary bg-primary text-primary-foreground" : "hover:border-primary/50 bg-background text-foreground"
-      )}
-      onClick={onToggle}
       role="button"
       tabIndex={0}
+      onClick={onToggle}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onToggle();
         }
       }}
+      className={cn(
+        "flex items-center justify-between border rounded-xl px-3 py-2.5 h-11 transition-colors cursor-pointer select-none gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", 
+        isSelected 
+          ? "border-primary bg-primary text-primary-foreground font-semibold" 
+          : "hover:border-primary/50 bg-background text-foreground hover:bg-muted/30 font-medium"
+      )}
     >
-      {tNum}
+      <div
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          "cursor-grab active:cursor-grabbing p-1 -ml-1 rounded transition-colors shrink-0 touch-none",
+          isSelected ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+        )}
+        title="Reihenfolge ändern"
+      >
+        <DotsSixVertical className="h-4 w-4" weight="bold" />
+      </div>
+      <span className="truncate text-center flex-1 text-sm font-semibold">{tNum}</span>
     </div>
   );
 }
@@ -351,15 +364,21 @@ function QrCodeGeneratorCard({
   const [deleteTablesDialogOpen, setDeleteTablesDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const [optimisticToGo, setOptimisticToGo] = useOptimistic(
-    organization.isToGoEnabled ?? false,
-  );
-  const [optimisticToStay, setOptimisticToStay] = useOptimistic(
-    organization.isToStayEnabled ?? false,
-  );
-  const [optimisticTables, setOptimisticTables] = useOptimistic<string[]>(
-    organization.tables || []
-  );
+  const [tables, setTables] = useState<string[]>(organization.tables || []);
+  const [isToGoEnabled, setIsToGoEnabled] = useState(organization.isToGoEnabled ?? false);
+  const [isToStayEnabled, setIsToStayEnabled] = useState(organization.isToStayEnabled ?? false);
+
+  useEffect(() => {
+    setTables(organization.tables || []);
+  }, [organization.tables]);
+
+  useEffect(() => {
+    setIsToGoEnabled(organization.isToGoEnabled ?? false);
+  }, [organization.isToGoEnabled]);
+
+  useEffect(() => {
+    setIsToStayEnabled(organization.isToStayEnabled ?? false);
+  }, [organization.isToStayEnabled]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -372,37 +391,43 @@ function QrCodeGeneratorCard({
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = optimisticTables.indexOf(active.id as string);
-      const newIndex = optimisticTables.indexOf(over.id as string);
+      const oldIndex = tables.indexOf(active.id as string);
+      const newIndex = tables.indexOf(over.id as string);
 
-      const newTables = arrayMove(optimisticTables, oldIndex, newIndex);
+      const previousTables = [...tables];
+      const newTables = arrayMove(tables, oldIndex, newIndex);
       
-      startTransition(async () => {
-        setOptimisticTables(newTables);
-        const result = await updateTablesAction(organization.$id, newTables);
-        if (result.error) {
-          toast.error(result.error as string);
-        }
-      });
+      setTables(newTables);
+      const result = await updateTablesAction(organization.$id, newTables);
+      if (result.error) {
+        toast.error(result.error as string);
+        setTables(previousTables);
+      }
     }
   };
 
-  const handleToggleFeature = (type: "to-go" | "to-stay", checked: boolean) => {
-    startTransition(async () => {
-      if (type === "to-go") setOptimisticToGo(checked);
-      else setOptimisticToStay(checked);
-
+  const handleToggleFeature = async (type: "to-go" | "to-stay", checked: boolean) => {
+    if (type === "to-go") {
+      const prev = isToGoEnabled;
+      setIsToGoEnabled(checked);
       const result = await toggleFeatureAction(organization.$id, type, checked);
       if (result.error) {
         toast.error(result.error as string);
-      } else {
-        toast.success(checked ? t("featureEnabled") : t("featureDisabled"));
+        setIsToGoEnabled(prev);
       }
-    });
+    } else {
+      const prev = isToStayEnabled;
+      setIsToStayEnabled(checked);
+      const result = await toggleFeatureAction(organization.$id, type, checked);
+      if (result.error) {
+        toast.error(result.error as string);
+        setIsToStayEnabled(prev);
+      }
+    }
   };
 
   const handleAddTable = (val: string) => {
@@ -410,7 +435,7 @@ function QrCodeGeneratorCard({
       setIsAddingTable(false);
       return;
     }
-    const currentTables = optimisticTables;
+    const currentTables = tables;
     if (currentTables.includes(val)) {
       toast.error(t("tableExists"));
       setIsAddingTable(false);
@@ -419,14 +444,15 @@ function QrCodeGeneratorCard({
     setNewTableInput("");
     setIsAddingTable(false);
     const updatedTables = [...currentTables, val];
+    setTables(updatedTables);
     startTransition(async () => {
-      setOptimisticTables(updatedTables);
       const result = await updateTablesAction(organization.$id, updatedTables);
       if (result.error) {
         toast.error(result.error as string);
+        setTables(currentTables);
         setNewTableInput(val);
       } else {
-        setSelectedTables(prev => [...prev, val]);
+        setSelectedTables((prev) => [...prev, val]);
       }
     });
   };
@@ -438,15 +464,16 @@ function QrCodeGeneratorCard({
 
   const confirmRemoveTables = () => {
     setDeleteTablesDialogOpen(false);
-    const currentTables = optimisticTables;
+    const currentTables = tables;
     const selectedTablesSet = new Set(selectedTables);
     const updatedTables = currentTables.filter((t) => !selectedTablesSet.has(t));
+    setTables(updatedTables);
     startTransition(async () => {
-      setOptimisticTables(updatedTables);
       const result = await updateTablesAction(organization.$id, updatedTables);
-      if (result.error) toast.error(result.error as string);
-      else {
-        toast.success(t("tablesDeleted"));
+      if (result.error) {
+        toast.error(result.error as string);
+        setTables(currentTables);
+      } else {
         setSelectedTables([]);
       }
     });
@@ -463,13 +490,13 @@ function QrCodeGeneratorCard({
       ? `${baseUrl}/to-go/${organization.$id}`
       : `${baseUrl}/to-stay/${organization.$id}?table=${selectedTables[0] || "1"}`;
 
-  const isActive = qrType === "to-go" ? optimisticToGo : optimisticToStay;
+  const isActive = qrType === "to-go" ? isToGoEnabled : isToStayEnabled;
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full print:hidden">
         {/* Left Card: QR Code Preview */}
-        <Card className="relative flex flex-col items-center justify-end p-6 shadow-sm w-full h-full min-h-[600px] transition-all duration-200 bg-white">
+        <Card className="relative flex flex-col items-center justify-end p-6 shadow-sm w-full h-full min-h-[600px] transition-colors duration-200 bg-white">
           
           <div className="absolute top-4 left-6 right-4 flex items-center justify-between gap-2">
             <h3 className="text-lg font-semibold text-foreground">{t("qrPreview")}</h3>
@@ -567,14 +594,14 @@ function QrCodeGeneratorCard({
                 <div className="flex flex-row items-center gap-2 w-full">
                   <Button
                     type="button"
-                    variant={selectedTables.length === optimisticTables.length && selectedTables.length > 0 ? "default" : "outline"}
-                    disabled={optimisticTables.length === 0}
+                    variant={selectedTables.length === tables.length && selectedTables.length > 0 ? "default" : "outline"}
+                    disabled={tables.length === 0}
                     onClick={() => {
-                      if (optimisticTables.length === 0) return;
-                      if (selectedTables.length === optimisticTables.length) {
+                      if (tables.length === 0) return;
+                      if (selectedTables.length === tables.length) {
                         setSelectedTables([]);
                       } else {
-                        setSelectedTables(optimisticTables);
+                        setSelectedTables(tables);
                       }
                     }}
                     className={cn(
@@ -609,20 +636,20 @@ function QrCodeGeneratorCard({
                     onDragEnd={handleDragEnd}
                   >
                     <SortableContext
-                      items={optimisticTables}
+                      items={tables}
                       strategy={rectSortingStrategy}
                     >
-                      {optimisticTables.length === 0 && !isAddingTable && (
+                      {tables.length === 0 && !isAddingTable && (
                         <div className="p-4 text-center border border-dashed rounded-xl mb-3">
                           <p className="text-sm text-muted-foreground font-medium">
                             {t("noTablesAdded") || "Noch keine Tische hinzugefügt."}
                           </p>
                         </div>
                       )}
-                      <div className="grid grid-cols-4 gap-2 pb-3">
+                      <div className="grid grid-cols-2 gap-3 pb-3">
                         {(() => {
                           const selectedTablesSet = new Set(selectedTables);
-                          return optimisticTables.map((tNum) => (
+                          return tables.map((tNum) => (
                             <SortableTableItem
                               key={tNum}
                               tNum={tNum}

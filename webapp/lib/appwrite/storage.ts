@@ -12,11 +12,16 @@ export async function uploadMenuImage(
 ): Promise<string> {
   const { storage } = createAdminClient();
   const { ID, Permission, Role } = await import("node-appwrite");
+  const { InputFile } = await import("node-appwrite/file");
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const inputFile = InputFile.fromBuffer(buffer, file.name || "image.png");
 
   const result = await storage.createFile(
     BUCKETS.MENU_IMAGES,
     ID.unique(),
-    file as any, // File is a standard browser File object, works with node-appwrite using InputFile
+    inputFile,
     [
       Permission.read(Role.any()),
       Permission.update(Role.user(userId)),
