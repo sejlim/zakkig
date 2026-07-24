@@ -93,12 +93,27 @@ const translations = {
     quickOrdersDesc: "Bestellungen in Echtzeit einsehen und verwalten",
     quickArchiveDesc: "Alle Bestellungen, inklusive vergangener einsehen und exportieren",
     quickSettingsDesc: "Allgemeines einstellen und deinen Betrieb verwalten",
-    kitchenSessions: "Bestellübersicht Sitzungen",
-    kitchenSessionsDesc:
-      "Erstelle eine Sitzung und öffne den Link auf einem Tablet, zugänglich zur Bedienung und ggf. Küche. Eingehende Live-Bestellungen erscheinen dort mit allen Details in Echtzeit und können verwaltet werden.",
-    createSession: "Neue Session erstellen",
+    orderSessions: "Bestellübersicht Sitzungen",
+    liveOrderSessions: "Live-Bestellungen-Sitzung",
+    orderSessionsDesc:
+      "Öffne den Link auf einem Tablet, zugänglich zur Bedienung und ggf. Küche. Eingehende Live-Bestellungen erscheinen dort mit allen Details in Echtzeit und können verwaltet werden.",
+    availabilitySessions: "Verfügbarkeit-Sitzung",
+    availabilitySessionsDesc:
+      "Öffne den Link auf einem Tablet oder Smartphone. Damit können Mitarbeiter die Verfügbarkeit von Artikeln (z.B. wenn etwas ausverkauft ist) schnell anpassen.",
+    staffQrWarning:
+      "Dieser QR-Code ist ausschließlich für das Personal bestimmt und darf nicht an Kunden verteilt werden.",
+    createSession: "Neu generieren",
     copyLink: "Link kopieren",
-    linkCopied: "Link kopiert!",
+    linkCopied: "Link in Zwischenablage kopiert!",
+    regenerateAvailabilityTitle: "Verfügbarkeit-Sitzung neu generieren?",
+    regenerateAvailabilityDesc:
+      "Der aktuelle Link wird sofort ungültig. Alle Geräte, die den alten Link verwenden, verlieren den Zugriff und müssen den neuen Link erneut scannen oder öffnen.",
+    regenerateOrderTitle: "Live-Bestellungen-Sitzung neu generieren?",
+    regenerateOrderDesc:
+      "Der aktuelle Link wird sofort ungültig. Alle Geräte, die den alten Link verwenden, verlieren den Zugriff und müssen den neuen Link erneut scannen oder öffnen.",
+    regenerateConfirm: "Ja, neu generieren",
+    regeneratedAvailability: "Neuer Verfügbarkeit-Sitzungslink generiert",
+    regeneratedOrder: "Neuer Live-Bestellungen-Sitzungslink generiert",
     qrCodeGenerator: "QR-Code Verwaltung",
     qrPreview: "QR-Vorschau",
     qrManagement: "QR-Verwaltung",
@@ -407,12 +422,27 @@ const translations = {
     quickOrdersDesc: "View and manage orders in real-time",
     quickArchiveDesc: "View and export all orders, including past ones",
     quickSettingsDesc: "Adjust general settings and manage your business",
-    kitchenSessions: "Order Overview Sessions",
-    kitchenSessionsDesc:
-      "Create a session and open the link on a tablet, accessible to service staff and kitchen if needed. Incoming live orders will appear there in real-time with all details and can be managed.",
-    createSession: "Create new session",
+    orderSessions: "Order Overview Sessions",
+    liveOrderSessions: "Live Orders Session",
+    orderSessionsDesc:
+      "Open the link on a tablet, accessible to service staff and kitchen if needed. Incoming live orders will appear there in real-time with all details and can be managed.",
+    availabilitySessions: "Availability Session",
+    availabilitySessionsDesc:
+      "Open the link on a tablet or smartphone. This allows staff to quickly toggle item availability (e.g. when sold out).",
+    staffQrWarning:
+      "This QR code is strictly for staff use and must not be distributed to customers.",
+    createSession: "Regenerate",
     copyLink: "Copy link",
-    linkCopied: "Link copied!",
+    linkCopied: "Link copied to clipboard!",
+    regenerateAvailabilityTitle: "Regenerate Availability Session link?",
+    regenerateAvailabilityDesc:
+      "The current link will be invalidated immediately. All devices using the old link will lose access and will need to scan or open the new link again.",
+    regenerateOrderTitle: "Regenerate Live Orders Session link?",
+    regenerateOrderDesc:
+      "The current link will be invalidated immediately. All devices using the old link will lose access and will need to scan or open the new link again.",
+    regenerateConfirm: "Yes, regenerate",
+    regeneratedAvailability: "New Availability Session link generated",
+    regeneratedOrder: "New Live Orders Session link generated",
     qrCodeGenerator: "QR Code Management",
     qrPreview: "QR Preview",
     qrManagement: "QR Management",

@@ -24,16 +24,14 @@ import { subscribeToOrders } from "@/lib/appwrite/realtime";
 import { RefreshButton } from "./refresh-button";
 import {
   updateOrderStatusAction,
-  createKitchenSessionAction,
-  deleteKitchenSessionAction,
+  createOrderSessionAction,
+  deleteOrderSessionAction,
 } from "@/actions/order-actions";
-import type { Order, OrderItem, KitchenSession, Organization } from "@/lib/types";
+import type { Order, OrderItem, OrderSession, Organization } from "@/lib/types";
 
 interface LiveOrdersContentProps {
   orders: Order[];
   organizationId: string;
-  kitchenSessions?: KitchenSession[];
-  organization?: Organization;
 }
 
 function parseItems(itemsJson: string): OrderItem[] {
@@ -57,8 +55,6 @@ const statusVariants: Record<
 export function LiveOrdersContent({
   orders,
   organizationId,
-  kitchenSessions,
-  organization,
 }: LiveOrdersContentProps) {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
@@ -147,14 +143,6 @@ export function LiveOrdersContent({
           <RefreshButton />
         </div>
       </div>
-
-      {kitchenSessions && organization && (
-        <KitchenSessionsCard
-          kitchenSessions={kitchenSessions}
-          organization={organization}
-          baseUrl={baseUrl}
-        />
-      )}
 
       <div>
         {activeOrders.length === 0 ? (
@@ -259,112 +247,3 @@ export function LiveOrdersContent({
   );
 }
 
-function KitchenSessionsCard({
-  kitchenSessions,
-  organization,
-  baseUrl,
-}: {
-  kitchenSessions: KitchenSession[];
-  organization: Organization;
-  baseUrl: string;
-}) {
-  const { t } = useTranslation();
-  const [isPending, startTransition] = useTransition();
-
-  const [optimisticSessions, modifyOptimisticSessions] = useOptimistic(
-    kitchenSessions,
-    (
-      state,
-      action:
-        | { type: "add"; session: KitchenSession }
-        | { type: "delete"; id: string },
-    ) => {
-      if (action.type === "delete")
-        return state.filter((s) => s.$id !== action.id);
-      return [action.session, ...state];
-    },
-  );
-
-  function handleCreateSession() {
-    startTransition(async () => {
-      const result = await createKitchenSessionAction(organization.$id);
-      if (result.success && result.session) {
-        toast.success(t("linkCopied"));
-      }
-    });
-  }
-
-  function handleDeleteSession(sessionId: string) {
-    startTransition(async () => {
-      modifyOptimisticSessions({ type: "delete", id: sessionId });
-      await deleteKitchenSessionAction(sessionId, organization.$id);
-    });
-  }
-
-  function copyKitchenLink(token: string) {
-    const link = `${baseUrl}/orders/${organization.$id}?token=${token}`;
-    navigator.clipboard.writeText(link);
-    toast.success(t("linkCopied"));
-  }
-
-  return (
-    <Card className="print:hidden">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-0 pb-4">
-        <div className="flex flex-col gap-1.5">
-          <h3 className="text-lg font-semibold">{t("kitchenSessions")}</h3>
-          <p className="text-sm text-muted-foreground max-w-lg text-balance leading-relaxed">
-            {t("kitchenSessionsDesc")}
-          </p>
-        </div>
-        <Button
-          onClick={handleCreateSession}
-          size="sm"
-          className="shrink-0 mt-1 sm:mt-0 w-full sm:w-auto"
-          disabled={isPending}
-        >
-          <Plus data-icon="inline-start" className="mr-2" />
-          {t("createSession")}
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {optimisticSessions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("noActiveOrders")}</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {optimisticSessions.map((session) => (
-              <div
-                key={session.$id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="flex items-center gap-2">
-                  <LinkSimple className="text-muted-foreground" />
-                  <code className="text-xs text-muted-foreground">
-                    {session.token.slice(0, 8)}...
-                  </code>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyKitchenLink(session.token)}
-                  >
-                    <Copy data-icon="inline-start" className="mr-2" />
-                    {t("copyLink")}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => handleDeleteSession(session.$id)}
-                    disabled={isPending}
-                  >
-                    <Trash />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}

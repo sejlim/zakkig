@@ -141,9 +141,17 @@ export interface CreateOrderData {
   currency?: string;
 }
 
-// ─── Kitchen Sessions ───────────────────────────────────────────
+// ─── Order Sessions ───────────────────────────────────────────
 
-export interface KitchenSession extends AppwriteDocument {
+export interface OrderSession extends AppwriteDocument {
+  organizationId: string;
+  token: string;
+  expiresAt: string | null;
+}
+
+// ─── Availability Sessions ────────────────────────────────────
+
+export interface AvailabilitySession extends AppwriteDocument {
   organizationId: string;
   token: string;
   expiresAt: string | null;

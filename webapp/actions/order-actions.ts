@@ -5,8 +5,9 @@ import {
   createOrder,
   updateOrderStatus,
   getOrders,
-  createKitchenSession,
-  deleteKitchenSession,
+  createOrderSession,
+  deleteOrderSession,
+  getOrderSessions,
 } from "@/lib/appwrite/database";
 import { createPaymentPlaceholder } from "@/lib/stripe/placeholder";
 import { getUser } from "@/lib/appwrite/server";
@@ -154,12 +155,12 @@ export async function exportOrdersCSVAction(organizationId: string) {
 
 // ─── Kitchen Sessions ───────────────────────────────────────────
 
-export async function createKitchenSessionAction(organizationId: string) {
+export async function createOrderSessionAction(organizationId: string) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
 
   try {
-    const session = await createKitchenSession(organizationId, user.$id);
+    const session = await createOrderSession(organizationId, user.$id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
     return { success: true, session };
   } catch (error: unknown) {
@@ -171,14 +172,15 @@ export async function createKitchenSessionAction(organizationId: string) {
   }
 }
 
-export async function deleteKitchenSessionAction(
+export async function deleteOrderSessionAction(
   sessionId: string,
   organizationId: string,
 ) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
+
   try {
-    await deleteKitchenSession(sessionId);
+    await deleteOrderSession(sessionId);
     revalidatePath(`/dashboard/${organizationId}/overview`);
     return { success: true };
   } catch (error: unknown) {
@@ -187,5 +189,23 @@ export async function deleteKitchenSessionAction(
         ? error.message
         : "Session konnte nicht gelöscht werden.";
     return { error: message };
+  }
+}
+
+export async function generateOrderSessionAction(organizationId: string) {
+  const user = await getUser();
+  if (!user) return { error: "Nicht authentifiziert." };
+
+  try {
+    const existing = await getOrderSessions(organizationId);
+    await Promise.all(existing.map((s) => deleteOrderSession(s.$id)));
+    const session = await createOrderSession(organizationId, user.$id);
+    revalidatePath(`/dashboard/${organizationId}/overview`);
+    return { success: true, session };
+  } catch (error: unknown) {
+    console.error("Fehler beim Neu-Generieren der Order Session:", error);
+    return {
+      error: "Sitzungen konnten nicht neu generiert werden.",
+    };
   }
 }

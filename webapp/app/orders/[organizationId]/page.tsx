@@ -1,7 +1,9 @@
-import { getOrders, getOrganization } from "@/lib/appwrite/database";
+import { getOrders, getOrganization, getOrderSessions } from "@/lib/appwrite/database";
 import { LiveOrdersContent } from "@/components/dashboard/live-orders-content";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Kitchen Board" };
+export const metadata = { title: "Live-Bestellungen" };
 
 export default async function KitchenBoardPage({
   params,
@@ -14,16 +16,32 @@ export default async function KitchenBoardPage({
     params,
     searchParams,
   ]);
+  const cookieStore = await cookies();
+  const cookieName = `order_session_${organizationId}`;
+  const cookieToken = cookieStore.get(cookieName)?.value;
 
-  // In a real app we'd validate the token against kitchen_sessions
-  // For now, we'll just load the data.
-  const [organization, initialOrders] = await Promise.all([
+  const [organization, sessions, initialOrders] = await Promise.all([
     getOrganization(organizationId),
+    getOrderSessions(organizationId),
     getOrders(organizationId),
   ]);
 
-  if (!organization)
-    return <div className="p-8 text-center">Organization not found</div>;
+  if (!organization) {
+    return <div className="p-8 text-center">Organisation nicht gefunden.</div>;
+  }
+
+  // Verification
+  const tokenToVerify = cookieToken;
+
+  if (!tokenToVerify) {
+    return <div className="p-8 text-center text-destructive font-bold">Kein Token angegeben. Zugriff verweigert.</div>;
+  }
+
+  const isValidSession = sessions.some((s) => s.token === tokenToVerify);
+  
+  if (!isValidSession) {
+    return <div className="p-8 text-center text-destructive font-bold">Ungültiger oder abgelaufener Token.</div>;
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
@@ -31,7 +49,7 @@ export default async function KitchenBoardPage({
         <h1 className="text-xl font-bold tracking-tight">
           zakkig{" "}
           <span className="font-normal opacity-80 ml-2">
-            Kitchen Board
+            Live-Bestellungen
           </span>
         </h1>
         <div className="font-medium">{organization.name}</div>

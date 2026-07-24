@@ -1,4 +1,4 @@
-import { getOrders, getKitchenSessions, getOrganization } from "@/lib/appwrite/database";
+import { getOrders, getOrganization } from "@/lib/appwrite/database";
 import { LiveOrdersContent } from "@/components/dashboard/live-orders-content";
 
 export const metadata = { title: "Live-Bestellungen" };
@@ -9,9 +9,8 @@ export default async function LiveOrdersPage({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  const [orders, sessions, organization] = await Promise.all([
+  const [orders, organization] = await Promise.all([
     getOrders(organizationId),
-    getKitchenSessions(organizationId),
     getOrganization(organizationId),
   ]);
 
@@ -21,8 +20,6 @@ export default async function LiveOrdersPage({
     <LiveOrdersContent 
       orders={orders} 
       organizationId={organizationId}
-      kitchenSessions={sessions}
-      organization={organization}
     />
   );
 }

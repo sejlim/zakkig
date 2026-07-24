@@ -17,7 +17,8 @@ export const COLLECTIONS = {
   MENU_CATEGORIES: "menu_categories",
   MENU_ITEMS: "menu_items",
   ORDERS: "orders",
-  KITCHEN_SESSIONS: "kitchen_sessions",
+  ORDERS_SESSIONS: "orders_sessions",
+  AVAILABILITY_SESSIONS: "availability_sessions",
 } as const;
 
 // Storage Buckets

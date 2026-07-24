@@ -8,7 +8,8 @@ import type {
   MenuCategory,
   MenuItem,
   Order,
-  KitchenSession,
+  OrderSession,
+  AvailabilitySession,
   CreateOrganizationData,
   CreateMenuCategoryData,
   CreateMenuItemData,
@@ -365,16 +366,16 @@ export async function updateOrderStatus(orderId: string, status: string) {
   });
 }
 
-// ─── Kitchen Sessions ───────────────────────────────────────────
+// ─── Order Sessions ───────────────────────────────────────────
 
-export async function getKitchenSessions(
+export async function getOrderSessions(
   organizationId: string,
-): Promise<KitchenSession[]> {
+): Promise<OrderSession[]> {
   const { tablesDB } = createAdminClient();
 
   const result = await tablesDB.listDocuments(
     DATABASE_ID,
-    COLLECTIONS.KITCHEN_SESSIONS,
+    COLLECTIONS.ORDERS_SESSIONS,
     [
       Query.equal("organizationId", organizationId),
       Query.orderDesc("$createdAt"),
@@ -382,20 +383,20 @@ export async function getKitchenSessions(
     ],
   );
 
-  return result.documents as unknown as KitchenSession[];
+  return result.documents as unknown as OrderSession[];
 }
 
-export async function createKitchenSession(
+export async function createOrderSession(
   organizationId: string,
   ownerId: string,
-): Promise<KitchenSession> {
+): Promise<OrderSession> {
   const { tablesDB } = createAdminClient();
 
   const token = crypto.randomUUID();
 
   const doc = await tablesDB.createDocument(
     DATABASE_ID,
-    COLLECTIONS.KITCHEN_SESSIONS,
+    COLLECTIONS.ORDERS_SESSIONS,
     ID.unique(),
     {
       organizationId,
@@ -409,15 +410,72 @@ export async function createKitchenSession(
     ],
   );
 
-  return doc as unknown as KitchenSession;
+  return doc as unknown as OrderSession;
 }
 
-export async function deleteKitchenSession(id: string) {
+export async function deleteOrderSession(id: string) {
   const { tablesDB } = createAdminClient();
 
   return tablesDB.deleteDocument(
     DATABASE_ID,
-    COLLECTIONS.KITCHEN_SESSIONS,
+    COLLECTIONS.ORDERS_SESSIONS,
+    id,
+  );
+}
+
+// ─── Availability Sessions ────────────────────────────────────
+
+export async function getAvailabilitySessions(
+  organizationId: string,
+): Promise<AvailabilitySession[]> {
+  const { tablesDB } = createAdminClient();
+
+  const result = await tablesDB.listDocuments(
+    DATABASE_ID,
+    COLLECTIONS.AVAILABILITY_SESSIONS,
+    [
+      Query.equal("organizationId", organizationId),
+      Query.orderDesc("$createdAt"),
+      Query.limit(10),
+    ],
+  );
+
+  return result.documents as unknown as AvailabilitySession[];
+}
+
+export async function createAvailabilitySession(
+  organizationId: string,
+  ownerId: string,
+): Promise<AvailabilitySession> {
+  const { tablesDB } = createAdminClient();
+
+  const token = crypto.randomUUID();
+
+  const doc = await tablesDB.createDocument(
+    DATABASE_ID,
+    COLLECTIONS.AVAILABILITY_SESSIONS,
+    ID.unique(),
+    {
+      organizationId,
+      token,
+      expiresAt: null,
+    },
+    [
+      Permission.read(Role.user(ownerId)),
+      Permission.update(Role.user(ownerId)),
+      Permission.delete(Role.user(ownerId)),
+    ],
+  );
+
+  return doc as unknown as AvailabilitySession;
+}
+
+export async function deleteAvailabilitySession(id: string) {
+  const { tablesDB } = createAdminClient();
+
+  return tablesDB.deleteDocument(
+    DATABASE_ID,
+    COLLECTIONS.AVAILABILITY_SESSIONS,
     id,
   );
 }
