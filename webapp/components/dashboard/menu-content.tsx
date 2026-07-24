@@ -55,6 +55,7 @@ import {
 import { RefreshButton } from './refresh-button'
 import { ItemWorkspace } from './menu/item-workspace'
 
+import Image from 'next/image'
 import { useTranslation, formatPrice } from '@/lib/i18n'
 import { getImagePreviewUrl } from '@/lib/appwrite/client'
 import {
@@ -172,6 +173,17 @@ export function MenuContent({
     })
     return map
   }, [categories, items])
+
+  // Partition categories for masonry-like two column layout
+  const { leftCategories, rightCategories } = useMemo(() => {
+    const left: MenuCategory[] = []
+    const right: MenuCategory[] = []
+    categories.forEach((cat, i) => {
+      if (i % 2 === 0) left.push(cat)
+      else right.push(cat)
+    })
+    return { leftCategories: left, rightCategories: right }
+  }, [categories])
 
   // Active item or category for drag preview overlay
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
@@ -525,9 +537,7 @@ export function MenuContent({
               <div className="flex gap-6 items-start w-full">
                 {/* Left Column (Even Index: 0, 2, 4...) */}
                 <div className="flex flex-col gap-6 flex-1 min-w-0">
-                  {categories
-                    .filter((_, i) => i % 2 === 0)
-                    .map((category) => (
+                  {leftCategories.map((category) => (
                       <SortableCategoryCard
                         key={category.$id}
                         category={category}
@@ -558,9 +568,7 @@ export function MenuContent({
 
                 {/* Right Column (Odd Index: 1, 3, 5...) */}
                 <div className="flex flex-col gap-6 flex-1 min-w-0">
-                  {categories
-                    .filter((_, i) => i % 2 === 1)
-                    .map((category) => (
+                  {rightCategories.map((category) => (
                       <SortableCategoryCard
                         key={category.$id}
                         category={category}
@@ -1012,12 +1020,13 @@ const ItemRowView = memo(function ItemRowView({
 
         {/* Thumbnail */}
         {imageUrl ? (
-          <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-border/40 shrink-0 bg-muted flex items-center justify-center shadow-xs">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="relative w-12 h-12 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-border/40 shrink-0 bg-muted flex items-center justify-center shadow-xs">
+            <Image
               src={imageUrl}
               alt={item.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
           </div>
         ) : null}

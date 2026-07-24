@@ -150,10 +150,10 @@ export function ItemWorkspace({
     // Auth-style client validation
     const newErrors: { name?: string; price?: string } = {}
     if (!name.trim()) {
-      newErrors.name = 'Bitte gib einen Artikelnamen ein.'
+      newErrors.name = t('validationItemName')
     }
     if (!price || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
-      newErrors.price = 'Bitte gib einen gültigen Preis ein.'
+      newErrors.price = t('validationItemPrice')
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -232,13 +232,13 @@ export function ItemWorkspace({
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
                     <Tag className="w-5 h-5 text-primary-foreground/70" />
-                    Details
+                    {t('basicInfo')}
                   </h3>
                   
                   {/* Verfügbar Switcher moved to header */}
                   <div className="flex items-center gap-2">
                     <Label htmlFor="ws-item-available" className="text-sm font-semibold text-primary-foreground cursor-pointer">
-                      Verfügbarkeit
+                      {t('availabilitySection')}
                     </Label>
                     <Switch
                       id="ws-item-available"
@@ -253,7 +253,7 @@ export function ItemWorkspace({
                   {/* Left Column (Bild) */}
                   <div className="flex flex-col gap-2 h-full">
                     <Label className="text-sm font-semibold text-primary-foreground">
-                      Bild
+                      {t('imageSection')}
                     </Label>
                     <ImageUpload
                       className="flex-1"
@@ -274,7 +274,7 @@ export function ItemWorkspace({
 
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="ws-item-name" className={`text-sm font-semibold ${errors.name ? 'text-destructive' : 'text-primary-foreground'}`}>
-                        Name <span className="text-destructive">*</span>
+                        {t('itemName')} <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="ws-item-name"
@@ -284,7 +284,7 @@ export function ItemWorkspace({
                           if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
                         }}
                         onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="z.B. Cheeseburger Deluxe, Pizza Margherita, Döner Special"
+                        placeholder={t('itemNamePlaceholder')}
                         maxLength={60}
                         className={`bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.name ? 'border-destructive' : ''}`}
                       />
@@ -301,7 +301,7 @@ export function ItemWorkspace({
                         id="ws-item-desc"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Zutaten, Zubereitung oder Allergen-Hinweise..."
+                        placeholder={t('itemDescPlaceholder')}
                         rows={4}
                         maxLength={500}
                         className="resize-none bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 min-h-[100px]"

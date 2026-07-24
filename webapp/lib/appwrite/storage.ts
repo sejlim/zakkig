@@ -11,8 +11,10 @@ export async function uploadMenuImage(
   userId: string,
 ): Promise<string> {
   const { storage } = createAdminClient();
-  const { ID, Permission, Role } = await import("node-appwrite");
-  const { InputFile } = await import("node-appwrite/file");
+  const [{ ID, Permission, Role }, { InputFile }] = await Promise.all([
+    import("node-appwrite"),
+    import("node-appwrite/file"),
+  ]);
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);

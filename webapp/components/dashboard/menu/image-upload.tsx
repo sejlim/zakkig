@@ -24,7 +24,20 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [showExisting, setShowExisting] = useState(!!existingImageId)
+  const [isRemoved, setIsRemoved] = useState(false)
+  const [prevImageId, setPrevImageId] = useState(existingImageId)
+
+  // Reset isRemoved if the incoming existingImageId prop changes (e.g. editing a different item)
+  if (existingImageId !== prevImageId) {
+    setPrevImageId(existingImageId)
+    setIsRemoved(false)
+    if (preview) {
+      URL.revokeObjectURL(preview)
+      setPreview(null)
+    }
+  }
+
+  const showExisting = !!existingImageId && !isRemoved
 
   useEffect(() => {
     return () => {
@@ -41,8 +54,9 @@ export function ImageUpload({
           return
         }
         if (!file.type.startsWith('image/')) return
-        setPreview(URL.createObjectURL(file))
-        setShowExisting(false)
+        const url = URL.createObjectURL(file)
+        setPreview(url)
+        setIsRemoved(false)
         onFileSelect(file)
       } else {
         setPreview(null)
@@ -63,9 +77,11 @@ export function ImageUpload({
   )
 
   const handleRemove = () => {
-    if (preview) URL.revokeObjectURL(preview)
+    if (preview) {
+      URL.revokeObjectURL(preview)
+    }
     setPreview(null)
-    setShowExisting(false)
+    setIsRemoved(true)
     onFileSelect(null)
     onRemoveExisting?.()
     if (inputRef.current) inputRef.current.value = ''
