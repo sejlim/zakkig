@@ -307,7 +307,7 @@ function SortableStepCard({
           >
             <DotsSixVertical className="w-4 h-4 text-primary-foreground/50 shrink-0" weight="bold" />
           </div>
-          <div className="flex items-center gap-2 flex-1 min-w-0" onMouseDown={(e) => isEditingName && e.stopPropagation()}>
+          <div role="presentation" className="flex items-center gap-2 flex-1 min-w-0" onMouseDown={(e) => isEditingName && e.stopPropagation()}>
             {isEditingName ? (
               <div className="flex items-center gap-1.5 flex-1 w-full sm:max-w-xs" onMouseDown={(e) => e.stopPropagation()}>
                 <Input

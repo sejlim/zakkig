@@ -11,6 +11,7 @@ import {
   useSensor,
   useSensors,
   useDroppable,
+  useDndContext,
   DragOverlay,
   type DragEndEvent,
   type DragStartEvent,
@@ -472,18 +473,18 @@ export function MenuContent({
   }
 
   const handleToggleAvailability = useCallback((itemId: string, available: boolean) => {
-    setItems((prevItems) => {
-      const updated = prevItems.map((i) =>
-        i.$id === itemId ? { ...i, available } : i,
-      )
-      startTransition(async () => {
-        const res = await toggleMenuItemAvailability(itemId, available, organizationId)
-        if (res?.error) {
-          toast.error(res.error)
-          setItems(prevItems)
-        }
-      })
-      return updated
+    setItems((prevItems) =>
+      prevItems.map((i) => (i.$id === itemId ? { ...i, available } : i))
+    )
+    startTransition(async () => {
+      const res = await toggleMenuItemAvailability(itemId, available, organizationId)
+      if (res?.error) {
+        toast.error(res.error)
+        // Rollback optimistic update
+        setItems((prevItems) =>
+          prevItems.map((i) => (i.$id === itemId ? { ...i, available: !available } : i))
+        )
+      }
     })
   }, [organizationId])
 
@@ -646,9 +647,52 @@ export function MenuContent({
                 />
               </div>
             ) : activeCategory ? (
-              <div className="opacity-90 shadow-2xl scale-[1.01] border-2 border-primary rounded-xl overflow-hidden bg-background p-4 font-bold text-foreground">
-                {activeCategory.name}
-              </div>
+              <Card className="opacity-95 shadow-2xl scale-[1.02] border-2 border-primary rounded-xl overflow-hidden bg-background">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-3.5 sm:p-4 pb-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <button
+                      type="button"
+                      className="cursor-grabbing p-1 rounded text-muted-foreground transition-colors touch-none shrink-0"
+                    >
+                      <DotsSixVertical className="h-5 w-5" weight="bold" />
+                    </button>
+                    <div className="text-base sm:text-lg font-bold tracking-tight text-foreground text-left bg-transparent border-0 p-0 min-w-0 flex-1 break-words">
+                      {activeCategory.name}
+                    </div>
+                    <Badge variant="secondary" className="font-semibold text-xs shrink-0">
+                      {itemsByCategory[activeCategory.$id]?.length || 0}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 w-full sm:w-auto pt-1 sm:pt-0 pointer-events-none">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full text-muted-foreground shrink-0"
+                    >
+                      <CaretDown className="h-4 w-4" weight="bold" />
+                    </Button>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full text-muted-foreground shrink-0"
+                      >
+                        <PencilSimple className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="gap-2 font-medium border-border text-foreground shrink-0 opacity-50"
+                      >
+                        <Trash className="h-4 w-4 shrink-0" weight="bold" />
+                        <span>{t('delete')}</span>
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
             ) : null}
           </DragOverlay>
         </DndContext>
@@ -745,6 +789,9 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
     id: category.$id,
     data: { type: 'category', category },
   })
+  
+  const { active } = useDndContext()
+  const isDraggingItem = active?.data.current?.type === 'item'
 
   useEffect(() => {
     setNameVal(category.name)
@@ -805,7 +852,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
         ref={setDroppableRef}
         className={cn(
           'transition-colors',
-          isOver && (isCollapsed || categoryItems.length === 0) && 'ring-2 ring-primary bg-primary/5',
+          isOver && isDraggingItem && (isCollapsed || categoryItems.length === 0) && 'ring-2 ring-primary bg-primary/5',
         )}
       >
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-3.5 sm:p-4 pb-3">
@@ -1025,6 +1072,7 @@ const ItemRowView = memo(function ItemRowView({
               src={imageUrl}
               alt={item.name}
               fill
+              sizes="48px"
               className="object-cover"
               unoptimized
             />
