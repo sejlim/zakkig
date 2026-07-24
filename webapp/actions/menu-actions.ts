@@ -148,16 +148,18 @@ export async function reorderCategoriesAction(
 
 export async function reorderItemsAction(
   organizationId: string,
-  orderedIds: string[],
+  itemsPayload: (string | { id: string; sortOrder: number; categoryId?: string })[],
 ) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
 
   try {
-    const updates = orderedIds.map((id, index) => ({
-      id,
-      sortOrder: index,
-    }));
+    const updates = itemsPayload.map((item, index) => {
+      if (typeof item === "string") {
+        return { id: item, sortOrder: index };
+      }
+      return item;
+    });
     await updateItemSortOrders(updates);
     revalidatePath(`/dashboard/${organizationId}/menu`);
     return { success: true };
@@ -184,8 +186,18 @@ export async function createMenuItemAction(
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const price = Math.round(parseFloat(formData.get("price") as string) * 100);
-  const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
   const taxRate = parseFloat(formData.get("taxRate") as string) || 19.0;
+  const rawSortOrder = formData.get("sortOrder") as string;
+  let sortOrder = parseInt(rawSortOrder);
+  if (isNaN(sortOrder)) {
+    const existingItems = await getMenuItems(organizationId);
+    const categoryItems = existingItems.filter((i) => i.categoryId === categoryId);
+    const maxSortOrder = categoryItems.reduce(
+      (max, i) => (typeof i.sortOrder === "number" && i.sortOrder > max ? i.sortOrder : max),
+      -1,
+    );
+    sortOrder = maxSortOrder + 1;
+  }
   const imageFile = formData.get("image") as File | null;
   const customizations = formData.get("customizations") as string || "[]";
 

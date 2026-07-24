@@ -267,16 +267,25 @@ export async function updateCategorySortOrders(
 }
 
 export async function updateItemSortOrders(
-  updates: { id: string; sortOrder: number }[],
+  updates: { id: string; sortOrder: number; categoryId?: string }[],
 ) {
   const { tablesDB } = createAdminClient();
 
   await Promise.all(
-    updates.map((u) =>
-      tablesDB.updateDocument(DATABASE_ID, COLLECTIONS.MENU_ITEMS, u.id, {
+    updates.map((u) => {
+      const payload: Record<string, any> = {
         sortOrder: u.sortOrder,
-      }),
-    ),
+      };
+      if (u.categoryId) {
+        payload.categoryId = u.categoryId;
+      }
+      return tablesDB.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.MENU_ITEMS,
+        u.id,
+        payload,
+      );
+    }),
   );
 }
 

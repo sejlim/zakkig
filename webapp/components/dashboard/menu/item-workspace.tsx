@@ -197,7 +197,7 @@ export function ItemWorkspace({
         onOpenChange(false)
       }
     } catch {
-      toast.error('Artikel konnte nicht gespeichert werden.')
+      toast.error(t('databaseError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -238,7 +238,7 @@ export function ItemWorkspace({
                   {/* Verfügbar Switcher moved to header */}
                   <div className="flex items-center gap-2">
                     <Label htmlFor="ws-item-available" className="text-sm font-semibold text-primary-foreground cursor-pointer">
-                      {t('available')}
+                      Verfügbarkeit
                     </Label>
                     <Switch
                       id="ws-item-available"
@@ -283,6 +283,7 @@ export function ItemWorkspace({
                           setName(e.target.value)
                           if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
                         }}
+                        onKeyDown={(e) => e.stopPropagation()}
                         placeholder="z.B. Cheeseburger Deluxe, Pizza Margherita, Döner Special"
                         maxLength={60}
                         className={`bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.name ? 'border-destructive' : ''}`}

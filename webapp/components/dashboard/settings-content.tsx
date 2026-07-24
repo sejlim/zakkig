@@ -119,6 +119,13 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 name="logo"
                 type="file"
                 accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    toast.error(t('imageTooLarge'))
+                    e.target.value = ''
+                  }
+                }}
               />
             </div>
             {businessState.error && (

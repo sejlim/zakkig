@@ -1,15 +1,21 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useRef, memo, useMemo, useCallback } from 'react'
 import {
   DndContext,
   closestCenter,
   rectIntersection,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
+  DragOverlay,
   type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+  type CollisionDetection,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -33,6 +39,7 @@ import {
   Check,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -67,16 +74,36 @@ interface MenuContentProps {
   organizationId: string
 }
 
+const EMPTY_ITEMS: MenuItem[] = []
+
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false)
   useEffect(() => {
-    const media = window.matchMedia('(min-width: 1024px)')
+    const media = window.matchMedia('(min-width: 1400px)')
     setIsDesktop(media.matches)
     const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
     media.addEventListener('change', listener)
     return () => media.removeEventListener('change', listener)
   }, [])
   return isDesktop
+}
+
+const customItemCollisionDetection: CollisionDetection = (args) => {
+  // Use pointerWithin so collisions ONLY trigger when pointer enters a specific item's box.
+  // This eliminates cascade movement / twitching on unrelated items below.
+  const pointerCollisions = pointerWithin(args)
+  const itemCollision = pointerCollisions.find((c) => c.data?.current?.type === 'item')
+
+  if (itemCollision) {
+    return [itemCollision]
+  }
+
+  const categoryCollision = pointerCollisions.find((c) => c.data?.current?.type === 'category')
+  if (categoryCollision) {
+    return [categoryCollision]
+  }
+
+  return rectIntersection(args)
 }
 
 export function MenuContent({
@@ -105,7 +132,7 @@ export function MenuContent({
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
   const [autoEditCategoryId, setAutoEditCategoryId] = useState<string | null>(null)
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+  const isCreatingCategoryRef = useRef(false)
 
   // Collapsed categories state (map of categoryId -> isCollapsed)
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({})
@@ -130,72 +157,198 @@ export function MenuContent({
     }),
   )
 
-  // Filter items by category
-  function getItemsByCategory(categoryId: string) {
-    return items.filter((item) => item.categoryId === categoryId)
-  }
-
-  // Handle Category Drag End
-  const handleCategoryDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (over && active.id !== over.id) {
-      const oldIndex = categories.findIndex((c) => c.$id === active.id)
-      const newIndex = categories.findIndex((c) => c.$id === over.id)
-      const previousCategories = [...categories]
-      const newCategories = arrayMove(categories, oldIndex, newIndex)
-
-      setCategories(newCategories)
-
-      const res = await reorderCategoriesAction(
-        organizationId,
-        newCategories.map((c) => c.$id),
-      )
-      if (res?.error) {
-        toast.error(res.error)
-        setCategories(previousCategories)
+  // Memoized items mapped by category ID for zero-alloc prop stability
+  const itemsByCategory = useMemo(() => {
+    const map: Record<string, MenuItem[]> = {}
+    categories.forEach((cat) => {
+      map[cat.$id] = []
+    })
+    items.forEach((item) => {
+      if (map[item.categoryId]) {
+        map[item.categoryId].push(item)
+      } else {
+        map[item.categoryId] = [item]
       }
+    })
+    return map
+  }, [categories, items])
+
+  // Active item or category for drag preview overlay
+  const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
+  const [activeCategory, setActiveCategory] = useState<MenuCategory | null>(null)
+
+  const initialItemsRef = useRef<MenuItem[]>([])
+
+  // Handle Drag Start
+  const handleDragStart = (event: DragStartEvent) => {
+    const type = event.active.data.current?.type
+    if (type === 'item') {
+      initialItemsRef.current = items
+      const item = items.find((i) => i.$id === event.active.id)
+      if (item) setActiveItem(item)
+    } else if (type === 'category') {
+      const cat = categories.find((c) => c.$id === event.active.id)
+      if (cat) setActiveCategory(cat)
     }
   }
 
-  // Handle Item Drag End
-  const handleItemDragEnd = async (categoryId: string, event: DragEndEvent) => {
+  // Handle Drag Cancel
+  const handleDragCancel = () => {
+    setActiveItem(null)
+    setActiveCategory(null)
+    if (initialItemsRef.current.length > 0) {
+      setItems(initialItemsRef.current)
+    }
+  }
+
+  // Handle Drag Over (live move only across different categories)
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
-    if (over && active.id !== over.id) {
-      const categoryItems = getItemsByCategory(categoryId)
-      const oldIndex = categoryItems.findIndex((i) => i.$id === active.id)
-      const newIndex = categoryItems.findIndex((i) => i.$id === over.id)
-      if (oldIndex === -1 || newIndex === -1) return
+    if (!over) return
+    if (active.data.current?.type !== 'item') return
 
-      const reorderedCategoryItems = arrayMove(categoryItems, oldIndex, newIndex)
-      const previousItems = [...items]
+    const activeId = active.id as string
+    const overId = over.id as string
 
-      let catIdx = 0
-      const newAllItems = items.map((item) => {
-        if (item.categoryId === categoryId) {
-          const newItem = reorderedCategoryItems[catIdx]
-          catIdx++
-          return newItem
+    if (activeId === overId) return
+
+    const overType = over.data.current?.type
+
+    // Only reorder live if hovering over another visible ITEM in a DIFFERENT category.
+    // Intra-category sorting is handled automatically by @dnd-kit SortableContext transforms.
+    if (overType !== 'item') return
+
+    const overCategoryId = over.data.current?.item?.categoryId
+    if (!overCategoryId) return
+
+    setItems((prevItems) => {
+      const activeIdx = prevItems.findIndex((i) => i.$id === activeId)
+      if (activeIdx === -1) return prevItems
+
+      const activeItem = prevItems[activeIdx]
+      const currentCatId = activeItem.categoryId
+      const overIdx = prevItems.findIndex((i) => i.$id === overId)
+      if (overIdx === -1) return prevItems
+
+      // Cross-category item hover: move item to target category's SortableContext
+      if (currentCatId !== overCategoryId) {
+        const updated = [...prevItems]
+        updated[activeIdx] = {
+          ...updated[activeIdx],
+          categoryId: overCategoryId,
         }
-        return item
+        return arrayMove(updated, activeIdx, overIdx)
+      }
+
+      // Intra-category sorting: update items array live so SortableContext smoothly animates position swap
+      if (activeIdx !== overIdx) {
+        return arrayMove(prevItems, activeIdx, overIdx)
+      }
+
+      return prevItems
+    })
+  }
+
+  // Handle Drag End (persist final category or item positions to Appwrite)
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveItem(null)
+    setActiveCategory(null)
+
+    if (!over) return
+
+    const activeType = active.data.current?.type
+
+    if (activeType === 'category') {
+      if (active.id !== over.id) {
+        const oldIndex = categories.findIndex((c) => c.$id === active.id)
+        const newIndex = categories.findIndex((c) => c.$id === over.id)
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const previousCategories = [...categories]
+          const newCategories = arrayMove(categories, oldIndex, newIndex)
+          setCategories(newCategories)
+
+          startTransition(async () => {
+            const res = await reorderCategoriesAction(
+              organizationId,
+              newCategories.map((c) => c.$id),
+            )
+            if (res?.error) {
+              toast.error(res.error)
+              setCategories(previousCategories)
+            }
+          })
+        }
+      }
+      return
+    }
+
+    if (activeType === 'item') {
+      const activeId = active.id as string
+      const overId = over.id as string
+      const overType = over.data.current?.type
+      const overCategoryId =
+        overType === 'category'
+          ? (over.data.current?.category?.$id || overId)
+          : undefined
+
+      let currentItems = [...items]
+
+      // 1. Intra-category item drop or inter-item drop
+      if (overType === 'item' && activeId !== overId) {
+        const oldIndex = currentItems.findIndex((i) => i.$id === activeId)
+        const newIndex = currentItems.findIndex((i) => i.$id === overId)
+        if (oldIndex !== -1 && newIndex !== -1) {
+          currentItems = arrayMove(currentItems, oldIndex, newIndex)
+          setItems(currentItems)
+        }
+      }
+      // 2. Drop onto category card directly (e.g. collapsed or empty category)
+      else if (overType === 'category' && overCategoryId) {
+        const activeIdx = currentItems.findIndex((i) => i.$id === activeId)
+        if (activeIdx !== -1 && currentItems[activeIdx].categoryId !== overCategoryId) {
+          const catItems = currentItems.filter((i) => i.categoryId === overCategoryId)
+          const lastCatItem = catItems.length > 0 ? catItems[catItems.length - 1] : null
+          const overIdx = lastCatItem
+            ? currentItems.findIndex((i) => i.$id === lastCatItem.$id) + 1
+            : currentItems.length
+
+          currentItems[activeIdx] = {
+            ...currentItems[activeIdx],
+            categoryId: overCategoryId,
+          }
+          currentItems = arrayMove(currentItems, activeIdx, overIdx)
+          setItems(currentItems)
+        }
+      }
+
+      const updates: { id: string; sortOrder: number; categoryId: string }[] = []
+      categories.forEach((cat) => {
+        const catItems = currentItems.filter((i) => i.categoryId === cat.$id)
+        catItems.forEach((item, idx) => {
+          updates.push({
+            id: item.$id,
+            sortOrder: idx,
+            categoryId: cat.$id,
+          })
+        })
       })
 
-      setItems(newAllItems)
-
-      const res = await reorderItemsAction(
-        organizationId,
-        reorderedCategoryItems.map((i) => i.$id),
-      )
-      if (res?.error) {
-        toast.error(res.error)
-        setItems(previousItems)
+      if (updates.length > 0) {
+        startTransition(async () => {
+          const res = await reorderItemsAction(organizationId, updates)
+          if (res?.error) {
+            toast.error(res.error)
+          }
+        })
       }
     }
   }
 
   // In-place category creation handler
   async function openNewCategory() {
-    if (isCreatingCategory) return
-    setIsCreatingCategory(true)
+    if (isCreatingCategoryRef.current) return
+    isCreatingCategoryRef.current = true
 
     const tempId = `temp-${Date.now()}`
     const defaultName = t('newCategory')
@@ -242,23 +395,23 @@ export function MenuContent({
         setAutoEditCategoryId(realId)
       }
     } finally {
-      setIsCreatingCategory(false)
+      isCreatingCategoryRef.current = false
     }
   }
 
-  function openNewItem(categoryId: string) {
+  const openNewItem = useCallback((categoryId: string) => {
     setEditingItem(null)
     setSelectedCategoryId(categoryId)
     setShowItemSheet(true)
-  }
+  }, [])
 
-  function openEditItem(item: MenuItem) {
+  const openEditItem = useCallback((item: MenuItem) => {
     setEditingItem(item)
     setSelectedCategoryId(item.categoryId)
     setShowItemSheet(true)
-  }
+  }, [])
 
-  function toggleCategoryCollapse(categoryId: string) {
+  const toggleCategoryCollapse = useCallback((categoryId: string) => {
     setCollapsedCategories((prev) => {
       const isCurrentlyCollapsed = prev[categoryId] ?? true
       return {
@@ -266,7 +419,28 @@ export function MenuContent({
         [categoryId]: !isCurrentlyCollapsed,
       }
     })
-  }
+  }, [])
+
+  const handleEditComplete = useCallback(() => {
+    setAutoEditCategoryId(null)
+  }, [])
+
+  const handleDeleteCategory = useCallback((category: MenuCategory) => {
+    setDeleteConfirm({
+      type: 'category',
+      id: category.$id,
+      name: category.name,
+    })
+  }, [])
+
+  const handleDeleteItem = useCallback((item: MenuItem) => {
+    setDeleteConfirm({
+      type: 'item',
+      id: item.$id,
+      name: item.name,
+      imageId: item.imageId,
+    })
+  }, [])
 
   // Delete Action Confirmations
   async function confirmDelete() {
@@ -274,7 +448,7 @@ export function MenuContent({
     if (deleteConfirm.type === 'category') {
       const res = await deleteCategoryAction(deleteConfirm.id, organizationId)
       if (res?.error) toast.error(res.error)
-    } else {
+    } else if (deleteConfirm.type === 'item') {
       const res = await deleteMenuItemAction(
         deleteConfirm.id,
         organizationId,
@@ -285,20 +459,21 @@ export function MenuContent({
     setDeleteConfirm(null)
   }
 
-  function handleToggleAvailability(itemId: string, available: boolean) {
-    const previousItems = [...items]
-    const updatedItems = items.map((i) =>
-      i.$id === itemId ? { ...i, available } : i,
-    )
-    setItems(updatedItems)
-    startTransition(async () => {
-      const res = await toggleMenuItemAvailability(itemId, available, organizationId)
-      if (res?.error) {
-        toast.error(res.error)
-        setItems(previousItems)
-      }
+  const handleToggleAvailability = useCallback((itemId: string, available: boolean) => {
+    setItems((prevItems) => {
+      const updated = prevItems.map((i) =>
+        i.$id === itemId ? { ...i, available } : i,
+      )
+      startTransition(async () => {
+        const res = await toggleMenuItemAvailability(itemId, available, organizationId)
+        if (res?.error) {
+          toast.error(res.error)
+          setItems(prevItems)
+        }
+      })
+      return updated
     })
-  }
+  }, [organizationId])
 
   return (
     <div className="flex-1 space-y-4">
@@ -334,10 +509,13 @@ export function MenuContent({
         </div>
       ) : (
         <DndContext
-          id="menu-categories-dnd"
+          id="menu-dnd-context"
           sensors={sensors}
-          collisionDetection={rectIntersection}
-          onDragEnd={handleCategoryDragEnd}
+          collisionDetection={customItemCollisionDetection}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           <SortableContext
             items={categories.map((c) => c.$id)}
@@ -353,31 +531,16 @@ export function MenuContent({
                       <SortableCategoryCard
                         key={category.$id}
                         category={category}
-                        categoryItems={getItemsByCategory(category.$id)}
+                        categoryItems={itemsByCategory[category.$id] || EMPTY_ITEMS}
                         isCollapsed={collapsedCategories[category.$id] ?? true}
                         autoEditName={autoEditCategoryId === category.$id}
-                        onEditComplete={() => setAutoEditCategoryId(null)}
-                        onToggleCollapse={() => toggleCategoryCollapse(category.$id)}
-                        onDeleteCategory={() =>
-                          setDeleteConfirm({
-                            type: 'category',
-                            id: category.$id,
-                            name: category.name,
-                          })
-                        }
-                        onNewItem={() => openNewItem(category.$id)}
+                        onEditComplete={handleEditComplete}
+                        onToggleCollapse={toggleCategoryCollapse}
+                        onDeleteCategory={handleDeleteCategory}
+                        onNewItem={openNewItem}
                         onEditItem={openEditItem}
-                        onDeleteItem={(item) =>
-                          setDeleteConfirm({
-                            type: 'item',
-                            id: item.$id,
-                            name: item.name,
-                            imageId: item.imageId,
-                          })
-                        }
+                        onDeleteItem={handleDeleteItem}
                         onToggleAvailability={handleToggleAvailability}
-                        onItemDragEnd={(e) => handleItemDragEnd(category.$id, e)}
-                        sensors={sensors}
                       />
                     ))}
                   {categories.length % 2 === 0 && (
@@ -401,31 +564,16 @@ export function MenuContent({
                       <SortableCategoryCard
                         key={category.$id}
                         category={category}
-                        categoryItems={getItemsByCategory(category.$id)}
+                        categoryItems={itemsByCategory[category.$id] || EMPTY_ITEMS}
                         isCollapsed={collapsedCategories[category.$id] ?? true}
                         autoEditName={autoEditCategoryId === category.$id}
-                        onEditComplete={() => setAutoEditCategoryId(null)}
-                        onToggleCollapse={() => toggleCategoryCollapse(category.$id)}
-                        onDeleteCategory={() =>
-                          setDeleteConfirm({
-                            type: 'category',
-                            id: category.$id,
-                            name: category.name,
-                          })
-                        }
-                        onNewItem={() => openNewItem(category.$id)}
+                        onEditComplete={handleEditComplete}
+                        onToggleCollapse={toggleCategoryCollapse}
+                        onDeleteCategory={handleDeleteCategory}
+                        onNewItem={openNewItem}
                         onEditItem={openEditItem}
-                        onDeleteItem={(item) =>
-                          setDeleteConfirm({
-                            type: 'item',
-                            id: item.$id,
-                            name: item.name,
-                            imageId: item.imageId,
-                          })
-                        }
+                        onDeleteItem={handleDeleteItem}
                         onToggleAvailability={handleToggleAvailability}
-                        onItemDragEnd={(e) => handleItemDragEnd(category.$id, e)}
-                        sensors={sensors}
                       />
                     ))}
                   {categories.length % 2 === 1 && (
@@ -442,38 +590,25 @@ export function MenuContent({
                 </div>
               </div>
             ) : (
+              /* Mobile Layout (Single Column) */
               <div className="flex flex-col gap-6 w-full">
                 {categories.map((category) => (
                   <SortableCategoryCard
                     key={category.$id}
                     category={category}
-                    categoryItems={getItemsByCategory(category.$id)}
+                    categoryItems={itemsByCategory[category.$id] || EMPTY_ITEMS}
                     isCollapsed={collapsedCategories[category.$id] ?? true}
                     autoEditName={autoEditCategoryId === category.$id}
-                    onEditComplete={() => setAutoEditCategoryId(null)}
-                    onToggleCollapse={() => toggleCategoryCollapse(category.$id)}
-                    onDeleteCategory={() =>
-                      setDeleteConfirm({
-                        type: 'category',
-                        id: category.$id,
-                        name: category.name,
-                      })
-                    }
-                    onNewItem={() => openNewItem(category.$id)}
+                    onEditComplete={handleEditComplete}
+                    onToggleCollapse={toggleCategoryCollapse}
+                    onDeleteCategory={handleDeleteCategory}
+                    onNewItem={openNewItem}
                     onEditItem={openEditItem}
-                    onDeleteItem={(item) =>
-                      setDeleteConfirm({
-                        type: 'item',
-                        id: item.$id,
-                        name: item.name,
-                        imageId: item.imageId,
-                      })
-                    }
+                    onDeleteItem={handleDeleteItem}
                     onToggleAvailability={handleToggleAvailability}
-                    onItemDragEnd={(e) => handleItemDragEnd(category.$id, e)}
-                    sensors={sensors}
                   />
                 ))}
+
                 <Button
                   type="button"
                   variant="ghost"
@@ -486,6 +621,28 @@ export function MenuContent({
               </div>
             )}
           </SortableContext>
+
+          <DragOverlay
+            dropAnimation={{
+              duration: 150,
+              easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+            }}
+          >
+            {activeItem ? (
+              <div className="opacity-95 shadow-2xl scale-[1.02] border-2 border-primary rounded-xl overflow-hidden bg-background">
+                <ItemRowView
+                  item={activeItem}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                  onToggleAvailability={() => {}}
+                />
+              </div>
+            ) : activeCategory ? (
+              <div className="opacity-90 shadow-2xl scale-[1.01] border-2 border-primary rounded-xl overflow-hidden bg-background p-4 font-bold text-foreground">
+                {activeCategory.name}
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
@@ -550,17 +707,15 @@ interface SortableCategoryCardProps {
   isCollapsed: boolean
   autoEditName?: boolean
   onEditComplete?: () => void
-  onToggleCollapse: () => void
-  onDeleteCategory: () => void
-  onNewItem: () => void
+  onToggleCollapse: (categoryId: string) => void
+  onDeleteCategory: (category: MenuCategory) => void
+  onNewItem: (categoryId: string) => void
   onEditItem: (item: MenuItem) => void
   onDeleteItem: (item: MenuItem) => void
   onToggleAvailability: (itemId: string, available: boolean) => void
-  onItemDragEnd: (event: DragEndEvent) => void
-  sensors: any
 }
 
-function SortableCategoryCard({
+const SortableCategoryCard = memo(function SortableCategoryCard({
   category,
   categoryItems,
   isCollapsed,
@@ -572,13 +727,16 @@ function SortableCategoryCard({
   onEditItem,
   onDeleteItem,
   onToggleAvailability,
-  onItemDragEnd,
-  sensors,
 }: SortableCategoryCardProps) {
   const { t } = useTranslation()
   const [isEditingName, setIsEditingName] = useState(autoEditName)
   const [nameVal, setNameVal] = useState(category.name)
   const [isSavingName, setIsSavingName] = useState(false)
+
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: category.$id,
+    data: { type: 'category', category },
+  })
 
   useEffect(() => {
     setNameVal(category.name)
@@ -624,7 +782,7 @@ function SortableCategoryCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: category.$id })
+  } = useSortable({ id: category.$id, data: { type: 'category', category } })
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -635,7 +793,13 @@ function SortableCategoryCard({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card>
+      <Card
+        ref={setDroppableRef}
+        className={cn(
+          'transition-colors',
+          isOver && (isCollapsed || categoryItems.length === 0) && 'ring-2 ring-primary bg-primary/5',
+        )}
+      >
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 p-3.5 sm:p-4 pb-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <button
@@ -653,7 +817,9 @@ function SortableCategoryCard({
                   value={nameVal}
                   onChange={(e) => setNameVal(e.target.value)}
                   onFocus={(e) => e.target.select()}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
+                    e.stopPropagation()
                     if (e.key === 'Enter') handleSaveName()
                     if (e.key === 'Escape') {
                       onEditComplete?.()
@@ -682,7 +848,7 @@ function SortableCategoryCard({
               <button
                 type="button"
                 className="text-base sm:text-lg font-bold tracking-tight text-foreground text-left bg-transparent border-0 p-0 cursor-pointer min-w-0 flex-1 break-words"
-                onClick={onToggleCollapse}
+                onClick={() => onToggleCollapse(category.$id)}
               >
                 {category.name}
               </button>
@@ -694,12 +860,12 @@ function SortableCategoryCard({
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-1.5 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 w-full sm:w-auto pt-1 sm:pt-0">
             <Button
               variant="ghost"
               size="icon"
-              onClick={onToggleCollapse}
-              className="rounded-full text-muted-foreground hover:text-foreground"
+              onClick={() => onToggleCollapse(category.$id)}
+              className="rounded-full text-muted-foreground hover:text-foreground shrink-0"
               title={isCollapsed ? 'Aufklappen' : 'Einklappen'}
             >
               {isCollapsed ? (
@@ -709,74 +875,67 @@ function SortableCategoryCard({
               )}
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                if (isEditingName) {
-                  handleSaveName()
-                } else {
-                  setIsEditingName(true)
-                }
-              }}
-              className="rounded-full text-muted-foreground hover:text-foreground"
-              title="Kategoriename bearbeiten"
-            >
-              <PencilSimple className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="default"
-              onClick={onDeleteCategory}
-              className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
-              title={t('delete')}
-            >
-              <Trash className="h-4 w-4 shrink-0" weight="bold" />
-              <span>{t('delete')}</span>
-            </Button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  if (isEditingName) {
+                    handleSaveName()
+                  } else {
+                    setIsEditingName(true)
+                  }
+                }}
+                className="rounded-full text-muted-foreground hover:text-foreground shrink-0"
+                title="Kategoriename bearbeiten"
+              >
+                <PencilSimple className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => onDeleteCategory(category)}
+                className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
+                title={t('delete')}
+              >
+                <Trash className="h-4 w-4 shrink-0" weight="bold" />
+                <span>{t('delete')}</span>
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
         {!isCollapsed && (
           <CardContent className="pt-2 flex flex-col gap-3">
-            {categoryItems.length === 0 ? (
-              <div className="py-6 text-center flex flex-col items-center justify-center gap-1 border border-dashed rounded-lg bg-muted/10">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {t('noItems')}
-                </p>
-              </div>
-            ) : (
-              <DndContext
-                id={`category-items-dnd-${category.$id}`}
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={onItemDragEnd}
-              >
-                <SortableContext
-                  items={categoryItems.map((i) => i.$id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="flex flex-col gap-2.5">
-                    {categoryItems.map((item) => (
-                      <SortableItemRow
-                        key={item.$id}
-                        item={item}
-                        onEdit={() => onEditItem(item)}
-                        onDelete={() => onDeleteItem(item)}
-                        onToggleAvailability={(newAvailable: boolean) =>
-                          onToggleAvailability(item.$id, newAvailable)
-                        }
-                      />
-                    ))}
+            <SortableContext
+              items={categoryItems.map((i) => i.$id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex flex-col gap-2.5 min-h-[60px] p-1.5 transition-colors rounded-lg">
+                {categoryItems.length === 0 ? (
+                  <div className="py-6 text-center flex flex-col items-center justify-center gap-1 border border-dashed rounded-lg bg-muted/10">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t('noItems')}
+                    </p>
                   </div>
-                </SortableContext>
-              </DndContext>
-            )}
+                ) : (
+                  categoryItems.map((item) => (
+                    <SortableItemRow
+                      key={item.$id}
+                      item={item}
+                      onEdit={onEditItem}
+                      onDelete={onDeleteItem}
+                      onToggleAvailability={onToggleAvailability}
+                    />
+                  ))
+                )}
+              </div>
+            </SortableContext>
 
             <Button
               type="button"
               variant="ghost"
-              onClick={onNewItem}
+              onClick={() => onNewItem(category.$id)}
               className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
             >
               <Plus className="h-4 w-4 shrink-0" weight="bold" />
@@ -787,41 +946,36 @@ function SortableCategoryCard({
       </Card>
     </div>
   )
-}
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sortable Item Row Component
+// Sortable Item Row Component & Presentation View
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface SortableItemRowProps {
+interface ItemRowViewProps {
   item: MenuItem
   onEdit: () => void
   onDelete: () => void
   onToggleAvailability: (available: boolean) => void
+  attributes?: Record<string, any>
+  listeners?: Record<string, any>
+  isDragging?: boolean
+  style?: React.CSSProperties
+  setNodeRef?: (node: HTMLElement | null) => void
 }
 
-function SortableItemRow({
+const ItemRowView = memo(function ItemRowView({
   item,
   onEdit,
   onDelete,
   onToggleAvailability,
-}: SortableItemRowProps) {
+  attributes,
+  listeners,
+  isDragging,
+  style,
+  setNodeRef,
+}: ItemRowViewProps) {
   const { t } = useTranslation()
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.$id })
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    zIndex: isDragging ? 50 : 0,
-    opacity: isDragging ? 0.4 : item.available ? 1 : 0.6,
-  }
 
   // Parse customization step count
   let customizationStepCount = 0
@@ -830,13 +984,19 @@ function SortableItemRow({
     if (Array.isArray(parsed)) customizationStepCount = parsed.length
   } catch {}
 
-  const imageUrl = item.imageId ? getImagePreviewUrl(item.imageId, 120, 120) : null
+  const imageUrl = useMemo(
+    () => (item.imageId ? getImagePreviewUrl(item.imageId, 120, 120) : null),
+    [item.imageId],
+  )
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-xl border bg-background p-3 hover:border-primary/40 transition-colors gap-3"
+      className={cn(
+        'flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-xl border bg-background p-3 gap-3 touch-none',
+        isDragging ? 'opacity-20 bg-muted/30 border-border/40' : 'opacity-100',
+      )}
     >
       {/* Main Content Area */}
       <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
@@ -866,11 +1026,6 @@ function SortableItemRow({
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-base text-foreground break-words">{item.name}</span>
-            {!item.available && (
-              <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                {t('unavailable')}
-              </Badge>
-            )}
             {customizationStepCount > 0 && (
               <Badge variant="outline" className="text-xs gap-1 border-primary/40 text-primary bg-primary/5">
                 <SlidersHorizontal className="w-3 h-3" weight="bold" />
@@ -894,7 +1049,6 @@ function SortableItemRow({
         <Switch
           checked={item.available}
           onCheckedChange={(checked) => onToggleAvailability(checked)}
-          title={item.available ? t('available') : t('unavailable')}
         />
 
         <div className="flex items-center gap-1.5 shrink-0">
@@ -921,4 +1075,46 @@ function SortableItemRow({
       </div>
     </div>
   )
+})
+
+interface SortableItemRowProps {
+  item: MenuItem
+  onEdit: (item: MenuItem) => void
+  onDelete: (item: MenuItem) => void
+  onToggleAvailability: (itemId: string, available: boolean) => void
 }
+
+const SortableItemRow = memo(function SortableItemRow(props: SortableItemRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.item.$id, data: { type: 'item', item: props.item } })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform) || 'translate3d(0, 0, 0)',
+    transition: isDragging ? undefined : transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
+    zIndex: isDragging ? 50 : 0,
+  }
+
+  const handleEdit = useCallback(() => props.onEdit(props.item), [props.onEdit, props.item])
+  const handleDelete = useCallback(() => props.onDelete(props.item), [props.onDelete, props.item])
+  const handleToggle = useCallback((available: boolean) => props.onToggleAvailability(props.item.$id, available), [props.onToggleAvailability, props.item.$id])
+
+  return (
+    <ItemRowView
+      item={props.item}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+      onToggleAvailability={handleToggle}
+      setNodeRef={setNodeRef}
+      style={style}
+      attributes={attributes}
+      listeners={listeners}
+      isDragging={isDragging}
+    />
+  )
+})

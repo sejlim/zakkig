@@ -317,6 +317,7 @@ function SortableStepCard({
                   onFocus={(e) => e.target.select()}
                   onBlur={finishEditingName}
                   onKeyDown={(e) => {
+                    e.stopPropagation()
                     if (e.key === 'Enter') finishEditingName()
                     if (e.key === 'Escape') finishEditingName()
                   }}
@@ -364,11 +365,6 @@ function SortableStepCard({
               onCheckedChange={(checked) => onUpdate({ available: checked })}
               className="shrink-0 data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
             />
-            {step.available === false && (
-              <Badge variant="outline" className="border-primary-foreground/30 text-primary-foreground/70 text-xs shrink-0">
-                {t('unavailable')}
-              </Badge>
-            )}
             <span className="text-xs text-primary-foreground/70 font-medium hidden sm:inline">
               {step.options.length} {t('options')}
             </span>
@@ -619,8 +615,11 @@ function OptionRow({ option, optionIndex, autoFocusName = false, onEditComplete,
           onFocus={(e) => e.target.select()}
           onBlur={onEditComplete}
           onKeyDown={(e) => {
+            e.stopPropagation()
             if (e.key === 'Enter') onEditComplete?.()
+            if (e.key === 'Escape') onEditComplete?.()
           }}
+          onMouseDown={(e) => e.stopPropagation()}
           placeholder={t('optionName')}
           maxLength={60}
           className="h-9 sm:h-8 text-sm bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 flex-1"

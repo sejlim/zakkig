@@ -5,6 +5,7 @@ import { ImageSquare, X, UploadSimple } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/lib/i18n'
 import { getImagePreviewUrl } from '@/lib/appwrite/client'
+import { toast } from 'sonner'
 
 interface ImageUploadProps {
   existingImageId?: string
@@ -35,7 +36,10 @@ export function ImageUpload({
     (file: File | null) => {
       if (preview) URL.revokeObjectURL(preview)
       if (file) {
-        if (file.size > 5 * 1024 * 1024) return // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(t('imageTooLarge'))
+          return
+        }
         if (!file.type.startsWith('image/')) return
         setPreview(URL.createObjectURL(file))
         setShowExisting(false)
@@ -45,7 +49,7 @@ export function ImageUpload({
         onFileSelect(null)
       }
     },
-    [onFileSelect, preview],
+    [onFileSelect, preview, t],
   )
 
   const handleDrop = useCallback(

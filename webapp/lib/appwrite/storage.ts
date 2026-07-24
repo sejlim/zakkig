@@ -16,7 +16,8 @@ export async function uploadMenuImage(
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
-  const inputFile = InputFile.fromBuffer(buffer, file.name || "image.png");
+  const fileName = file.name || "image.png";
+  const inputFile = InputFile.fromBuffer(buffer, fileName);
 
   const result = await storage.createFile(
     BUCKETS.MENU_IMAGES,
