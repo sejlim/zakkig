@@ -94,6 +94,7 @@ export async function updateOrderStatusAction(
 ) {
   try {
     await updateOrderStatus(orderId, status);
+    revalidatePath(`/dashboard/${organizationId}/live-orders`);
     revalidatePath(`/dashboard/${organizationId}/orders`);
     revalidatePath(`/orders/${organizationId}`);
     return { success: true };

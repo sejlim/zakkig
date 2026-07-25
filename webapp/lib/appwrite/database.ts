@@ -181,6 +181,20 @@ export async function getMenuItems(
   return result.documents as unknown as MenuItem[];
 }
 
+export async function getMenuItem(id: string): Promise<MenuItem | null> {
+  const { tablesDB } = createAdminClient();
+  try {
+    const doc = await tablesDB.getDocument(
+      DATABASE_ID,
+      COLLECTIONS.MENU_ITEMS,
+      id,
+    );
+    return doc as unknown as MenuItem;
+  } catch {
+    return null;
+  }
+}
+
 export async function getAvailableMenuItems(
   organizationId: string,
 ): Promise<MenuItem[]> {
@@ -331,7 +345,31 @@ export async function getOrder(id: string): Promise<Order | null> {
 export async function createOrder(data: CreateOrderData): Promise<Order> {
   const { tablesDB } = createAdminClient();
 
-  const orderNumber = `Z-${Date.now().toString(36).toUpperCase()}`;
+  // Query the last created order for this organization to calculate rolling 3-digit order number (001 - 999)
+  let nextNum = 1;
+  try {
+    const lastOrdersResult = await tablesDB.listDocuments(
+      DATABASE_ID,
+      COLLECTIONS.ORDERS,
+      [
+        Query.equal("organizationId", data.organizationId),
+        Query.orderDesc("$createdAt"),
+        Query.limit(1),
+      ],
+    );
+
+    if (lastOrdersResult.documents.length > 0) {
+      const lastNumStr = lastOrdersResult.documents[0].orderNumber;
+      const lastNum = parseInt(lastNumStr, 10);
+      if (!isNaN(lastNum)) {
+        nextNum = (lastNum % 999) + 1;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch last order number, defaulting to 001", error);
+  }
+
+  const orderNumber = String(nextNum).padStart(3, "0");
 
   const doc = await tablesDB.createDocument(
     DATABASE_ID,
@@ -343,7 +381,7 @@ export async function createOrder(data: CreateOrderData): Promise<Order> {
       type: data.type,
       items: JSON.stringify(data.items),
       total: data.total,
-      status: "pending",
+      status: "in_progress",
       email: data.email,
       orderNumber,
       stripePaymentId: data.stripePaymentId ?? "",

@@ -117,7 +117,7 @@ export interface Order extends AppwriteDocument {
   type: "dine-in" | "takeaway";
   items: string; // JSON serialized OrderItem[]
   total: number; // in cents
-  status: "pending" | "preparing" | "ready" | "completed";
+  status: "in_progress" | "completed" | "pending" | "preparing" | "ready";
   email: string;
   orderNumber: string;
   stripePaymentId: string;

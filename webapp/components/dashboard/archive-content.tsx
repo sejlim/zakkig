@@ -36,6 +36,7 @@ const statusVariants: Record<
   string,
   "default" | "secondary" | "destructive" | "outline"
 > = {
+  in_progress: "secondary",
   pending: "default",
   preparing: "secondary",
   ready: "default",
@@ -54,6 +55,7 @@ export function ArchiveContent({ orders, organizationId }: ArchiveContentProps) 
 
   function getStatusLabel(status: string) {
     const labels: Record<string, string> = {
+      in_progress: t("inProgress"),
       pending: t("pending"),
       preparing: t("preparing"),
       ready: t("ready"),
@@ -142,9 +144,9 @@ export function ArchiveContent({ orders, organizationId }: ArchiveContentProps) 
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          {order.type === "dine-in"
-                            ? t("dineIn")
-                            : t("takeaway")}
+                          {order.type === "dine-in" || order.tableNumber
+                            ? `${t("toTable")} ${order.tableNumber || ""}`.trim()
+                            : t("toPickUp")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm">

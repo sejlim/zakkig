@@ -72,7 +72,20 @@ async function init() {
     // Organizations (skipping)
     // Menu Categories (skipping)
     // Menu Items (skipping)
-    // Orders (skipping)
+    // Orders
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'organizationId', 255, true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'tableNumber', 255, false));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'type', 50, true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'items', 50000, true));
+    await ensureAttr(db.createIntegerAttribute(databaseId, 'orders', 'total', true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'status', 50, true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'email', 255, true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'orderNumber', 50, true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'stripePaymentId', 255, false));
+    await ensureAttr(db.createIntegerAttribute(databaseId, 'orders', 'zakkigFee', true));
+    await ensureAttr(db.createIntegerAttribute(databaseId, 'orders', 'stripeFee', true));
+    await ensureAttr(db.createIntegerAttribute(databaseId, 'orders', 'netAmount', true));
+    await ensureAttr(db.createStringAttribute(databaseId, 'orders', 'currency', 10, true, "EUR"));
 
     // Order Sessions
     await ensureAttr(db.createStringAttribute(databaseId, 'orders_sessions', 'organizationId', 255, true));

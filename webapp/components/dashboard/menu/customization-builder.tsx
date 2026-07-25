@@ -89,7 +89,17 @@ export function CustomizationBuilder({ steps, onChange }: CustomizationBuilderPr
 
   const updateStep = (stepId: string, updates: Partial<CustomizationStep>) => {
     onChange(
-      steps.map((s) => (s.id === stepId ? { ...s, ...updates } : s)),
+      steps.map((s) => {
+        if (s.id !== stepId) return s
+        if (updates.available !== undefined && !updates.options) {
+          const updatedOptions = s.options.map((o) => ({
+            ...o,
+            available: updates.available!,
+          }))
+          return { ...s, ...updates, options: updatedOptions }
+        }
+        return { ...s, ...updates }
+      }),
     )
   }
 
@@ -112,7 +122,7 @@ export function CustomizationBuilder({ steps, onChange }: CustomizationBuilderPr
       name: t('newOption'),
       nameEn: '',
       extraPrice: 0,
-      available: true,
+      available: step.available ?? true,
       sortOrder: step.options.length,
     }
     setAutoEditOptionId(newOptionId)
@@ -126,6 +136,7 @@ export function CustomizationBuilder({ steps, onChange }: CustomizationBuilderPr
   ) => {
     const step = steps.find((s) => s.id === stepId)
     if (!step) return
+    if (step.available === false && updates.available === true) return
     updateStep(stepId, {
       options: step.options.map((o) =>
         o.id === optionId ? { ...o, ...updates } : o,
@@ -542,6 +553,7 @@ function SortableStepCard({
                         key={option.id}
                         option={option}
                         optionIndex={optIndex}
+                        disabled={step.available === false}
                         autoFocusName={autoEditOptionId === option.id}
                         onEditComplete={onEditOptionComplete}
                         onUpdate={(updates) => onUpdateOption(option.id, updates)}
@@ -571,13 +583,14 @@ function SortableStepCard({
 interface OptionRowProps {
   option: CustomizationOption
   optionIndex: number
+  disabled?: boolean
   autoFocusName?: boolean
   onEditComplete?: () => void
   onUpdate: (updates: Partial<CustomizationOption>) => void
   onRemove: () => void
 }
 
-function OptionRow({ option, optionIndex, autoFocusName = false, onEditComplete, onUpdate, onRemove }: OptionRowProps) {
+function OptionRow({ option, optionIndex, disabled = false, autoFocusName = false, onEditComplete, onUpdate, onRemove }: OptionRowProps) {
   const { t } = useTranslation()
 
   const {
@@ -653,10 +666,10 @@ function OptionRow({ option, optionIndex, autoFocusName = false, onEditComplete,
           </div>
         </div>
 
-        {/* Line 3 (Mobile): Slider left-aligned, Delete button right-aligned */}
         <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
           <Switch
             checked={option.available}
+            disabled={disabled}
             onCheckedChange={(checked) => onUpdate({ available: checked })}
             className="shrink-0 data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
           />

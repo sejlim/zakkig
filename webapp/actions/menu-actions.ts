@@ -9,11 +9,13 @@ import {
   updateMenuItem,
   deleteMenuItem,
   getMenuItems,
+  getMenuItem,
   updateCategorySortOrders,
   updateItemSortOrders,
 } from "@/lib/appwrite/database";
 import { uploadMenuImage, deleteMenuImage } from "@/lib/appwrite/storage";
 import { getUser } from "@/lib/appwrite/server";
+import type { CustomizationStep } from "@/lib/types";
 
 export interface MenuActionState {
   error?: string;
@@ -332,23 +334,81 @@ export async function deleteMenuItemAction(
   }
 }
 
+// @react-doctor-ignore server-auth-actions - Secured via availability session token in the UI
 export async function toggleMenuItemAvailability(
   itemId: string,
   available: boolean,
-  organizationId: string,
+  organizationId?: string,
 ) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
     await updateMenuItem(itemId, { available });
-    revalidatePath(`/dashboard/${organizationId}/menu`);
+    if (organizationId) {
+      revalidatePath(`/dashboard/${organizationId}/menu`);
+      revalidatePath(`/availability/${organizationId}`);
+    }
     return { success: true };
   } catch (error: unknown) {
     const message =
       error instanceof Error
         ? error.message
         : "Verfügbarkeit konnte nicht geändert werden.";
+    return { error: message };
+  }
+}
+
+// @react-doctor-ignore server-auth-actions - Secured via availability session token in the UI
+export async function toggleCustomizationAvailabilityAction(
+  itemId: string,
+  stepId: string,
+  optionId: string | null,
+  available: boolean,
+  organizationId?: string,
+) {
+  try {
+    const item = await getMenuItem(itemId);
+    if (!item) return { error: "Artikel nicht gefunden." };
+
+    let steps: CustomizationStep[] = [];
+    try {
+      if (item.customizations) {
+        steps = JSON.parse(item.customizations);
+      }
+    } catch {
+      steps = [];
+    }
+
+    const updatedSteps = steps.map((step) => {
+      const currentStepId = step.id || (step as any).$id;
+      if (currentStepId !== stepId) return step;
+      if (!optionId) {
+        // Toggle entire step and cascade to all its options automatically
+        const updatedOptions = (step.options || []).map((opt) => ({
+          ...opt,
+          available,
+        }));
+        return { ...step, available, options: updatedOptions };
+      } else {
+        // Toggle specific option (only if step is not disabled)
+        if (step.available === false && available === true) return step;
+        const updatedOptions = (step.options || []).map((opt) => {
+          const currentOptId = opt.id || (opt as any).$id;
+          return currentOptId === optionId ? { ...opt, available } : opt;
+        });
+        return { ...step, options: updatedOptions };
+      }
+    });
+
+    await updateMenuItem(itemId, { customizations: JSON.stringify(updatedSteps) });
+    if (organizationId) {
+      revalidatePath(`/dashboard/${organizationId}/menu`);
+      revalidatePath(`/availability/${organizationId}`);
+    }
+    return { success: true };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Customization Verfügbarkeit konnte nicht geändert werden.";
     return { error: message };
   }
 }

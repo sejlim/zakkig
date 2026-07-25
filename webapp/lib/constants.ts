@@ -31,6 +31,7 @@ export const SESSION_COOKIE_NAME = `a_session_${APPWRITE_PROJECT_ID}`;
 
 // Order Statuses
 export const ORDER_STATUS = {
+  IN_PROGRESS: "in_progress",
   PENDING: "pending",
   PREPARING: "preparing",
   READY: "ready",
@@ -44,4 +45,4 @@ export const ORDER_TYPE = {
 } as const;
 
 // Kitchen Board cleanup timer (ms)
-export const KITCHEN_CLEANUP_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+export const KITCHEN_CLEANUP_TIMEOUT = 15 * 60 * 1000; // 15 minutes

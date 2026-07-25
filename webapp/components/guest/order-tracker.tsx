@@ -16,9 +16,7 @@ interface OrderTrackerProps {
 }
 
 const statusSteps = [
-  { id: "pending", labelKey: "pending" },
-  { id: "preparing", labelKey: "preparing" },
-  { id: "ready", labelKey: "ready" },
+  { id: "in_progress", labelKey: "inProgress" },
   { id: "completed", labelKey: "completed" },
 ];
 
@@ -37,9 +35,8 @@ export function OrderTracker({
 
     // Realtime subscription
     const unsubscribe = subscribeToOrder(orderId, (response) => {
-      if (
-        response.events.includes("databases.*.collections.*.documents.*.update")
-      ) {
+      const events = response.events || [];
+      if (events.some((e: string) => e.includes(".update") || e.includes("update"))) {
         setOrder(response.payload as unknown as Order);
       }
     });
@@ -69,7 +66,7 @@ export function OrderTracker({
     );
   }
 
-  const currentStepIndex = statusSteps.findIndex((s) => s.id === order.status);
+  const currentStepIndex = order.status === "completed" ? 1 : 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/10">

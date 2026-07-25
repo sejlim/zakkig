@@ -45,19 +45,11 @@ export default async function KitchenBoardPage({
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b bg-primary text-primary-foreground px-6 shadow-sm">
-        <h1 className="text-xl font-bold tracking-tight">
-          zakkig{" "}
-          <span className="font-normal opacity-80 ml-2">
-            Live-Bestellungen
-          </span>
-        </h1>
-        <div className="font-medium">{organization.name}</div>
-      </header>
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <LiveOrdersContent
           organizationId={organizationId}
           orders={structuredClone(initialOrders)}
+          isStaffView={true}
         />
       </main>
     </div>
