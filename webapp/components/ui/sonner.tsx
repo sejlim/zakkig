@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import {
-  CheckCircle,
+  Check,
   Info,
   WarningCircle,
   Warning,
@@ -28,7 +28,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       icons={{
         success: (
-          <CheckCircle weight="fill" className="size-[18px] text-inherit" />
+          <Check weight="bold" className="size-[18px] text-inherit" />
         ),
         info: <Info weight="fill" className="size-[18px] text-inherit" />,
         warning: (

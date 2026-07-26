@@ -2,6 +2,7 @@ import { getOrders, getOrganization, getOrderSessions } from "@/lib/appwrite/dat
 import { LiveOrdersContent } from "@/components/dashboard/live-orders-content";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { LocalizedText } from "@/components/ui/localized-text";
 
 export const metadata = { title: "Live-Bestellungen" };
 
@@ -27,20 +28,20 @@ export default async function KitchenBoardPage({
   ]);
 
   if (!organization) {
-    return <div className="p-8 text-center">Organisation nicht gefunden.</div>;
+    return <div className="p-8 text-center"><LocalizedText tKey="orgNotFound" /></div>;
   }
 
   // Verification
   const tokenToVerify = cookieToken;
 
   if (!tokenToVerify) {
-    return <div className="p-8 text-center text-destructive font-bold">Kein Token angegeben. Zugriff verweigert.</div>;
+    return <LocalizedText tKey="noToken" className="p-8 text-center text-destructive font-bold" as="div" />;
   }
 
   const isValidSession = sessions.some((s) => s.token === tokenToVerify);
   
   if (!isValidSession) {
-    return <div className="p-8 text-center text-destructive font-bold">Ungültiger oder abgelaufener Token.</div>;
+    return <LocalizedText tKey="invalidToken" className="p-8 text-center text-destructive font-bold" as="div" />;
   }
 
   return (

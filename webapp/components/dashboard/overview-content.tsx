@@ -157,6 +157,7 @@ function filterOrdersByPeriod(orders: Order[], period: TimePeriod): Order[] {
 }
 
 function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSelected: boolean; onToggle: () => void }) {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -201,7 +202,7 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
           "cursor-grab active:cursor-grabbing p-1 -ml-1 rounded transition-colors shrink-0 touch-none",
           isSelected ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         )}
-        title="Reihenfolge ändern"
+        title={t("reorder")}
       >
         <DotsSixVertical className="h-4 w-4" weight="bold" />
       </div>
@@ -474,7 +475,13 @@ function QrCodeGeneratorCard({
         toast.error(result.error as string);
         setTables(currentTables);
       } else {
+        const count = selectedTablesSet.size;
         setSelectedTables([]);
+        toast.success(
+          count === 1
+            ? t("tableDeleted")
+            : t("tablesDeleted")
+        );
       }
     });
   };
@@ -640,9 +647,9 @@ function QrCodeGeneratorCard({
                       strategy={rectSortingStrategy}
                     >
                       {tables.length === 0 && !isAddingTable && (
-                        <div className="p-4 text-center border border-dashed rounded-xl mb-3">
-                          <p className="text-sm text-muted-foreground font-medium">
-                            {t("noTablesAdded") || "Noch keine Tische hinzugefügt."}
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+                          <p className="mb-4">
+                            {t("noTablesAdded")}
                           </p>
                         </div>
                       )}
@@ -775,9 +782,15 @@ function QrCodeGeneratorCard({
       <Dialog open={deleteTablesDialogOpen} onOpenChange={setDeleteTablesDialogOpen}>
         <DialogContent className="bg-primary text-primary-foreground border-border/20">
           <DialogHeader>
-            <DialogTitle>{t("deleteTablesTitle")}</DialogTitle>
+            <DialogTitle>
+              {selectedTables.length === 1
+                ? t("deleteTableTitle")
+                : t("deleteTablesTitle")}
+            </DialogTitle>
             <DialogDescription className="text-primary-foreground/80">
-              {t("deleteTablesDesc")}
+              {selectedTables.length === 1
+                ? t("deleteTableDesc")
+                : t("deleteTablesDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex w-full gap-3 mt-2">

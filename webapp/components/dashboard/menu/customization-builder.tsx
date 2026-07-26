@@ -342,7 +342,7 @@ function SortableStepCard({
                   size="icon"
                   onClick={finishEditingName}
                   className="h-8 w-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10 shrink-0"
-                  title={t('save') || 'Speichern'}
+                  title={t('save')}
                 >
                   <Check className="w-4 h-4 text-primary-foreground" weight="bold" />
                 </Button>

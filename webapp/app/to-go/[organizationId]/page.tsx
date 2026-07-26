@@ -6,6 +6,7 @@ import {
 } from "@/lib/appwrite/database";
 import { GuestFrontend } from "@/components/guest/guest-frontend";
 import { Storefront } from "@phosphor-icons/react/dist/ssr";
+import { LocalizedText } from "@/components/ui/localized-text";
 
 export const metadata = { title: "Bestellen | To-Go" };
 
@@ -29,7 +30,7 @@ export default async function ToGoPage({
   ]);
 
   if (!organization)
-    return <div className="p-8 text-center">Organization not found</div>;
+    return <div className="p-8 text-center"><LocalizedText tKey="orgNotFound" /></div>;
 
   if (organization.isToGoEnabled === false && !order) {
     return (
@@ -40,11 +41,13 @@ export default async function ToGoPage({
             weight="duotone"
           />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Abholung pausiert</h1>
-        <p className="text-muted-foreground max-w-sm">
-          {organization.name} nimmt momentan keine To-Go Bestellungen an. Bitte
-          versuche es später noch einmal.
-        </p>
+        <h1 className="text-2xl font-bold mb-2"><LocalizedText tKey="pickupPaused" /></h1>
+        <LocalizedText 
+          tKey="notAcceptingToGoOrders" 
+          params={{ name: organization.name }}
+          className="text-muted-foreground max-w-sm" 
+          as="p" 
+        />
       </div>
     );
   }

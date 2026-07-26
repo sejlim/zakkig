@@ -2,7 +2,7 @@
 
 export type Locale = "de" | "en";
 
-const translations = {
+export const translations = {
   de: {
     // Auth
     sales: "Verkäufe",
@@ -159,11 +159,20 @@ const translations = {
     noOrders: "Noch keine Live-Bestellungen vorhanden.",
     noArchiveOrders: "Keine Bestellungen im Archiv.",
     inProgress: "In Bearbeitung",
-    inProgressSubline: "Frisch eingegangene und aktive Bestellungen, die vom Küchenteam zubereitet werden.",
-    completedSubline: "Fertige Bestellungen für Abholung oder Service. Werden nach 15 Minuten automatisch ins Archiv verschoben.",
+    inProgressSubline: "Alle aktiven Bestellungen, die zurzeit bearbeitet werden.",
+    completedSubline: "Fertige Bestellungen zum Abholen oder Tischservice. Sind nach 15 Minuten nurnoch im Archiv auffindbar.",
     completeAction: "Abschließen",
-    toPickUp: "Zum Abholen",
-    toTable: "An Tisch",
+    cancelOrder: "Stornieren",
+    cancelOrderTitle: 'Bestellung "{orderNumber}" wirklich stornieren?',
+    cancelOrderTitleFallback: "Bestellung wirklich stornieren?",
+    cancelOrderWarning: "Diese Bestellung wurde wahrscheinlich bereits bezahlt! Bitte kümmere dich umgehend um eine Rückerstattung des Geldes beim entsprechenden Kunden.",
+    confirmCancelOrder: "Stornieren",
+    abortCancel: "Abbrechen",
+    cancelledOrder: "Storniert",
+    orderCancelledTitle: "Bestellung storniert",
+    orderCancelledDesc: "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal.",
+    toPickUp: "zum Abholen",
+    toTable: "an Tisch",
     noInProgressOrders: "Keine Bestellungen in Bearbeitung.",
     noCompletedRecentOrders: "Keine kürzlich abgeschlossenen Bestellungen.",
     autoArchiveNotice: "Abgeschlossene Bestellungen werden nach 15 Minuten automatisch ins Archiv verschoben.",
@@ -180,13 +189,16 @@ const translations = {
     noTablesAdded: "Noch keine Tische hinzugefügt.",
     tableExists: "Tischnummer existiert bereits",
     tablesDeleted: "Tische gelöscht",
+    tableDeleted: "Tisch gelöscht",
     featureEnabled: "Funktion aktiviert",
     featureDisabled: "Funktion deaktiviert",
     confirmAction: "Aktion bestätigen",
     confirmDeactivate: "Möchten Sie diese Funktion wirklich deaktivieren?",
     confirmDeleteTables: "Möchten Sie die ausgewählten Tische wirklich löschen?",
     deleteTablesTitle: "Ausgewählte Tische löschen",
+    deleteTableTitle: "Ausgewählten Tisch löschen",
     deleteTablesDesc: "Bist du sicher, dass du die ausgewählten Tische unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
+    deleteTableDesc: "Bist du sicher, dass du den ausgewählten Tisch unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
     activate: "Aktivieren",
     deactivate: "Deaktivieren",
     printMultipleCodes: "{{count}} drucken",
@@ -222,7 +234,7 @@ const translations = {
     noItemsHint: "Füge deinen ersten Artikel hinzu.",
     confirmDelete: "Wirklich löschen?",
     confirmDeleteDescription: "Diese Aktion kann nicht rückgängig gemacht werden.",
-    confirmDeleteCategoryDesc: "Die Kategorie und alle zugehörigen Artikel werden unwiderruflich gelöscht.",
+
     itemCount: "{{count}} Artikel",
     basicInfo: "Grundinfos",
     imageSection: "Produktbild",
@@ -294,7 +306,6 @@ const translations = {
     delete: "Löschen",
 
     // Kitchen Board
-    inProgress: "In Bearbeitung",
     done: "Abgeschlossen",
     markDone: "Als fertig markieren",
     clearOrder: "Bestellung entfernen",
@@ -328,6 +339,47 @@ const translations = {
     trackingExpired: "Dieser Tracking-Link ist abgelaufen.",
     quantity: "Menge",
     priceWithTax: "(inkl. MwSt.)",
+
+    verifyLogin: "Anmeldung bestätigen",
+    verifyLoginDesc: "Wir haben dir einen 6-stelligen Code an {email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.",
+    verifyEmail: "E-Mail bestätigen",
+    verifyEmailDesc: "Wir haben dir einen 6-stelligen Code an {email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.",
+    termsAgreementPrefix: "Durch die Registrierung erklärst du dich mit unseren ",
+    termsAndConditions: "AGB",
+    termsAgreementMiddle: " und unserer ",
+    privacyPolicy: "Datenschutzerklärung",
+    termsAgreementSuffix: " einverstanden.",
+    invalidLink: "Ungültiger Link",
+    invalidLinkDesc: "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen.",
+    requestNewLink: "Neuen Link anfordern",
+    passwordChangedSuccess: "Passwort erfolgreich geändert",
+    passwordChangedDesc: "Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
+    resetPasswordTitle: "Passwort zurücksetzen",
+    resetPasswordSubtitle: "Gib dein neues Passwort ein",
+    newPasswordLabel: "Neues Passwort",
+
+    changePassword: "Passwort ändern",
+    menuEmpty: "Das Menü ist leer.",
+    itemAvailable: "Artikel verfügbar",
+    itemSoldOut: "Artikel ausverkauft",
+    toggleStepAvailability: "Schritt Verfügbarkeit umschalten",
+    toggleOptionAvailability: "Option Verfügbarkeit umschalten",
+    confirmDeleteCategoryTitle: 'Kategorie "{name}" löschen?',
+    confirmDeleteItemTitle: 'Artikel "{name}" löschen?',
+    confirmDeleteCategoryDesc: 'Möchtest du die Kategorie "{name}" und alle darin enthaltenen Artikel wirklich unwiderruflich aus deiner Speisekarte entfernen?',
+    confirmDeleteItemDesc: 'Möchtest du den Artikel "{name}" wirklich unwiderruflich aus deiner Speisekarte entfernen?',
+    reorderCategories: "Kategorien anordnen",
+    reorderTables: "Tische anordnen",
+    reorder: "Reihenfolge ändern",
+    deletionRequestSent: "Löschanfrage gesendet.",
+    accountDataInfo: "Account-Daten können derzeit über das Appwrite Dashboard geändert werden.",
+    invalidToken: "Ungültiger oder abgelaufener Token.",
+    notAcceptingOrders: "{name} nimmt momentan keine Tisch-Bestellungen über das Smartphone entgegen.",
+    notAcceptingToGoOrders: "{name} nimmt momentan keine To-Go-Bestellungen entgegen. Bitte versuche es später noch einmal.",
+    orgNotFound: "Organisation nicht gefunden.",
+    noToken: "Kein Token angegeben. Zugriff verweigert.",
+    ordersPaused: "Bestellungen pausiert",
+    pickupPaused: "Abholung pausiert",
 
     // Common
     loading: "Laden...",
@@ -497,11 +549,20 @@ const translations = {
     noOrders: "No live orders yet.",
     noArchiveOrders: "No orders in archive.",
     inProgress: "In Progress",
-    inProgressSubline: "Freshly received and active orders being prepared by the kitchen team.",
-    completedSubline: "Finished orders ready for pickup or table service. Automatically moved to the archive after 15 minutes.",
+    inProgressSubline: "All active orders currently being processed.",
+    completedSubline: "Finished orders for pickup or table service. Can only be found in the archive after 15 minutes.",
     completeAction: "Complete",
-    toPickUp: "To Go",
-    toTable: "To Table",
+    cancelOrder: "Cancel",
+    cancelOrderTitle: 'Really cancel order "{orderNumber}"?',
+    cancelOrderTitleFallback: "Really cancel order?",
+    cancelOrderWarning: "This order has likely already been paid for! Please ensure that a refund is issued to the customer immediately.",
+    confirmCancelOrder: "Cancel order",
+    abortCancel: "Abort",
+    cancelledOrder: "Cancelled",
+    orderCancelledTitle: "Order cancelled",
+    orderCancelledDesc: "This order has been cancelled. If you have already paid online or on-site, please contact the staff directly for a refund.",
+    toPickUp: "to go",
+    toTable: "to table",
     noInProgressOrders: "No orders in progress.",
     noCompletedRecentOrders: "No recently completed orders.",
     autoArchiveNotice: "Completed orders are automatically moved to the archive after 15 minutes.",
@@ -518,13 +579,16 @@ const translations = {
     noTablesAdded: "No tables added yet.",
     tableExists: "Table number already exists",
     tablesDeleted: "Tables deleted",
+    tableDeleted: "Table deleted",
     featureEnabled: "Feature enabled",
     featureDisabled: "Feature disabled",
     confirmAction: "Confirm action",
     confirmDeactivate: "Do you really want to deactivate this feature?",
     confirmDeleteTables: "Do you really want to delete the selected tables?",
     deleteTablesTitle: "Delete Selected Tables",
+    deleteTableTitle: "Delete Selected Table",
     deleteTablesDesc: "Are you sure you want to permanently remove the selected tables from your QR code management?",
+    deleteTableDesc: "Are you sure you want to permanently remove the selected table from your QR code management?",
     activate: "Activate",
     deactivate: "Deactivate",
     printMultipleCodes: "Print {{count}}",
@@ -560,7 +624,7 @@ const translations = {
     noItemsHint: "Add your first item.",
     confirmDelete: "Really delete?",
     confirmDeleteDescription: "This action cannot be undone.",
-    confirmDeleteCategoryDesc: "The category and all its items will be permanently deleted.",
+
     itemCount: "{{count}} items",
     basicInfo: "Basic info",
     imageSection: "Product image",
@@ -632,7 +696,6 @@ const translations = {
     delete: "Delete",
 
     // Kitchen Board
-    inProgress: "In Progress",
     done: "Done",
     markDone: "Mark as done",
     clearOrder: "Clear order",
@@ -667,6 +730,47 @@ const translations = {
     quantity: "Quantity",
     priceWithTax: "(incl. VAT)",
 
+    verifyLogin: "Verify Login",
+    verifyLoginDesc: "We sent a 6-digit code to {email}. Enter the code in the input field below and confirm to continue.",
+    verifyEmail: "Verify Email",
+    verifyEmailDesc: "We sent a 6-digit code to {email}. Enter the code in the input field below and confirm to continue.",
+    termsAgreementPrefix: "By registering, you agree to our ",
+    termsAndConditions: "Terms of Service",
+    termsAgreementMiddle: " and our ",
+    privacyPolicy: "Privacy Policy",
+    termsAgreementSuffix: ".",
+    invalidLink: "Invalid Link",
+    invalidLinkDesc: "This password reset link is invalid or has expired.",
+    requestNewLink: "Request new link",
+    passwordChangedSuccess: "Password successfully changed",
+    passwordChangedDesc: "You can now sign in with your new password.",
+    resetPasswordTitle: "Reset Password",
+    resetPasswordSubtitle: "Enter your new password",
+    newPasswordLabel: "New Password",
+
+    changePassword: "Change Password",
+    menuEmpty: "The menu is empty.",
+    itemAvailable: "Item available",
+    itemSoldOut: "Item sold out",
+    toggleStepAvailability: "Toggle step availability",
+    toggleOptionAvailability: "Toggle option availability",
+    confirmDeleteCategoryTitle: 'Delete category "{name}"?',
+    confirmDeleteItemTitle: 'Delete item "{name}"?',
+    confirmDeleteCategoryDesc: 'Are you sure you want to permanently remove the category "{name}" and all of its items from your menu?',
+    confirmDeleteItemDesc: 'Are you sure you want to permanently remove the item "{name}" from your menu?',
+    reorderCategories: "Reorder categories",
+    reorderTables: "Reorder tables",
+    reorder: "Change order",
+    deletionRequestSent: "Deletion request sent.",
+    accountDataInfo: "Account data can currently be modified via the Appwrite Dashboard.",
+    invalidToken: "Invalid or expired token.",
+    notAcceptingOrders: "{name} is currently not accepting table orders via smartphone.",
+    notAcceptingToGoOrders: "{name} is currently not accepting To-Go orders. Please try again later.",
+    orgNotFound: "Organization not found.",
+    noToken: "No token provided. Access denied.",
+    ordersPaused: "Orders paused",
+    pickupPaused: "Pickup paused",
+
     // Common
     loading: "Loading...",
     error: "An error occurred.",
@@ -685,7 +789,7 @@ const translations = {
 import { useState, useEffect, useCallback } from "react";
 import { useLanguageStore } from "@/store/language-store";
 
-type TranslationKey = keyof typeof translations.de;
+export type TranslationKey = keyof typeof translations.de;
 
 export function useTranslation() {
   const storeLocale = useLanguageStore((state) => state.locale);
@@ -696,8 +800,14 @@ export function useTranslation() {
   }, [storeLocale]);
 
   const t = useCallback(
-    (key: TranslationKey): string => {
-      return translations[locale][key];
+    (key: TranslationKey, params?: Record<string, string | number>): string => {
+      let text: string = (translations[locale] as Record<string, string>)[key] || (key as string);
+      if (params) {
+        Object.entries(params).forEach(([paramKey, paramValue]) => {
+          text = text.replace(new RegExp(`\\{${paramKey}\\}`, "g"), String(paramValue));
+        });
+      }
+      return text;
     },
     [locale],
   );

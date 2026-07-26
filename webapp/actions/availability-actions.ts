@@ -8,7 +8,7 @@ import {
 } from "@/lib/appwrite/database";
 import { getUser } from "@/lib/appwrite/server";
 
-export async function createAvailabilitySessionAction(organizationId: string) {
+async function createAvailabilitySessionAction(organizationId: string) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
 
@@ -24,7 +24,7 @@ export async function createAvailabilitySessionAction(organizationId: string) {
   }
 }
 
-export async function deleteAvailabilitySessionAction(
+async function deleteAvailabilitySessionAction(
   sessionId: string,
   organizationId: string,
 ) {

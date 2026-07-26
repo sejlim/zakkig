@@ -156,7 +156,7 @@ export async function exportOrdersCSVAction(organizationId: string) {
 
 // ─── Kitchen Sessions ───────────────────────────────────────────
 
-export async function createOrderSessionAction(organizationId: string) {
+async function createOrderSessionAction(organizationId: string) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
 
@@ -173,7 +173,7 @@ export async function createOrderSessionAction(organizationId: string) {
   }
 }
 
-export async function deleteOrderSessionAction(
+async function deleteOrderSessionAction(
   sessionId: string,
   organizationId: string,
 ) {

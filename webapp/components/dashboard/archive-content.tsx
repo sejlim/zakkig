@@ -41,6 +41,7 @@ const statusVariants: Record<
   preparing: "secondary",
   ready: "default",
   completed: "outline",
+  cancelled: "destructive",
 };
 
 export function ArchiveContent({ orders, organizationId }: ArchiveContentProps) {
@@ -60,6 +61,7 @@ export function ArchiveContent({ orders, organizationId }: ArchiveContentProps) 
       preparing: t("preparing"),
       ready: t("ready"),
       completed: t("completed"),
+      cancelled: t("cancelledOrder"),
     };
     return labels[status] || status;
   }
@@ -132,7 +134,7 @@ export function ArchiveContent({ orders, organizationId }: ArchiveContentProps) 
                   const items = parseItems(order.items);
                   return (
                     <TableRow key={order.$id}>
-                      <TableCell className="font-mono text-sm">
+                      <TableCell className="font-semibold tabular-nums text-sm">
                         {order.orderNumber}
                       </TableCell>
                       <TableCell>

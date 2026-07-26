@@ -59,8 +59,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             <Input id="account-email" value={user.email} disabled />
           </div>
           <p className="text-sm text-muted-foreground">
-            Account-Daten können derzeit über das Appwrite Dashboard geändert
-            werden.
+            {t("accountDataInfo")}
           </p>
         </CardContent>
       </Card>
@@ -174,7 +173,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             variant="destructive"
             onClick={async () => {
               await requestAccountDeletionAction();
-              toast.success("Löschanfrage gesendet.");
+              toast.success(t("deletionRequestSent"));
             }}
           >
             <WarningCircle className="mr-2" />

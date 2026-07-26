@@ -130,12 +130,12 @@ export function AvailabilityContent({
   );
 
   return (
-    <div className="flex flex-col gap-6 w-full pb-24">
+    <div className="flex-1 space-y-4 pb-24">
       {/* Page Header (wie bei allen anderen Dashboard Pages) */}
-      <div className="flex items-center justify-between space-y-2 pb-2">
+      <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">
-            {t("availability" as any) || "Verfügbarkeit"}
+            {t("availability" as any)}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export function AvailabilityContent({
       <div className="flex flex-col gap-6 w-full">
         {categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
-            <p>Das Menü ist leer.</p>
+            <p>{t("menuEmpty")}</p>
           </div>
         ) : isDesktop ? (
           <div className="flex gap-6 items-start w-full">
@@ -291,6 +291,16 @@ function ItemsMasonryGrid({
     />
   );
 
+  const cols2: MenuItem[][] = [[], []];
+  const cols3: MenuItem[][] = [[], [], []];
+  const cols4: MenuItem[][] = [[], [], [], []];
+  
+  items.forEach((item, i) => {
+    cols2[i % 2].push(item);
+    cols3[i % 3].push(item);
+    cols4[i % 4].push(item);
+  });
+
   return (
     <>
       {/* 1 Column (Mobile < md) */}
@@ -301,39 +311,39 @@ function ItemsMasonryGrid({
       {/* 2 Columns (Tablet md to < xl) */}
       <div className="hidden md:grid xl:hidden grid-cols-2 gap-3 sm:gap-4 items-start">
         <div className="flex flex-col gap-3 sm:gap-4">
-          {items.filter((_, i) => i % 2 === 0).map(renderCard)}
+          {cols2[0].map(renderCard)}
         </div>
         <div className="flex flex-col gap-3 sm:gap-4">
-          {items.filter((_, i) => i % 2 === 1).map(renderCard)}
+          {cols2[1].map(renderCard)}
         </div>
       </div>
 
       {/* 3 Columns (Desktop xl to < 2xl) */}
       <div className="hidden xl:grid 2xl:hidden grid-cols-3 gap-4 items-start">
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 3 === 0).map(renderCard)}
+          {cols3[0].map(renderCard)}
         </div>
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 3 === 1).map(renderCard)}
+          {cols3[1].map(renderCard)}
         </div>
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 3 === 2).map(renderCard)}
+          {cols3[2].map(renderCard)}
         </div>
       </div>
 
       {/* 4 Columns (Large Desktop >= 2xl) */}
       <div className="hidden 2xl:grid grid-cols-4 gap-4 items-start">
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 4 === 0).map(renderCard)}
+          {cols4[0].map(renderCard)}
         </div>
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 4 === 1).map(renderCard)}
+          {cols4[1].map(renderCard)}
         </div>
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 4 === 2).map(renderCard)}
+          {cols4[2].map(renderCard)}
         </div>
         <div className="flex flex-col gap-4">
-          {items.filter((_, i) => i % 4 === 3).map(renderCard)}
+          {cols4[3].map(renderCard)}
         </div>
       </div>
     </>
@@ -351,6 +361,7 @@ function ItemCardView({
 }) {
   const steps = parseCustomizations(item.customizations);
   const [showOptions, setShowOptions] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <div className="flex flex-col rounded-xl border bg-background p-3 gap-3">
@@ -395,7 +406,7 @@ function ItemCardView({
           <Switch
             checked={item.available}
             onCheckedChange={(checked) => onToggleItem(item.$id, checked)}
-            title={item.available ? "Artikel verfügbar" : "Artikel ausverkauft"}
+            title={item.available ? t("itemAvailable") : t("itemSoldOut")}
           />
         </div>
       </div>
@@ -408,7 +419,7 @@ function ItemCardView({
             onClick={() => setShowOptions(!showOptions)}
             className="flex items-center justify-between w-full text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1"
           >
-            <span>Zusammenstellung</span>
+            <span>{t("customization")}</span>
             {showOptions ? <CaretUp className="h-3.5 w-3.5" weight="bold" /> : <CaretDown className="h-3.5 w-3.5" weight="bold" />}
           </button>
 
@@ -428,7 +439,7 @@ function ItemCardView({
                         <Switch
                           checked={stepAvailable}
                           onCheckedChange={(checked) => onToggleCustomization(item.$id, stepId, null, checked)}
-                          title="Schritt Verfügbarkeit umschalten"
+                          title={t("toggleStepAvailability")}
                         />
                       </div>
                     </div>
@@ -459,7 +470,7 @@ function ItemCardView({
                                 checked={opt.available !== false}
                                 disabled={!stepAvailable}
                                 onCheckedChange={(checked) => onToggleCustomization(item.$id, stepId, optId, checked)}
-                                title="Option Verfügbarkeit umschalten"
+                                title={t("toggleOptionAvailability")}
                               />
                             </div>
                           </div>

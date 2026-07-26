@@ -55,11 +55,7 @@ function ResetPasswordConfirmForm() {
       toast.error(t(state.error as any));
     }
     if (state.success) {
-      toast.success(
-        locale === "de"
-          ? "Passwort erfolgreich geändert"
-          : "Password successfully changed",
-      );
+      toast.success(t("passwordChangedSuccess" as any));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
@@ -130,23 +126,22 @@ function ResetPasswordConfirmForm() {
 }
 
 function InvalidLinkState({ locale }: { locale: string }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <X className="w-12 h-12 text-red-500 mb-4" />
       <h2 className="text-xl font-semibold">
-        {locale === "de" ? "Ungültiger Link" : "Invalid Link"}
+        {t("invalidLink")}
       </h2>
       <p className="text-muted-foreground mt-2">
-        {locale === "de"
-          ? "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen."
-          : "This password reset link is invalid or has expired."}
+        {t("invalidLinkDesc")}
       </p>
       <Button
         type="button"
         onClick={() => (window.location.href = "/reset-password")}
         className="mt-6"
       >
-        {locale === "de" ? "Neuen Link anfordern" : "Request new link"}
+        {t("requestNewLink")}
       </Button>
     </div>
   );
@@ -157,14 +152,10 @@ function SuccessState({ locale, t }: { locale: string; t: any }) {
     <>
       <CardHeader className="flex-col items-start gap-1 pt-4">
         <CardTitle className="text-2xl">
-          {locale === "de"
-            ? "Passwort erfolgreich geändert"
-            : "Password successfully changed"}
+          {t("passwordChangedSuccess" as any)}
         </CardTitle>
         <CardDescription className="text-primary-foreground/80">
-          {locale === "de"
-            ? "Du kannst dich nun mit deinem neuen Passwort anmelden."
-            : "You can now sign in with your new password."}
+          {t("passwordChangedDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -201,12 +192,10 @@ function PasswordResetFormContent({
     <>
       <CardHeader className="flex-col items-start gap-1 pt-4">
         <CardTitle className="text-2xl">
-          {locale === "de" ? "Passwort zurücksetzen" : "Reset Password"}
+          {t("resetPasswordTitle")}
         </CardTitle>
         <CardDescription className="text-primary-foreground/80">
-          {locale === "de"
-            ? "Bitte gib dein neues Passwort ein."
-            : "Please enter your new password."}
+          {t("resetPasswordSubtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -221,7 +210,7 @@ function PasswordResetFormContent({
                 htmlFor="password"
                 className={`text-sm font-semibold ${fieldErrors.password ? "text-destructive" : ""}`}
               >
-                {locale === "de" ? "Neues Passwort" : "New Password"}{" "}
+                {t("newPasswordLabel")}{" "}
                 <span className="text-destructive">*</span>
               </label>
               <div className="relative">
@@ -409,12 +398,12 @@ function PasswordResetFormContent({
             {isPending ? (
               <>
                 <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
-                {locale === "de" ? "Speichern..." : "Saving..."}
+                {t("saving")}
               </>
             ) : (
               <>
                 <FloppyDisk className="w-5 h-5" weight="bold" />
-                {locale === "de" ? "Passwort ändern" : "Change Password"}
+                {t("changePassword")}
               </>
             )}
           </Button>

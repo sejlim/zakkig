@@ -68,7 +68,7 @@ function GuestOrderSuccess({
       <h1 className="text-3xl font-bold">{t("orderPlaced")}</h1>
       <div>
         <p className="text-muted-foreground mb-2">{t("yourOrderNumber")}</p>
-        <div className="text-5xl font-mono font-bold tracking-tighter">
+        <div className="text-5xl font-bold tracking-tighter tabular-nums">
           {orderNumber}
         </div>
       </div>

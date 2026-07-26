@@ -74,11 +74,9 @@ function OtpForm({ state }: { state: any }) {
         <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
       </div>
       <CardHeader className="flex-col items-start gap-1 pt-4">
-        <CardTitle className="text-2xl">{locale === 'de' ? 'Anmeldung bestätigen' : 'Verify Login'}</CardTitle>
+        <CardTitle className="text-2xl">{t("verifyLogin")}</CardTitle>
         <CardDescription className="text-primary-foreground/80">
-          {locale === 'de' 
-            ? `Wir haben dir einen 6-stelligen Code an ${state.email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.` 
-            : `We have sent a 6-digit code to ${state.email}. Enter the code in the input field below and confirm to continue.`}
+          {t("verifyLoginDesc", { email: state.email || "" })}
         </CardDescription>
       </CardHeader>
       <CardContent>

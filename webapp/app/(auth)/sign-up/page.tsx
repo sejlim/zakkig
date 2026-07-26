@@ -77,11 +77,9 @@ function OtpForm({ state }: { state: any }) {
         <LanguageSwitcher variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" />
       </div>
       <CardHeader className="flex-col items-start gap-1 pt-4">
-        <CardTitle className="text-2xl">{locale === 'de' ? 'E-Mail bestätigen' : 'Verify Email'}</CardTitle>
+        <CardTitle className="text-2xl">{t("verifyEmail")}</CardTitle>
         <CardDescription className="text-primary-foreground/80">
-          {locale === 'de' 
-            ? `Wir haben dir einen 6-stelligen Code an ${state.email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.` 
-            : `We have sent a 6-digit code to ${state.email}. Enter the code in the input field below and confirm to continue.`}
+          {t("verifyEmailDesc", { email: state.email || "" })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -405,15 +403,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                     {t('agreeToTerms')}
                   </label>
                   <p className="text-xs text-muted-foreground">
-                    {locale === 'de' ? (
-                      <>
-                        Durch die Registrierung erklärst du dich mit unseren <a href="https://www.zakkig.de/agb" className="underline hover:text-foreground" target="_blank" rel="noreferrer">AGB</a> und unserer <a href="https://www.zakkig.de/datenschutz" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Datenschutzerklärung</a> einverstanden.
-                      </>
-                    ) : (
-                      <>
-                        By registering, you agree to our <a href="https://www.zakkig.de/en/terms" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Terms of Service</a> and <a href="https://www.zakkig.de/en/privacy" className="underline hover:text-foreground" target="_blank" rel="noreferrer">Privacy Policy</a>.
-                      </>
-                    )}
+                    {t("termsAgreementPrefix")}<a href={locale === 'de' ? "https://www.zakkig.de/agb" : "https://www.zakkig.de/en/terms"} className="underline hover:text-foreground" target="_blank" rel="noreferrer">{t("termsAndConditions")}</a>{t("termsAgreementMiddle")}<a href={locale === 'de' ? "https://www.zakkig.de/datenschutz" : "https://www.zakkig.de/en/privacy"} className="underline hover:text-foreground" target="_blank" rel="noreferrer">{t("privacyPolicy")}</a>{t("termsAgreementSuffix")}
                   </p>
                 </div>
               </div>
@@ -430,7 +420,7 @@ function SignUpForm({ state, formAction, isPending }: { state: any, formAction: 
                 disabled={isPending || isCheckingEmail}
               >
                 <ArrowLeft className="w-5 h-5" weight="bold" />
-                {t('back' as any) || 'Zurück'}
+                {t('back')}
               </Button>
             )}
             

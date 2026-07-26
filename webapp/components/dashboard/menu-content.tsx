@@ -460,14 +460,22 @@ export function MenuContent({
     if (!deleteConfirm) return
     if (deleteConfirm.type === 'category') {
       const res = await deleteCategoryAction(deleteConfirm.id, organizationId)
-      if (res?.error) toast.error(res.error)
+      if (res?.error) {
+        toast.error(res.error)
+      } else {
+        toast.success(t('categoryDeleted'))
+      }
     } else if (deleteConfirm.type === 'item') {
       const res = await deleteMenuItemAction(
         deleteConfirm.id,
         organizationId,
         deleteConfirm.imageId,
       )
-      if (res?.error) toast.error(res.error)
+      if (res?.error) {
+        toast.error(res.error)
+      } else {
+        toast.success(t('itemDeleted'))
+      }
     }
     setDeleteConfirm(null)
   }
@@ -653,6 +661,8 @@ export function MenuContent({
                     <button
                       type="button"
                       className="cursor-grabbing p-1 rounded text-muted-foreground transition-colors touch-none shrink-0"
+                      aria-label={t('reorder')}
+                      title={t('reorder')}
                     >
                       <DotsSixVertical className="h-5 w-5" weight="bold" />
                     </button>
@@ -717,13 +727,13 @@ export function MenuContent({
           <DialogHeader>
             <DialogTitle className="text-primary-foreground text-lg font-bold">
               {deleteConfirm?.type === 'category'
-                ? `Kategorie "${deleteConfirm?.name}" wirklich löschen?`
-                : `Artikel "${deleteConfirm?.name}" wirklich löschen?`}
+                ? t("confirmDeleteCategoryTitle", { name: deleteConfirm?.name || "" })
+                : t("confirmDeleteItemTitle", { name: deleteConfirm?.name || "" })}
             </DialogTitle>
             <DialogDescription className="text-primary-foreground/80 text-sm leading-relaxed mt-1">
               {deleteConfirm?.type === 'category'
-                ? `Möchtest du die Kategorie "${deleteConfirm?.name}" und alle darin enthaltenen Artikel wirklich unwiderruflich aus deiner Speisekarte entfernen?`
-                : `Möchtest du den Artikel "${deleteConfirm?.name}" wirklich unwiderruflich aus deiner Speisekarte entfernen?`}
+                ? t("confirmDeleteCategoryDesc", { name: deleteConfirm?.name || "" })
+                : t("confirmDeleteItemDesc", { name: deleteConfirm?.name || "" })}
             </DialogDescription>
           </DialogHeader>
           <div className="flex w-full gap-3 mt-3">
@@ -862,7 +872,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
               {...attributes}
               {...listeners}
               className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-colors touch-none shrink-0"
-              title={t('reorderCategories' as any) || 'Reihenfolge ändern'}
+              title={t('reorderCategories' as any)}
             >
               <DotsSixVertical className="h-5 w-5" weight="bold" />
             </button>
@@ -894,7 +904,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
                   onClick={handleSaveName}
                   disabled={isSavingName}
                   className="h-8 w-8 text-primary hover:text-primary shrink-0"
-                  title="Speichern"
+                  title={t('save')}
                 >
                   <Check className="h-4 w-4" weight="bold" />
                 </Button>

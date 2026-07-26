@@ -5,12 +5,20 @@ import {
   useState,
 } from "react";
 import {
-  CheckCircle,
+  Check,
+  ReceiptX,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useTranslation, formatPrice } from "@/lib/i18n";
 import { subscribeToOrders } from "@/lib/appwrite/realtime";
 import { RefreshButton } from "./refresh-button";
@@ -36,11 +44,13 @@ function parseItems(itemsJson: string): OrderItem[] {
 function OrderGrid({
   orders,
   onComplete,
+  onCancel,
   t,
 }: {
   orders: Order[];
   onComplete?: (orderId: string) => void;
-  t: (key: any) => string;
+  onCancel?: (orderId: string) => void;
+  t: (key: any, params?: any) => string;
 }) {
   const leftOrders = orders.filter((_, i) => i % 2 === 0);
   const rightOrders = orders.filter((_, i) => i % 2 === 1);
@@ -55,14 +65,14 @@ function OrderGrid({
         <div>
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between w-full">
-              <h4 className="text-base font-mono font-bold text-foreground">
-                #{order.orderNumber}
+              <h4 className="text-2xl font-extrabold text-foreground tracking-tight tabular-nums shrink-0">
+                {order.orderNumber}
               </h4>
-              <Badge variant="outline">
+              <span className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight text-right truncate ml-2">
                 {order.type === "dine-in" || order.tableNumber
                   ? `${t("toTable")} ${order.tableNumber || ""}`.trim()
                   : t("toPickUp")}
-              </Badge>
+              </span>
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-2 pb-4">
@@ -90,16 +100,33 @@ function OrderGrid({
             </div>
           </CardContent>
         </div>
-        {onComplete && (
-          <div className="p-4 pt-0">
-            <Button
-              size="sm"
-              className="w-full font-semibold"
-              onClick={() => onComplete(order.$id)}
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              {t("completeAction")}
-            </Button>
+        {(onComplete || onCancel) && (
+          <div
+            className={`p-4 pt-0 grid gap-2 w-full ${
+              onComplete && onCancel
+                ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-1"
+                : "grid-cols-1"
+            }`}
+          >
+            {onCancel && (
+              <Button
+                variant="outline"
+                className="w-full font-semibold border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
+                onClick={() => onCancel(order.$id)}
+              >
+                <ReceiptX className="w-4 h-4 mr-2 shrink-0" weight="bold" />
+                {t("cancelOrder")}
+              </Button>
+            )}
+            {onComplete && (
+              <Button
+                className="w-full font-semibold"
+                onClick={() => onComplete(order.$id)}
+              >
+                <Check className="w-4 h-4 mr-2 shrink-0" weight="bold" />
+                {t("completeAction")}
+              </Button>
+            )}
           </div>
         )}
       </Card>
@@ -107,16 +134,22 @@ function OrderGrid({
   };
 
   return (
-    <div className="flex flex-col 2xl:flex-row gap-4 items-start w-full">
-      <div className="flex flex-col gap-4 flex-1 min-w-0 w-full">
-        {leftOrders.map(renderOrderCard)}
+    <>
+      {/* < md and xl-to-2xl: Single column layout preserving natural order */}
+      <div className="flex flex-col gap-4 w-full md:hidden xl:flex 2xl:hidden">
+        {orders.map(renderOrderCard)}
       </div>
-      {rightOrders.length > 0 && (
-        <div className="flex flex-col gap-4 flex-1 min-w-0 w-full">
+
+      {/* md-to-xl and >= 2xl: Two-column masonry layout where cards always take 50% width */}
+      <div className="hidden md:grid xl:hidden 2xl:grid grid-cols-2 gap-4 items-start w-full">
+        <div className="flex flex-col gap-4 w-full min-w-0">
+          {leftOrders.map(renderOrderCard)}
+        </div>
+        <div className="flex flex-col gap-4 w-full min-w-0">
           {rightOrders.map(renderOrderCard)}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -129,6 +162,7 @@ export function LiveOrdersContent({
   const [mounted, setMounted] = useState(false);
   const [localOrders, setLocalOrders] = useState<Order[]>(orders);
   const [now, setNow] = useState<number>(Date.now());
+  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
   // Keep orders updated if initial prop changes
   useEffect(() => {
@@ -183,7 +217,8 @@ export function LiveOrdersContent({
     return null;
   }
 
-  const inProgressOrders = localOrders.filter((o) => o.status !== "completed");
+  const targetOrder = localOrders.find((o) => o.$id === orderToCancel);
+  const inProgressOrders = localOrders.filter((o) => o.status !== "completed" && o.status !== "cancelled");
   const completedOrders = localOrders.filter((o) => {
     if (o.status !== "completed") return false;
     const timestamp = o.$updatedAt
@@ -205,7 +240,7 @@ export function LiveOrdersContent({
   }
 
   return (
-      <div className="flex-1 space-y-8 pb-12">
+      <div className="flex-1 space-y-4 pb-12">
         {/* Top Header */}
         <div className="flex items-center justify-between space-y-2 print:hidden">
           <div className="flex items-center gap-3">
@@ -217,7 +252,7 @@ export function LiveOrdersContent({
         </div>
 
         {/* Side-by-Side Large Section Cards (Überkacheln) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
           {/* Section 1: In Bearbeitung (In Progress) Big Card */}
           <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-start justify-between pb-2 gap-4">
@@ -242,6 +277,7 @@ export function LiveOrdersContent({
                 <OrderGrid
                   orders={inProgressOrders}
                   onComplete={(id) => handleStatusChange(id, "completed")}
+                  onCancel={(id) => setOrderToCancel(id)}
                   t={t}
                 />
               )}
@@ -269,11 +305,55 @@ export function LiveOrdersContent({
                   {t("noCompletedRecentOrders")}
                 </div>
               ) : (
-                <OrderGrid orders={completedOrders} t={t} />
+                <OrderGrid
+                  orders={completedOrders}
+                  onCancel={(id) => setOrderToCancel(id)}
+                  t={t}
+                />
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* Cancel Order Warning Dialog */}
+        <Dialog
+          open={!!orderToCancel}
+          onOpenChange={(open) => !open && setOrderToCancel(null)}
+        >
+          <DialogContent showCloseButton={false} className="bg-primary text-primary-foreground border-border/20 sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-primary-foreground text-lg font-bold">
+                {targetOrder ? t("cancelOrderTitle", { orderNumber: targetOrder.orderNumber }) : t("cancelOrderTitleFallback")}
+              </DialogTitle>
+              <DialogDescription className="text-primary-foreground/80 text-sm leading-relaxed mt-1">
+                {t("cancelOrderWarning")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex w-full gap-3 mt-3">
+              <Button
+                variant="outline"
+                onClick={() => setOrderToCancel(null)}
+                className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground font-semibold"
+              >
+                {t("abortCancel")}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (orderToCancel) {
+                    handleStatusChange(orderToCancel, "cancelled");
+                    setOrderToCancel(null);
+                    toast.success(t("orderCancelledTitle"));
+                  }
+                }}
+                className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2 font-semibold"
+              >
+                <ReceiptX className="h-4 w-4 shrink-0" weight="bold" />
+                <span>{t("confirmCancelOrder")}</span>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
   );
 }

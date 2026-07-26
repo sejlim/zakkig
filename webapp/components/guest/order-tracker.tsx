@@ -66,6 +66,22 @@ export function OrderTracker({
     );
   }
 
+  if (order.status === "cancelled") {
+    return (
+      <div className="flex flex-col min-h-screen bg-muted/10 items-center justify-center p-6">
+        <Card className="max-w-md w-full p-6 text-center space-y-4 border-destructive/20 bg-destructive/5">
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive font-bold text-xl">
+            ✕
+          </div>
+          <h2 className="text-xl font-bold text-foreground">{t("orderCancelledTitle") || "Bestellung storniert"}</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {t("orderCancelledDesc") || "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal."}
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   const currentStepIndex = order.status === "completed" ? 1 : 0;
 
   return (
@@ -81,7 +97,7 @@ export function OrderTracker({
       <main className="flex-1 p-4 md:p-6 max-w-md mx-auto w-full flex flex-col items-center justify-center space-y-8">
         <div className="text-center">
           <p className="text-muted-foreground mb-1">{t("yourOrderNumber")}</p>
-          <div className="text-4xl font-mono font-bold">
+          <div className="text-4xl font-bold tabular-nums">
             {order.orderNumber}
           </div>
         </div>
