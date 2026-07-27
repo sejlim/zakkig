@@ -30,7 +30,11 @@ export default async function ToGoPage({
   ]);
 
   if (!organization)
-    return <div className="p-8 text-center"><LocalizedText tKey="orgNotFound" /></div>;
+    return (
+      <div className="p-8 text-center">
+        <LocalizedText tKey="orgNotFound" />
+      </div>
+    );
 
   if (organization.isToGoEnabled === false && !order) {
     return (
@@ -41,12 +45,14 @@ export default async function ToGoPage({
             weight="duotone"
           />
         </div>
-        <h1 className="text-2xl font-bold mb-2"><LocalizedText tKey="pickupPaused" /></h1>
-        <LocalizedText 
-          tKey="notAcceptingToGoOrders" 
+        <h1 className="text-2xl font-bold mb-2">
+          <LocalizedText tKey="pickupPaused" />
+        </h1>
+        <LocalizedText
+          tKey="notAcceptingToGoOrders"
           params={{ name: organization.name }}
-          className="text-muted-foreground max-w-sm" 
-          as="p" 
+          className="text-muted-foreground max-w-sm"
+          as="p"
         />
       </div>
     );

@@ -36,7 +36,11 @@ export function OrderTracker({
     // Realtime subscription
     const unsubscribe = subscribeToOrder(orderId, (response) => {
       const events = response.events || [];
-      if (events.some((e: string) => e.includes(".update") || e.includes("update"))) {
+      if (
+        events.some(
+          (e: string) => e.includes(".update") || e.includes("update"),
+        )
+      ) {
         setOrder(response.payload as unknown as Order);
       }
     });
@@ -73,9 +77,12 @@ export function OrderTracker({
           <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive font-bold text-xl">
             ✕
           </div>
-          <h2 className="text-xl font-bold text-foreground">{t("orderCancelledTitle") || "Bestellung storniert"}</h2>
+          <h2 className="text-xl font-bold text-foreground">
+            {t("orderCancelledTitle") || "Bestellung storniert"}
+          </h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            {t("orderCancelledDesc") || "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal."}
+            {t("orderCancelledDesc") ||
+              "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal."}
           </p>
         </Card>
       </div>

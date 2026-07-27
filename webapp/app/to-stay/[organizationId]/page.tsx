@@ -28,7 +28,11 @@ export default async function ToStayPage({
   ]);
 
   if (!organization)
-    return <div className="p-8 text-center"><LocalizedText tKey="orgNotFound" /></div>;
+    return (
+      <div className="p-8 text-center">
+        <LocalizedText tKey="orgNotFound" />
+      </div>
+    );
 
   if (organization.isToStayEnabled === false) {
     return (
@@ -39,12 +43,14 @@ export default async function ToStayPage({
             weight="duotone"
           />
         </div>
-        <h1 className="text-2xl font-bold mb-2"><LocalizedText tKey="ordersPaused" /></h1>
-        <LocalizedText 
-          tKey="notAcceptingOrders" 
+        <h1 className="text-2xl font-bold mb-2">
+          <LocalizedText tKey="ordersPaused" />
+        </h1>
+        <LocalizedText
+          tKey="notAcceptingOrders"
           params={{ name: organization.name }}
-          className="text-muted-foreground max-w-sm" 
-          as="p" 
+          className="text-muted-foreground max-w-sm"
+          as="p"
         />
       </div>
     );

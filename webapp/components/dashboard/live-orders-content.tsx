@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-import {
-  Check,
-  ReceiptX,
-} from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { Check, ReceiptX } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,10 +52,7 @@ function OrderGrid({
   const renderOrderCard = (order: Order) => {
     const items = parseItems(order.items);
     return (
-      <Card
-        key={order.$id}
-        className="flex flex-col justify-between"
-      >
+      <Card key={order.$id} className="flex flex-col justify-between">
         <div>
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between w-full">
@@ -164,10 +155,12 @@ export function LiveOrdersContent({
   const [now, setNow] = useState<number>(Date.now());
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
-  // Keep orders updated if initial prop changes
-  useEffect(() => {
+  const [prevOrdersProp, setPrevOrdersProp] = useState<Order[]>(orders);
+
+  if (orders !== prevOrdersProp) {
+    setPrevOrdersProp(orders);
     setLocalOrders(orders);
-  }, [orders]);
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -181,9 +174,15 @@ export function LiveOrdersContent({
   useEffect(() => {
     const unsubscribe = subscribeToOrders(organizationId, (response) => {
       const events = response.events || [];
-      const isCreate = events.some((e: string) => e.includes(".create") || e.includes("create"));
-      const isUpdate = events.some((e: string) => e.includes(".update") || e.includes("update"));
-      const isDelete = events.some((e: string) => e.includes(".delete") || e.includes("delete"));
+      const isCreate = events.some(
+        (e: string) => e.includes(".create") || e.includes("create"),
+      );
+      const isUpdate = events.some(
+        (e: string) => e.includes(".update") || e.includes("update"),
+      );
+      const isDelete = events.some(
+        (e: string) => e.includes(".delete") || e.includes("delete"),
+      );
 
       if (isCreate) {
         const newOrder = response.payload as unknown as Order;
@@ -197,9 +196,7 @@ export function LiveOrdersContent({
       } else if (isUpdate) {
         const updatedOrder = response.payload as unknown as Order;
         setLocalOrders((prev) =>
-          prev.map((o) =>
-            o.$id === updatedOrder.$id ? updatedOrder : o,
-          ),
+          prev.map((o) => (o.$id === updatedOrder.$id ? updatedOrder : o)),
         );
       } else if (isDelete) {
         setLocalOrders((prev) =>
@@ -218,7 +215,9 @@ export function LiveOrdersContent({
   }
 
   const targetOrder = localOrders.find((o) => o.$id === orderToCancel);
-  const inProgressOrders = localOrders.filter((o) => o.status !== "completed" && o.status !== "cancelled");
+  const inProgressOrders = localOrders.filter(
+    (o) => o.status !== "completed" && o.status !== "cancelled",
+  );
   const completedOrders = localOrders.filter((o) => {
     if (o.status !== "completed") return false;
     const timestamp = o.$updatedAt
@@ -232,7 +231,11 @@ export function LiveOrdersContent({
     setLocalOrders((prev) =>
       prev.map((o) =>
         o.$id === orderId
-          ? { ...o, status: newStatus as any, $updatedAt: new Date().toISOString() }
+          ? {
+              ...o,
+              status: newStatus as any,
+              $updatedAt: new Date().toISOString(),
+            }
           : o,
       ),
     );
@@ -240,120 +243,127 @@ export function LiveOrdersContent({
   }
 
   return (
-      <div className="flex-1 space-y-4 pb-12">
-        {/* Top Header */}
-        <div className="flex items-center justify-between space-y-2 print:hidden">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{t("orders")}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <RefreshButton />
-          </div>
+    <div className="flex-1 space-y-4 pb-12">
+      {/* Top Header */}
+      <div className="flex items-center justify-between space-y-2 print:hidden">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">{t("orders")}</h1>
         </div>
-
-        {/* Side-by-Side Large Section Cards (Überkacheln) */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-          {/* Section 1: In Bearbeitung (In Progress) Big Card */}
-          <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-start justify-between pb-2 gap-4">
-              <div className="space-y-1 flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-foreground">
-                  {t("inProgress")}
-                </h3>
-                <p className="text-sm text-muted-foreground text-balance leading-relaxed">
-                  {t("inProgressSubline")}
-                </p>
-              </div>
-              <Badge className="bg-primary text-secondary font-semibold text-xs px-2.5 py-0.5 shrink-0">
-                {inProgressOrders.length}
-              </Badge>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              {inProgressOrders.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground font-medium border-2 border-dashed rounded-lg">
-                  {t("noInProgressOrders")}
-                </div>
-              ) : (
-                <OrderGrid
-                  orders={inProgressOrders}
-                  onComplete={(id) => handleStatusChange(id, "completed")}
-                  onCancel={(id) => setOrderToCancel(id)}
-                  t={t}
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Section 2: Abgeschlossen (Completed) Big Card */}
-          <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-start justify-between pb-2 gap-4">
-              <div className="space-y-1 flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-foreground">
-                  {t("completed")}
-                </h3>
-                <p className="text-sm text-muted-foreground text-balance leading-relaxed">
-                  {t("completedSubline")}
-                </p>
-              </div>
-              <Badge className="bg-primary text-secondary font-semibold text-xs px-2.5 py-0.5 shrink-0">
-                {completedOrders.length}
-              </Badge>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              {completedOrders.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground font-medium border-2 border-dashed rounded-lg">
-                  {t("noCompletedRecentOrders")}
-                </div>
-              ) : (
-                <OrderGrid
-                  orders={completedOrders}
-                  onCancel={(id) => setOrderToCancel(id)}
-                  t={t}
-                />
-              )}
-            </CardContent>
-          </Card>
+        <div className="flex items-center gap-2">
+          <RefreshButton />
         </div>
-
-        {/* Cancel Order Warning Dialog */}
-        <Dialog
-          open={!!orderToCancel}
-          onOpenChange={(open) => !open && setOrderToCancel(null)}
-        >
-          <DialogContent showCloseButton={false} className="bg-primary text-primary-foreground border-border/20 sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-primary-foreground text-lg font-bold">
-                {targetOrder ? t("cancelOrderTitle", { orderNumber: targetOrder.orderNumber }) : t("cancelOrderTitleFallback")}
-              </DialogTitle>
-              <DialogDescription className="text-primary-foreground/80 text-sm leading-relaxed mt-1">
-                {t("cancelOrderWarning")}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex w-full gap-3 mt-3">
-              <Button
-                variant="outline"
-                onClick={() => setOrderToCancel(null)}
-                className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground font-semibold"
-              >
-                {t("abortCancel")}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (orderToCancel) {
-                    handleStatusChange(orderToCancel, "cancelled");
-                    setOrderToCancel(null);
-                    toast.success(t("orderCancelledTitle"));
-                  }
-                }}
-                className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2 font-semibold"
-              >
-                <ReceiptX className="h-4 w-4 shrink-0" weight="bold" />
-                <span>{t("confirmCancelOrder")}</span>
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* Side-by-Side Large Section Cards (Überkacheln) */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        {/* Section 1: In Bearbeitung (In Progress) Big Card */}
+        <Card className="flex flex-col">
+          <CardHeader className="flex flex-row items-start justify-between pb-2 gap-4">
+            <div className="space-y-1 flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-foreground">
+                {t("inProgress")}
+              </h3>
+              <p className="text-sm text-muted-foreground text-balance leading-relaxed">
+                {t("inProgressSubline")}
+              </p>
+            </div>
+            <Badge className="bg-primary text-secondary font-semibold text-xs px-2.5 py-0.5 shrink-0">
+              {inProgressOrders.length}
+            </Badge>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            {inProgressOrders.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground font-medium border-2 border-dashed rounded-lg">
+                {t("noInProgressOrders")}
+              </div>
+            ) : (
+              <OrderGrid
+                orders={inProgressOrders}
+                onComplete={(id) => handleStatusChange(id, "completed")}
+                onCancel={(id) => setOrderToCancel(id)}
+                t={t}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Abgeschlossen (Completed) Big Card */}
+        <Card className="flex flex-col">
+          <CardHeader className="flex flex-row items-start justify-between pb-2 gap-4">
+            <div className="space-y-1 flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-foreground">
+                {t("completed")}
+              </h3>
+              <p className="text-sm text-muted-foreground text-balance leading-relaxed">
+                {t("completedSubline")}
+              </p>
+            </div>
+            <Badge className="bg-primary text-secondary font-semibold text-xs px-2.5 py-0.5 shrink-0">
+              {completedOrders.length}
+            </Badge>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            {completedOrders.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground font-medium border-2 border-dashed rounded-lg">
+                {t("noCompletedRecentOrders")}
+              </div>
+            ) : (
+              <OrderGrid
+                orders={completedOrders}
+                onCancel={(id) => setOrderToCancel(id)}
+                t={t}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Cancel Order Warning Dialog */}
+      <Dialog
+        open={!!orderToCancel}
+        onOpenChange={(open) => !open && setOrderToCancel(null)}
+      >
+        <DialogContent
+          showCloseButton={false}
+          className="bg-primary text-primary-foreground border-border/20 sm:max-w-md"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-primary-foreground text-lg font-bold">
+              {targetOrder
+                ? t("cancelOrderTitle", {
+                    orderNumber: targetOrder.orderNumber,
+                  })
+                : t("cancelOrderTitleFallback")}
+            </DialogTitle>
+            <DialogDescription className="text-primary-foreground/80 text-sm leading-relaxed mt-1">
+              {t("cancelOrderWarning")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex w-full gap-3 mt-3">
+            <Button
+              variant="outline"
+              onClick={() => setOrderToCancel(null)}
+              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground font-semibold"
+            >
+              {t("abortCancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (orderToCancel) {
+                  handleStatusChange(orderToCancel, "cancelled");
+                  setOrderToCancel(null);
+                  toast.success(t("orderCancelledTitle"));
+                }
+              }}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2 font-semibold"
+            >
+              <ReceiptX className="h-4 w-4 shrink-0" weight="bold" />
+              <span>{t("confirmCancelOrder")}</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

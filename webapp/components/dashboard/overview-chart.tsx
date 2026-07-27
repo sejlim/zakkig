@@ -97,7 +97,10 @@ export default function OverviewChart({
   xAxisTicks: string[];
 }) {
   return (
-    <ChartContainer config={chartConfig} className="h-[340px] min-h-[340px] w-full min-w-0 mt-4">
+    <ChartContainer
+      config={chartConfig}
+      className="h-[340px] min-h-[340px] w-full min-w-0 mt-4"
+    >
       <ChartInner chartData={chartData} xAxisTicks={xAxisTicks} />
     </ChartContainer>
   );

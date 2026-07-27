@@ -9,7 +9,12 @@ interface LocalizedTextProps {
   as?: React.ElementType;
 }
 
-export function LocalizedText({ tKey, params, className, as: Component = "span" }: LocalizedTextProps) {
+export function LocalizedText({
+  tKey,
+  params,
+  className,
+  as: Component = "span",
+}: LocalizedTextProps) {
   const { t } = useTranslation();
   return <Component className={className}>{t(tKey, params)}</Component>;
 }

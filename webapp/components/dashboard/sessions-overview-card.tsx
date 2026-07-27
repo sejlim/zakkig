@@ -1,7 +1,12 @@
 "use client";
 
 import { useTransition, Fragment, useState } from "react";
-import { Copy, ArrowsClockwise, QrCode, WarningCircle } from "@phosphor-icons/react";
+import {
+  Copy,
+  ArrowsClockwise,
+  QrCode,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -34,10 +39,12 @@ export function SessionsOverviewCard({
 
   const [availabilityQrOpen, setAvailabilityQrOpen] = useState(false);
   const [orderQrOpen, setOrderQrOpen] = useState(false);
-  const [regenerateAvailabilityOpen, setRegenerateAvailabilityOpen] = useState(false);
+  const [regenerateAvailabilityOpen, setRegenerateAvailabilityOpen] =
+    useState(false);
   const [regenerateOrderOpen, setRegenerateOrderOpen] = useState(false);
 
-  const getLink = (path: string, token: string) => `${baseUrl}/${path}/${organizationId}?token=${token}`;
+  const getLink = (path: string, token: string) =>
+    `${baseUrl}/${path}/${organizationId}?token=${token}`;
 
   function copyLinkText(path: string, token: string) {
     const link = getLink(path, token);
@@ -75,19 +82,34 @@ export function SessionsOverviewCard({
       <Card className="h-full flex flex-col">
         <CardHeader className="flex flex-col gap-1 pb-2">
           <div className="flex items-start justify-between gap-4 w-full">
-            <h3 className="text-lg font-semibold leading-tight tracking-tight flex-1">{t("availabilitySessions")}</h3>
-            <Dialog open={availabilityQrOpen} onOpenChange={setAvailabilityQrOpen}>
-              <DialogTrigger render={<Button variant="default" size="icon" className="shrink-0 rounded-full h-8 w-8" />}>
+            <h3 className="text-lg font-semibold leading-tight tracking-tight flex-1">
+              {t("availabilitySessions")}
+            </h3>
+            <Dialog
+              open={availabilityQrOpen}
+              onOpenChange={setAvailabilityQrOpen}
+            >
+              <DialogTrigger
+                render={
+                  <Button
+                    variant="default"
+                    size="icon"
+                    className="shrink-0 rounded-full h-8 w-8"
+                  />
+                }
+              >
                 <QrCode className="h-4 w-4" />
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px] bg-primary text-primary-foreground border-border/20">
                 <DialogHeader>
-                  <DialogTitle className="text-primary-foreground text-lg font-bold">{t("availabilitySessions")}</DialogTitle>
+                  <DialogTitle className="text-primary-foreground text-lg font-bold">
+                    {t("availabilitySessions")}
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-6 p-6">
-                  <a 
-                    href={getLink("availability", availabilityToken)} 
-                    target="_blank" 
+                  <a
+                    href={getLink("availability", availabilityToken)}
+                    target="_blank"
                     rel="noreferrer"
                     className="cursor-pointer [&_image]:invert"
                   >
@@ -96,9 +118,18 @@ export function SessionsOverviewCard({
                       size={240}
                       level="H"
                       background="transparent"
-                      dataModulesSettings={{ color: "#ffffff", style: "square-sm" }}
-                      finderPatternOuterSettings={{ color: "#ffffff", style: "square" }}
-                      finderPatternInnerSettings={{ color: "#ffffff", style: "square" }}
+                      dataModulesSettings={{
+                        color: "#ffffff",
+                        style: "square-sm",
+                      }}
+                      finderPatternOuterSettings={{
+                        color: "#ffffff",
+                        style: "square",
+                      }}
+                      finderPatternInnerSettings={{
+                        color: "#ffffff",
+                        style: "square",
+                      }}
                       imageSettings={{
                         src: "https://www.zakkig.de/full_qr.png",
                         height: Math.round((50 * 240) / 280),
@@ -108,7 +139,10 @@ export function SessionsOverviewCard({
                     />
                   </a>
                   <div className="flex items-start gap-2.5 text-xs text-left text-primary-foreground font-medium bg-primary-foreground/10 p-3 rounded-lg w-[240px]">
-                    <WarningCircle className="w-4 h-4 shrink-0 mt-0.5 text-primary-foreground" weight="fill" />
+                    <WarningCircle
+                      className="w-4 h-4 shrink-0 mt-0.5 text-primary-foreground"
+                      weight="fill"
+                    />
                     <span>{t("staffQrWarning")}</span>
                   </div>
                 </div>
@@ -147,19 +181,31 @@ export function SessionsOverviewCard({
       <Card className="h-full flex flex-col">
         <CardHeader className="flex flex-col gap-1 pb-2">
           <div className="flex items-start justify-between gap-4 w-full">
-            <h3 className="text-lg font-semibold leading-tight tracking-tight flex-1">{t("liveOrderSessions")}</h3>
+            <h3 className="text-lg font-semibold leading-tight tracking-tight flex-1">
+              {t("liveOrderSessions")}
+            </h3>
             <Dialog open={orderQrOpen} onOpenChange={setOrderQrOpen}>
-              <DialogTrigger render={<Button variant="default" size="icon" className="shrink-0 rounded-full h-8 w-8" />}>
+              <DialogTrigger
+                render={
+                  <Button
+                    variant="default"
+                    size="icon"
+                    className="shrink-0 rounded-full h-8 w-8"
+                  />
+                }
+              >
                 <QrCode className="h-4 w-4" />
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px] bg-primary text-primary-foreground border-border/20">
                 <DialogHeader>
-                  <DialogTitle className="text-primary-foreground text-lg font-bold">{t("liveOrderSessions")}</DialogTitle>
+                  <DialogTitle className="text-primary-foreground text-lg font-bold">
+                    {t("liveOrderSessions")}
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-6 p-6">
-                  <a 
-                    href={getLink("orders", orderToken)} 
-                    target="_blank" 
+                  <a
+                    href={getLink("orders", orderToken)}
+                    target="_blank"
                     rel="noreferrer"
                     className="cursor-pointer [&_image]:invert"
                   >
@@ -168,9 +214,18 @@ export function SessionsOverviewCard({
                       size={240}
                       level="H"
                       background="transparent"
-                      dataModulesSettings={{ color: "#ffffff", style: "square-sm" }}
-                      finderPatternOuterSettings={{ color: "#ffffff", style: "square" }}
-                      finderPatternInnerSettings={{ color: "#ffffff", style: "square" }}
+                      dataModulesSettings={{
+                        color: "#ffffff",
+                        style: "square-sm",
+                      }}
+                      finderPatternOuterSettings={{
+                        color: "#ffffff",
+                        style: "square",
+                      }}
+                      finderPatternInnerSettings={{
+                        color: "#ffffff",
+                        style: "square",
+                      }}
                       imageSettings={{
                         src: "https://www.zakkig.de/full_qr.png",
                         height: Math.round((50 * 240) / 280),
@@ -180,7 +235,10 @@ export function SessionsOverviewCard({
                     />
                   </a>
                   <div className="flex items-start gap-2.5 text-xs text-left text-primary-foreground font-medium bg-primary-foreground/10 p-3 rounded-lg w-[240px]">
-                    <WarningCircle className="w-4 h-4 shrink-0 mt-0.5 text-primary-foreground" weight="fill" />
+                    <WarningCircle
+                      className="w-4 h-4 shrink-0 mt-0.5 text-primary-foreground"
+                      weight="fill"
+                    />
                     <span>{t("staffQrWarning")}</span>
                   </div>
                 </div>
@@ -216,7 +274,10 @@ export function SessionsOverviewCard({
       </Card>
 
       {/* Regenerate Availability Confirmation Dialog */}
-      <Dialog open={regenerateAvailabilityOpen} onOpenChange={setRegenerateAvailabilityOpen}>
+      <Dialog
+        open={regenerateAvailabilityOpen}
+        onOpenChange={setRegenerateAvailabilityOpen}
+      >
         <DialogContent className="bg-primary text-primary-foreground border-border/20">
           <DialogHeader>
             <DialogTitle>{t("regenerateAvailabilityTitle")}</DialogTitle>
@@ -225,10 +286,19 @@ export function SessionsOverviewCard({
             </DialogDescription>
           </DialogHeader>
           <div className="flex w-full gap-3 mt-2">
-            <Button variant="outline" onClick={() => setRegenerateAvailabilityOpen(false)} className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground">
+            <Button
+              variant="outline"
+              onClick={() => setRegenerateAvailabilityOpen(false)}
+              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground"
+            >
               {t("cancel")}
             </Button>
-            <Button variant="destructive" onClick={confirmRegenerateAvailability} disabled={isPending} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Button
+              variant="destructive"
+              onClick={confirmRegenerateAvailability}
+              disabled={isPending}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               {t("regenerateConfirm")}
             </Button>
           </div>
@@ -245,10 +315,19 @@ export function SessionsOverviewCard({
             </DialogDescription>
           </DialogHeader>
           <div className="flex w-full gap-3 mt-2">
-            <Button variant="outline" onClick={() => setRegenerateOrderOpen(false)} className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground">
+            <Button
+              variant="outline"
+              onClick={() => setRegenerateOrderOpen(false)}
+              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground"
+            >
               {t("cancel")}
             </Button>
-            <Button variant="destructive" onClick={confirmRegenerateOrder} disabled={isPending} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Button
+              variant="destructive"
+              onClick={confirmRegenerateOrder}
+              disabled={isPending}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               {t("regenerateConfirm")}
             </Button>
           </div>

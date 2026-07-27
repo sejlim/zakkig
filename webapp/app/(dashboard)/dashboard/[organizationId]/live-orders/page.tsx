@@ -16,10 +16,5 @@ export default async function LiveOrdersPage({
 
   if (!organization) return null;
 
-  return (
-    <LiveOrdersContent 
-      orders={orders} 
-      organizationId={organizationId}
-    />
-  );
+  return <LiveOrdersContent orders={orders} organizationId={organizationId} />;
 }

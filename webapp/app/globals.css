@@ -41,8 +41,8 @@
 
   /* Typography & Shadows (Restored) */
   --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-serif: var(--font-sans);
+  --font-mono: var(--font-sans);
   --shadow-x: 0;
   --shadow-y: 1px;
   --shadow-blur: 3px;

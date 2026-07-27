@@ -150,7 +150,9 @@ export async function reorderCategoriesAction(
 
 export async function reorderItemsAction(
   organizationId: string,
-  itemsPayload: (string | { id: string; sortOrder: number; categoryId?: string })[],
+  itemsPayload: (
+    string | { id: string; sortOrder: number; categoryId?: string }
+  )[],
 ) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
@@ -193,15 +195,20 @@ export async function createMenuItemAction(
   let sortOrder = parseInt(rawSortOrder);
   if (isNaN(sortOrder)) {
     const existingItems = await getMenuItems(organizationId);
-    const categoryItems = existingItems.filter((i) => i.categoryId === categoryId);
+    const categoryItems = existingItems.filter(
+      (i) => i.categoryId === categoryId,
+    );
     const maxSortOrder = categoryItems.reduce(
-      (max, i) => (typeof i.sortOrder === "number" && i.sortOrder > max ? i.sortOrder : max),
+      (max, i) =>
+        typeof i.sortOrder === "number" && i.sortOrder > max
+          ? i.sortOrder
+          : max,
       -1,
     );
     sortOrder = maxSortOrder + 1;
   }
   const imageFile = formData.get("image") as File | null;
-  const customizations = formData.get("customizations") as string || "[]";
+  const customizations = (formData.get("customizations") as string) || "[]";
 
   if (!name || isNaN(price)) {
     return { error: "Name und Preis sind erforderlich." };
@@ -254,7 +261,7 @@ export async function updateMenuItemAction(
   const imageFile = formData.get("image") as File | null;
   const existingImageId = formData.get("existingImageId") as string;
   const removeExistingImage = formData.get("removeImage") === "true";
-  const customizations = formData.get("customizations") as string || "[]";
+  const customizations = (formData.get("customizations") as string) || "[]";
 
   if (!name || isNaN(price)) {
     return { error: "Name und Preis sind erforderlich." };
@@ -398,7 +405,9 @@ export async function toggleCustomizationAvailabilityAction(
       }
     });
 
-    await updateMenuItem(itemId, { customizations: JSON.stringify(updatedSteps) });
+    await updateMenuItem(itemId, {
+      customizations: JSON.stringify(updatedSteps),
+    });
     if (organizationId) {
       revalidatePath(`/dashboard/${organizationId}/menu`);
       revalidatePath(`/availability/${organizationId}`);

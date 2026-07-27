@@ -18,10 +18,7 @@ export default async function AvailabilityPage({
   params: Promise<{ organizationId: string }>;
   searchParams: Promise<{ token?: string }>;
 }) {
-  const [{ organizationId }] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+  const [{ organizationId }] = await Promise.all([params, searchParams]);
   const cookieStore = await cookies();
   const cookieName = `availability_session_${organizationId}`;
   const cookieToken = cookieStore.get(cookieName)?.value;
@@ -34,20 +31,36 @@ export default async function AvailabilityPage({
   ]);
 
   if (!organization) {
-    return <div className="p-8 text-center"><LocalizedText tKey="orgNotFound" /></div>;
+    return (
+      <div className="p-8 text-center">
+        <LocalizedText tKey="orgNotFound" />
+      </div>
+    );
   }
 
   // Verification
   const tokenToVerify = cookieToken;
 
   if (!tokenToVerify) {
-    return <LocalizedText tKey="noToken" className="p-8 text-center text-destructive font-bold" as="div" />;
+    return (
+      <LocalizedText
+        tKey="noToken"
+        className="p-8 text-center text-destructive font-bold"
+        as="div"
+      />
+    );
   }
 
   const isValidSession = sessions.some((s) => s.token === tokenToVerify);
-  
+
   if (!isValidSession) {
-    return <LocalizedText tKey="invalidToken" className="p-8 text-center text-destructive font-bold" as="div" />;
+    return (
+      <LocalizedText
+        tKey="invalidToken"
+        className="p-8 text-center text-destructive font-bold"
+        as="div"
+      />
+    );
   }
 
   return (

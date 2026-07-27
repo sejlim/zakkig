@@ -130,12 +130,8 @@ function InvalidLinkState({ locale }: { locale: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <X className="w-12 h-12 text-red-500 mb-4" />
-      <h2 className="text-xl font-semibold">
-        {t("invalidLink")}
-      </h2>
-      <p className="text-muted-foreground mt-2">
-        {t("invalidLinkDesc")}
-      </p>
+      <h2 className="text-xl font-semibold">{t("invalidLink")}</h2>
+      <p className="text-muted-foreground mt-2">{t("invalidLinkDesc")}</p>
       <Button
         type="button"
         onClick={() => (window.location.href = "/reset-password")}
@@ -191,9 +187,7 @@ function PasswordResetFormContent({
   return (
     <>
       <CardHeader className="flex-col items-start gap-1 pt-4">
-        <CardTitle className="text-2xl">
-          {t("resetPasswordTitle")}
-        </CardTitle>
+        <CardTitle className="text-2xl">{t("resetPasswordTitle")}</CardTitle>
         <CardDescription className="text-primary-foreground/80">
           {t("resetPasswordSubtitle")}
         </CardDescription>

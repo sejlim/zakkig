@@ -91,7 +91,8 @@ export const translations = {
     quickLinks: "Schnellzugriffe",
     quickMenuDesc: "Kategorien und Artikel für deinen Betrieb bearbeiten",
     quickOrdersDesc: "Bestellungen in Echtzeit einsehen und verwalten",
-    quickArchiveDesc: "Alle Bestellungen, inklusive vergangener einsehen und exportieren",
+    quickArchiveDesc:
+      "Alle Bestellungen, inklusive vergangener einsehen und exportieren",
     quickSettingsDesc: "Allgemeines einstellen und deinen Betrieb verwalten",
     orderSessions: "Bestellübersicht Sitzungen",
     liveOrderSessions: "Live-Bestellungen-Sitzung",
@@ -158,24 +159,44 @@ export const translations = {
     search: "Suchen...",
     noOrders: "Noch keine Live-Bestellungen vorhanden.",
     noArchiveOrders: "Keine Bestellungen im Archiv.",
+    id: "ID",
+    datetime: "Zeitpunkt",
+    searchBy: "Suchen nach...",
+    searchByOrderNumber: "Bestellnr.",
+    searchById: "ID",
+    searchByEmail: "E-Mail",
+    allTypes: "Alle Typen",
+    allStatuses: "Alle Status",
+    filterStatus: "Status",
+    filterType: "Typ",
+    filters: "Filter",
+    itemsPerPage: "Bestellungen pro Seite",
+    previousPage: "Zurück",
+    nextPage: "Weiter",
+    clearSearch: "Suche löschen",
     inProgress: "In Bearbeitung",
-    inProgressSubline: "Alle aktiven Bestellungen, die zurzeit bearbeitet werden.",
-    completedSubline: "Fertige Bestellungen zum Abholen oder Tischservice. Sind nach 15 Minuten nurnoch im Archiv auffindbar.",
+    inProgressSubline:
+      "Alle aktiven Bestellungen, die zurzeit bearbeitet werden.",
+    completedSubline:
+      "Fertige Bestellungen zum Abholen oder Tischservice. Sind nach 15 Minuten nurnoch im Archiv auffindbar.",
     completeAction: "Abschließen",
     cancelOrder: "Stornieren",
     cancelOrderTitle: 'Bestellung "{orderNumber}" wirklich stornieren?',
     cancelOrderTitleFallback: "Bestellung wirklich stornieren?",
-    cancelOrderWarning: "Diese Bestellung wurde wahrscheinlich bereits bezahlt! Bitte kümmere dich umgehend um eine Rückerstattung des Geldes beim entsprechenden Kunden.",
+    cancelOrderWarning:
+      "Diese Bestellung wurde wahrscheinlich bereits bezahlt! Bitte kümmere dich umgehend um eine Rückerstattung des Geldes beim entsprechenden Kunden.",
     confirmCancelOrder: "Stornieren",
     abortCancel: "Abbrechen",
     cancelledOrder: "Storniert",
     orderCancelledTitle: "Bestellung storniert",
-    orderCancelledDesc: "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal.",
+    orderCancelledDesc:
+      "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal.",
     toPickUp: "zum Abholen",
     toTable: "an Tisch",
     noInProgressOrders: "Keine Bestellungen in Bearbeitung.",
     noCompletedRecentOrders: "Keine kürzlich abgeschlossenen Bestellungen.",
-    autoArchiveNotice: "Abgeschlossene Bestellungen werden nach 15 Minuten automatisch ins Archiv verschoben.",
+    autoArchiveNotice:
+      "Abgeschlossene Bestellungen werden nach 15 Minuten automatisch ins Archiv verschoben.",
     dineIn: "Vor Ort",
     takeaway: "Zum Mitnehmen",
     table: "Tisch",
@@ -194,17 +215,19 @@ export const translations = {
     featureDisabled: "Funktion deaktiviert",
     confirmAction: "Aktion bestätigen",
     confirmDeactivate: "Möchten Sie diese Funktion wirklich deaktivieren?",
-    confirmDeleteTables: "Möchten Sie die ausgewählten Tische wirklich löschen?",
+    confirmDeleteTables:
+      "Möchten Sie die ausgewählten Tische wirklich löschen?",
     deleteTablesTitle: "Ausgewählte Tische löschen",
     deleteTableTitle: "Ausgewählten Tisch löschen",
-    deleteTablesDesc: "Bist du sicher, dass du die ausgewählten Tische unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
-    deleteTableDesc: "Bist du sicher, dass du den ausgewählten Tisch unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
+    deleteTablesDesc:
+      "Bist du sicher, dass du die ausgewählten Tische unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
+    deleteTableDesc:
+      "Bist du sicher, dass du den ausgewählten Tisch unwiderruflich aus deiner QR-Code-Verwaltung entfernen möchtest?",
     activate: "Aktivieren",
     deactivate: "Deaktivieren",
     printMultipleCodes: "{{count}} drucken",
     qrCodeWith: "MIT",
     openQrLink: "Link in neuem Tab öffnen",
-
 
     // Menu
     categories: "Kategorien",
@@ -221,7 +244,8 @@ export const translations = {
     itemName: "Artikelname",
     validationItemName: "Bitte gib einen Artikelnamen ein.",
     validationItemPrice: "Bitte gib einen gültigen Preis ein.",
-    itemNamePlaceholder: "z.B. Cheeseburger Deluxe, Pizza Margherita, Döner Special",
+    itemNamePlaceholder:
+      "z.B. Cheeseburger Deluxe, Pizza Margherita, Döner Special",
     itemDescPlaceholder: "Zutaten, Zubereitung oder Allergen-Hinweise...",
     description: "Beschreibung",
     price: "Preis",
@@ -233,7 +257,8 @@ export const translations = {
     noItems: "Noch keine Artikel in dieser Kategorie.",
     noItemsHint: "Füge deinen ersten Artikel hinzu.",
     confirmDelete: "Wirklich löschen?",
-    confirmDeleteDescription: "Diese Aktion kann nicht rückgängig gemacht werden.",
+    confirmDeleteDescription:
+      "Diese Aktion kann nicht rückgängig gemacht werden.",
 
     itemCount: "{{count}} Artikel",
     basicInfo: "Grundinfos",
@@ -248,7 +273,8 @@ export const translations = {
     maxFileSize: "JPG, PNG bis 5 MB",
     imageTooLarge: "Das Foto darf maximal 5 MB groß sein.",
     customization: "Zusammenstellung",
-    customizationDesc: "Ermöglicht es Kunden, den Artikel schrittweise zusammenzustellen (z.B. Brot, Belag, Soße wählen).",
+    customizationDesc:
+      "Ermöglicht es Kunden, den Artikel schrittweise zusammenzustellen (z.B. Brot, Belag, Soße wählen).",
     enableCustomization: "Schrittweise Zusammenstellung aktivieren",
     addStep: "Schritt hinzufügen",
     noStepsAdded: "Noch keine Schritte hinzugefügt.",
@@ -262,7 +288,8 @@ export const translations = {
     maxSelections: "Max",
     maxSelectionsDesc: "Wie viele Optionen der Kunde maximal wählen darf.",
     includedInPrice: "Inklusive",
-    includedInPriceDesc: "Wie viele Optionen im Grundpreis enthalten sind (kostenlos).",
+    includedInPriceDesc:
+      "Wie viele Optionen im Grundpreis enthalten sind (kostenlos).",
     addOption: "Option hinzufügen",
     optionName: "Optionsname",
     optionNameDe: "Name (Deutsch)",
@@ -279,7 +306,8 @@ export const translations = {
     viewTable: "Express-Tabelle",
     livePreview: "Live Kundenvorschau",
     presets: "Schnell-Vorlagen",
-    presetDesc: "Wähle eine vorgefertigte Gastronomie-Vorlage oder erstelle Schritte selbst.",
+    presetDesc:
+      "Wähle eine vorgefertigte Gastronomie-Vorlage oder erstelle Schritte selbst.",
     saving: "Speichert…",
     itemSaved: "Artikel gespeichert!",
     categorySaved: "Kategorie gespeichert!",
@@ -341,19 +369,24 @@ export const translations = {
     priceWithTax: "(inkl. MwSt.)",
 
     verifyLogin: "Anmeldung bestätigen",
-    verifyLoginDesc: "Wir haben dir einen 6-stelligen Code an {email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.",
+    verifyLoginDesc:
+      "Wir haben dir einen 6-stelligen Code an {email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.",
     verifyEmail: "E-Mail bestätigen",
-    verifyEmailDesc: "Wir haben dir einen 6-stelligen Code an {email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.",
-    termsAgreementPrefix: "Durch die Registrierung erklärst du dich mit unseren ",
+    verifyEmailDesc:
+      "Wir haben dir einen 6-stelligen Code an {email} gesendet. Trage den Code in das folgende Eingabefeld ein und bestätige um fortzufahren.",
+    termsAgreementPrefix:
+      "Durch die Registrierung erklärst du dich mit unseren ",
     termsAndConditions: "AGB",
     termsAgreementMiddle: " und unserer ",
     privacyPolicy: "Datenschutzerklärung",
     termsAgreementSuffix: " einverstanden.",
     invalidLink: "Ungültiger Link",
-    invalidLinkDesc: "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen.",
+    invalidLinkDesc:
+      "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen.",
     requestNewLink: "Neuen Link anfordern",
     passwordChangedSuccess: "Passwort erfolgreich geändert",
-    passwordChangedDesc: "Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
+    passwordChangedDesc:
+      "Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
     resetPasswordTitle: "Passwort zurücksetzen",
     resetPasswordSubtitle: "Gib dein neues Passwort ein",
     newPasswordLabel: "Neues Passwort",
@@ -366,16 +399,21 @@ export const translations = {
     toggleOptionAvailability: "Option Verfügbarkeit umschalten",
     confirmDeleteCategoryTitle: 'Kategorie "{name}" löschen?',
     confirmDeleteItemTitle: 'Artikel "{name}" löschen?',
-    confirmDeleteCategoryDesc: 'Möchtest du die Kategorie "{name}" und alle darin enthaltenen Artikel wirklich unwiderruflich aus deiner Speisekarte entfernen?',
-    confirmDeleteItemDesc: 'Möchtest du den Artikel "{name}" wirklich unwiderruflich aus deiner Speisekarte entfernen?',
+    confirmDeleteCategoryDesc:
+      'Möchtest du die Kategorie "{name}" und alle darin enthaltenen Artikel wirklich unwiderruflich aus deiner Speisekarte entfernen?',
+    confirmDeleteItemDesc:
+      'Möchtest du den Artikel "{name}" wirklich unwiderruflich aus deiner Speisekarte entfernen?',
     reorderCategories: "Kategorien anordnen",
     reorderTables: "Tische anordnen",
     reorder: "Reihenfolge ändern",
     deletionRequestSent: "Löschanfrage gesendet.",
-    accountDataInfo: "Account-Daten können derzeit über das Appwrite Dashboard geändert werden.",
+    accountDataInfo:
+      "Account-Daten können derzeit über das Appwrite Dashboard geändert werden.",
     invalidToken: "Ungültiger oder abgelaufener Token.",
-    notAcceptingOrders: "{name} nimmt momentan keine Tisch-Bestellungen über das Smartphone entgegen.",
-    notAcceptingToGoOrders: "{name} nimmt momentan keine To-Go-Bestellungen entgegen. Bitte versuche es später noch einmal.",
+    notAcceptingOrders:
+      "{name} nimmt momentan keine Tisch-Bestellungen über das Smartphone entgegen.",
+    notAcceptingToGoOrders:
+      "{name} nimmt momentan keine To-Go-Bestellungen entgegen. Bitte versuche es später noch einmal.",
     orgNotFound: "Organisation nicht gefunden.",
     noToken: "Kein Token angegeben. Zugriff verweigert.",
     ordersPaused: "Bestellungen pausiert",
@@ -548,24 +586,43 @@ export const translations = {
     search: "Search...",
     noOrders: "No live orders yet.",
     noArchiveOrders: "No orders in archive.",
+    id: "ID",
+    datetime: "Date & Time",
+    searchBy: "Search by...",
+    searchByOrderNumber: "Order No.",
+    searchById: "ID",
+    searchByEmail: "Email",
+    allTypes: "All Types",
+    allStatuses: "All Statuses",
+    filterStatus: "Status",
+    filterType: "Type",
+    filters: "Filters",
+    itemsPerPage: "Orders per page",
+    previousPage: "Previous",
+    nextPage: "Next",
+    clearSearch: "Clear search",
     inProgress: "In Progress",
     inProgressSubline: "All active orders currently being processed.",
-    completedSubline: "Finished orders for pickup or table service. Can only be found in the archive after 15 minutes.",
+    completedSubline:
+      "Finished orders for pickup or table service. Can only be found in the archive after 15 minutes.",
     completeAction: "Complete",
     cancelOrder: "Cancel",
     cancelOrderTitle: 'Really cancel order "{orderNumber}"?',
     cancelOrderTitleFallback: "Really cancel order?",
-    cancelOrderWarning: "This order has likely already been paid for! Please ensure that a refund is issued to the customer immediately.",
+    cancelOrderWarning:
+      "This order has likely already been paid for! Please ensure that a refund is issued to the customer immediately.",
     confirmCancelOrder: "Cancel order",
     abortCancel: "Abort",
     cancelledOrder: "Cancelled",
     orderCancelledTitle: "Order cancelled",
-    orderCancelledDesc: "This order has been cancelled. If you have already paid online or on-site, please contact the staff directly for a refund.",
+    orderCancelledDesc:
+      "This order has been cancelled. If you have already paid online or on-site, please contact the staff directly for a refund.",
     toPickUp: "to go",
     toTable: "to table",
     noInProgressOrders: "No orders in progress.",
     noCompletedRecentOrders: "No recently completed orders.",
-    autoArchiveNotice: "Completed orders are automatically moved to the archive after 15 minutes.",
+    autoArchiveNotice:
+      "Completed orders are automatically moved to the archive after 15 minutes.",
     dineIn: "Dine-in",
     takeaway: "Takeaway",
     table: "Table",
@@ -587,14 +644,15 @@ export const translations = {
     confirmDeleteTables: "Do you really want to delete the selected tables?",
     deleteTablesTitle: "Delete Selected Tables",
     deleteTableTitle: "Delete Selected Table",
-    deleteTablesDesc: "Are you sure you want to permanently remove the selected tables from your QR code management?",
-    deleteTableDesc: "Are you sure you want to permanently remove the selected table from your QR code management?",
+    deleteTablesDesc:
+      "Are you sure you want to permanently remove the selected tables from your QR code management?",
+    deleteTableDesc:
+      "Are you sure you want to permanently remove the selected table from your QR code management?",
     activate: "Activate",
     deactivate: "Deactivate",
     printMultipleCodes: "Print {{count}}",
     qrCodeWith: "WITH",
     openQrLink: "Open link in new tab",
-
 
     // Menu
     categories: "Categories",
@@ -611,7 +669,8 @@ export const translations = {
     itemName: "Item name",
     validationItemName: "Please enter an item name.",
     validationItemPrice: "Please enter a valid price.",
-    itemNamePlaceholder: "e.g. Cheeseburger Deluxe, Pizza Margherita, Doner Special",
+    itemNamePlaceholder:
+      "e.g. Cheeseburger Deluxe, Pizza Margherita, Doner Special",
     itemDescPlaceholder: "Ingredients, preparation or allergen info...",
     description: "Description",
     price: "Price",
@@ -638,7 +697,8 @@ export const translations = {
     maxFileSize: "JPG, PNG up to 5 MB",
     imageTooLarge: "The photo must not exceed 5 MB.",
     customization: "Customization",
-    customizationDesc: "Allow customers to build their item step by step (e.g. choose bread, toppings, sauce).",
+    customizationDesc:
+      "Allow customers to build their item step by step (e.g. choose bread, toppings, sauce).",
     enableCustomization: "Enable step-by-step customization",
     addStep: "Add step",
     noStepsAdded: "No steps added yet.",
@@ -652,7 +712,8 @@ export const translations = {
     maxSelections: "Max",
     maxSelectionsDesc: "Maximum number of options the customer can select.",
     includedInPrice: "Included",
-    includedInPriceDesc: "Number of options included in the base price for free.",
+    includedInPriceDesc:
+      "Number of options included in the base price for free.",
     addOption: "Add option",
     optionName: "Option name",
     optionNameDe: "Name (German)",
@@ -731,9 +792,11 @@ export const translations = {
     priceWithTax: "(incl. VAT)",
 
     verifyLogin: "Verify Login",
-    verifyLoginDesc: "We sent a 6-digit code to {email}. Enter the code in the input field below and confirm to continue.",
+    verifyLoginDesc:
+      "We sent a 6-digit code to {email}. Enter the code in the input field below and confirm to continue.",
     verifyEmail: "Verify Email",
-    verifyEmailDesc: "We sent a 6-digit code to {email}. Enter the code in the input field below and confirm to continue.",
+    verifyEmailDesc:
+      "We sent a 6-digit code to {email}. Enter the code in the input field below and confirm to continue.",
     termsAgreementPrefix: "By registering, you agree to our ",
     termsAndConditions: "Terms of Service",
     termsAgreementMiddle: " and our ",
@@ -756,16 +819,21 @@ export const translations = {
     toggleOptionAvailability: "Toggle option availability",
     confirmDeleteCategoryTitle: 'Delete category "{name}"?',
     confirmDeleteItemTitle: 'Delete item "{name}"?',
-    confirmDeleteCategoryDesc: 'Are you sure you want to permanently remove the category "{name}" and all of its items from your menu?',
-    confirmDeleteItemDesc: 'Are you sure you want to permanently remove the item "{name}" from your menu?',
+    confirmDeleteCategoryDesc:
+      'Are you sure you want to permanently remove the category "{name}" and all of its items from your menu?',
+    confirmDeleteItemDesc:
+      'Are you sure you want to permanently remove the item "{name}" from your menu?',
     reorderCategories: "Reorder categories",
     reorderTables: "Reorder tables",
     reorder: "Change order",
     deletionRequestSent: "Deletion request sent.",
-    accountDataInfo: "Account data can currently be modified via the Appwrite Dashboard.",
+    accountDataInfo:
+      "Account data can currently be modified via the Appwrite Dashboard.",
     invalidToken: "Invalid or expired token.",
-    notAcceptingOrders: "{name} is currently not accepting table orders via smartphone.",
-    notAcceptingToGoOrders: "{name} is currently not accepting To-Go orders. Please try again later.",
+    notAcceptingOrders:
+      "{name} is currently not accepting table orders via smartphone.",
+    notAcceptingToGoOrders:
+      "{name} is currently not accepting To-Go orders. Please try again later.",
     orgNotFound: "Organization not found.",
     noToken: "No token provided. Access denied.",
     ordersPaused: "Orders paused",
@@ -801,10 +869,15 @@ export function useTranslation() {
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {
-      let text: string = (translations[locale] as Record<string, string>)[key] || (key as string);
+      let text: string =
+        (translations[locale] as Record<string, string>)[key] ||
+        (key as string);
       if (params) {
         Object.entries(params).forEach(([paramKey, paramValue]) => {
-          text = text.replace(new RegExp(`\\{${paramKey}\\}`, "g"), String(paramValue));
+          text = text.replace(
+            new RegExp(`\\{${paramKey}\\}`, "g"),
+            String(paramValue),
+          );
         });
       }
       return text;

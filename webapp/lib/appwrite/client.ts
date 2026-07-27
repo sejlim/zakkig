@@ -20,7 +20,12 @@ export function getImagePreviewUrl(
 ): string {
   if (!fileId) return "";
   try {
-    const preview = storage.getFilePreview(BUCKETS.MENU_IMAGES, fileId, width, height);
+    const preview = storage.getFilePreview(
+      BUCKETS.MENU_IMAGES,
+      fileId,
+      width,
+      height,
+    );
     return String(preview);
   } catch {
     return `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKETS.MENU_IMAGES}/files/${fileId}/preview?width=${width}&height=${height}&project=${APPWRITE_PROJECT_ID}`;

@@ -55,7 +55,10 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import { toggleFeatureAction, updateTablesAction } from "@/actions/settings-actions";
+import {
+  toggleFeatureAction,
+  updateTablesAction,
+} from "@/actions/settings-actions";
 import { RefreshButton } from "./refresh-button";
 import { cn } from "@/lib/utils";
 import type { Organization, Order } from "@/lib/types";
@@ -68,15 +71,15 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   rectSortingStrategy,
-  useSortable
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const OverviewChart = dynamic(() => import("./overview-chart"), { ssr: false });
 
@@ -115,7 +118,7 @@ function ScaledText({ text, className }: { text: string; className?: string }) {
     const estWidth = Math.max(text.length * 15, 50);
     return `0 -15 ${estWidth} 30`;
   });
-  
+
   useEffect(() => {
     if (textRef.current) {
       try {
@@ -126,7 +129,10 @@ function ScaledText({ text, className }: { text: string; className?: string }) {
   }, [text]);
 
   return (
-    <svg viewBox={viewBox} className={cn("w-full block overflow-visible", className)}>
+    <svg
+      viewBox={viewBox}
+      className={cn("w-full block overflow-visible", className)}
+    >
       <text
         ref={textRef}
         x="0"
@@ -156,7 +162,15 @@ function filterOrdersByPeriod(orders: Order[], period: TimePeriod): Order[] {
   );
 }
 
-function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSelected: boolean; onToggle: () => void }) {
+function SortableTableItem({
+  tNum,
+  isSelected,
+  onToggle,
+}: {
+  tNum: string;
+  isSelected: boolean;
+  onToggle: () => void;
+}) {
   const { t } = useTranslation();
   const {
     attributes,
@@ -164,7 +178,7 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
     setNodeRef,
     transform,
     transition,
-    isDragging
+    isDragging,
   } = useSortable({ id: tNum });
 
   const style = {
@@ -176,7 +190,7 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
 
   return (
     <div
-      ref={setNodeRef} 
+      ref={setNodeRef}
       style={style}
       role="button"
       tabIndex={0}
@@ -188,10 +202,10 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
         }
       }}
       className={cn(
-        "flex items-center justify-between border rounded-xl px-3 py-2.5 h-11 transition-colors cursor-pointer select-none gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", 
-        isSelected 
-          ? "border-primary bg-primary text-primary-foreground font-semibold" 
-          : "hover:border-primary/50 bg-background text-foreground hover:bg-muted/30 font-medium"
+        "flex items-center justify-between border rounded-xl px-3 py-2.5 h-11 transition-colors cursor-pointer select-none gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isSelected
+          ? "border-primary bg-primary text-primary-foreground font-semibold"
+          : "hover:border-primary/50 bg-background text-foreground hover:bg-muted/30 font-medium",
       )}
     >
       <div
@@ -200,13 +214,17 @@ function SortableTableItem({ tNum, isSelected, onToggle }: { tNum: string; isSel
         onClick={(e) => e.stopPropagation()}
         className={cn(
           "cursor-grab active:cursor-grabbing p-1 -ml-1 rounded transition-colors shrink-0 touch-none",
-          isSelected ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          isSelected
+            ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
         )}
         title={t("reorder")}
       >
         <DotsSixVertical className="h-4 w-4" weight="bold" />
       </div>
-      <span className="truncate text-center flex-1 text-sm font-semibold">{tNum}</span>
+      <span className="truncate text-center flex-1 text-sm font-semibold">
+        {tNum}
+      </span>
     </div>
   );
 }
@@ -297,14 +315,18 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
         <h3 className="text-lg font-semibold">{t("statistics")}</h3>
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="default" />}>
-            {period === "24h"
-              ? t("last24h")
-              : period === "30d"
-                ? t("last30d")
-                : t("last90d")}
-            <CaretDown className="ml-1" />
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="default">
+                {period === "24h"
+                  ? t("last24h")
+                  : period === "30d"
+                    ? t("last30d")
+                    : t("last90d")}
+                <CaretDown className="ml-1" />
+              </Button>
+            }
+          />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setPeriod("24h")}>
               {t("last24h")}
@@ -347,9 +369,6 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
   );
 }
 
-
-
-
 function QrCodeGeneratorCard({
   organization,
   baseUrl,
@@ -366,8 +385,12 @@ function QrCodeGeneratorCard({
   const [isPending, startTransition] = useTransition();
 
   const [tables, setTables] = useState<string[]>(organization.tables || []);
-  const [isToGoEnabled, setIsToGoEnabled] = useState(organization.isToGoEnabled ?? false);
-  const [isToStayEnabled, setIsToStayEnabled] = useState(organization.isToStayEnabled ?? false);
+  const [isToGoEnabled, setIsToGoEnabled] = useState(
+    organization.isToGoEnabled ?? false,
+  );
+  const [isToStayEnabled, setIsToStayEnabled] = useState(
+    organization.isToStayEnabled ?? false,
+  );
 
   useEffect(() => {
     setTables(organization.tables || []);
@@ -389,7 +412,7 @@ function QrCodeGeneratorCard({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -401,7 +424,7 @@ function QrCodeGeneratorCard({
 
       const previousTables = [...tables];
       const newTables = arrayMove(tables, oldIndex, newIndex);
-      
+
       setTables(newTables);
       const result = await updateTablesAction(organization.$id, newTables);
       if (result.error) {
@@ -411,7 +434,10 @@ function QrCodeGeneratorCard({
     }
   };
 
-  const handleToggleFeature = async (type: "to-go" | "to-stay", checked: boolean) => {
+  const handleToggleFeature = async (
+    type: "to-go" | "to-stay",
+    checked: boolean,
+  ) => {
     if (type === "to-go") {
       const prev = isToGoEnabled;
       setIsToGoEnabled(checked);
@@ -467,7 +493,9 @@ function QrCodeGeneratorCard({
     setDeleteTablesDialogOpen(false);
     const currentTables = tables;
     const selectedTablesSet = new Set(selectedTables);
-    const updatedTables = currentTables.filter((t) => !selectedTablesSet.has(t));
+    const updatedTables = currentTables.filter(
+      (t) => !selectedTablesSet.has(t),
+    );
     setTables(updatedTables);
     startTransition(async () => {
       const result = await updateTablesAction(organization.$id, updatedTables);
@@ -477,18 +505,14 @@ function QrCodeGeneratorCard({
       } else {
         const count = selectedTablesSet.size;
         setSelectedTables([]);
-        toast.success(
-          count === 1
-            ? t("tableDeleted")
-            : t("tablesDeleted")
-        );
+        toast.success(count === 1 ? t("tableDeleted") : t("tablesDeleted"));
       }
     });
   };
 
   const toggleTableSelection = (tNum: string) => {
-    setSelectedTables((prev) => 
-      prev.includes(tNum) ? prev.filter((t) => t !== tNum) : [...prev, tNum]
+    setSelectedTables((prev) =>
+      prev.includes(tNum) ? prev.filter((t) => t !== tNum) : [...prev, tNum],
     );
   };
 
@@ -504,9 +528,10 @@ function QrCodeGeneratorCard({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full print:hidden">
         {/* Left Card: QR Code Preview */}
         <Card className="relative flex flex-col items-center justify-end p-6 shadow-sm w-full h-full min-h-[600px] transition-colors duration-200 bg-white">
-          
           <div className="absolute top-4 left-6 right-4 flex items-center justify-between gap-2">
-            <h3 className="text-lg font-semibold text-foreground">{t("qrPreview")}</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              {t("qrPreview")}
+            </h3>
             <Button
               onClick={handlePrint}
               variant="default"
@@ -514,27 +539,39 @@ function QrCodeGeneratorCard({
               className="bg-primary text-secondary shadow-sm shrink-0"
             >
               <Printer className="mr-2 h-4 w-4" />
-              {qrType === "to-go" 
-                ? t("printQrCode") 
-                : (selectedTables.length > 1 
-                    ? t("printMultipleCodes").replace("{{count}}", selectedTables.length.toString()) 
-                    : t("printQrCode"))}
+              {qrType === "to-go"
+                ? t("printQrCode")
+                : selectedTables.length > 1
+                  ? t("printMultipleCodes").replace(
+                      "{{count}}",
+                      selectedTables.length.toString(),
+                    )
+                  : t("printQrCode")}
             </Button>
           </div>
 
-          <div className={cn("flex flex-col items-center w-[280px] gap-0 mt-auto pt-14 mb-1 transition-all duration-200", qrType === "to-stay" && selectedTables.length === 0 ? "opacity-50 grayscale" : "")}>
+          <div
+            className={cn(
+              "flex flex-col items-center w-[280px] gap-0 mt-auto pt-14 mb-1 transition-all duration-200",
+              qrType === "to-stay" && selectedTables.length === 0
+                ? "opacity-50 grayscale"
+                : "",
+            )}
+          >
             <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
-              <ScaledText 
+              <ScaledText
                 text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
                 className="text-foreground"
               />
               <p className="text-right w-full text-foreground font-black text-lg leading-none uppercase">
                 {qrType === "to-stay" ? t("qrCodeAt") : t("qrCodeFor")}
               </p>
-              <ScaledText 
-                text={qrType === "to-stay"
-                  ? `${t("table")} ${selectedTables.length > 0 ? selectedTables[0] : "?"}`
-                  : t("pickup")}
+              <ScaledText
+                text={
+                  qrType === "to-stay"
+                    ? `${t("table")} ${selectedTables.length > 0 ? selectedTables[0] : "?"}`
+                    : t("pickup")
+                }
                 className="text-foreground"
               />
               <p className="text-left w-full text-foreground font-black text-lg leading-none uppercase">
@@ -562,10 +599,17 @@ function QrCodeGeneratorCard({
               <h3 className="text-lg font-semibold">{t("qrManagement")}</h3>
 
               <DropdownMenu>
-                <DropdownMenuTrigger render={<Button variant="default" className="w-auto bg-primary text-secondary shrink-0" />}>
-                  {qrType === "to-go" ? t("toGo") : t("toStay")}
-                  <CaretDown className="ml-2 h-4 w-4 shrink-0" />
-                </DropdownMenuTrigger>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="default"
+                      className="w-auto bg-primary text-secondary shrink-0"
+                    >
+                      {qrType === "to-go" ? t("toGo") : t("toStay")}
+                      <CaretDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  }
+                />
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setQrType("to-go")}>
                     {t("toGo")}
@@ -584,24 +628,31 @@ function QrCodeGeneratorCard({
                   ? t("qrCodeAdminDescToGo")
                   : t("qrCodeAdminDescToStay")}
               </p>
-              
+
               <div className="flex items-center gap-2 shrink-0">
                 <Switch
                   checked={isActive}
-                  onCheckedChange={(checked) => handleToggleFeature(qrType, checked)}
+                  onCheckedChange={(checked) =>
+                    handleToggleFeature(qrType, checked)
+                  }
                   disabled={isPending}
                 />
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="flex-1 flex flex-col min-h-0">
             {qrType === "to-stay" && (
               <div className="flex-1 min-w-0 w-full flex flex-col gap-4 h-full min-h-0">
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
                   <Button
                     type="button"
-                    variant={selectedTables.length === tables.length && selectedTables.length > 0 ? "default" : "outline"}
+                    variant={
+                      selectedTables.length === tables.length &&
+                      selectedTables.length > 0
+                        ? "default"
+                        : "outline"
+                    }
                     disabled={tables.length === 0}
                     onClick={() => {
                       if (tables.length === 0) return;
@@ -613,13 +664,10 @@ function QrCodeGeneratorCard({
                     }}
                     className={cn(
                       "gap-2 font-medium text-sm transition-colors w-full",
-                      selectedTables.length > 0 ? "sm:flex-1" : ""
+                      selectedTables.length > 0 ? "sm:flex-1" : "",
                     )}
                   >
-                    <SelectionAll
-                      className="h-4 w-4 shrink-0"
-                      weight="bold"
-                    />
+                    <SelectionAll className="h-4 w-4 shrink-0" weight="bold" />
                     <span>{t("selectAll")}</span>
                   </Button>
 
@@ -630,7 +678,9 @@ function QrCodeGeneratorCard({
                       className="gap-2 text-sm font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors w-full sm:flex-1 shrink-0"
                     >
                       <Trash className="h-4 w-4 shrink-0" weight="bold" />
-                      <span>{selectedTables.length} {t("delete")}</span>
+                      <span>
+                        {selectedTables.length} {t("delete")}
+                      </span>
                     </Button>
                   )}
                 </div>
@@ -648,9 +698,7 @@ function QrCodeGeneratorCard({
                     >
                       {tables.length === 0 && !isAddingTable && (
                         <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
-                          <p className="mb-4">
-                            {t("noTablesAdded")}
-                          </p>
+                          <p className="mb-4">{t("noTablesAdded")}</p>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-3 pb-3">
@@ -721,30 +769,33 @@ function QrCodeGeneratorCard({
           selectedTables.map((tNum) => {
             const tableQrUrl = `${baseUrl}/to-stay/${organization.$id}?table=${tNum}`;
             return (
-              <div key={tNum} className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
+              <div
+                key={tNum}
+                className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start"
+              >
                 <Card className="flex flex-col items-center justify-center p-4 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
-                    <div className="flex flex-col items-center w-[230px] gap-0">
-                      <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
-                        <ScaledText 
-                          text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
-                          className="text-foreground"
-                        />
-                        <p className="text-right w-full text-foreground font-black text-base leading-none uppercase">
-                          {t("qrCodeAt")}
-                        </p>
-                        <ScaledText 
-                          text={`${t("table")} ${tNum}`}
-                          className="text-foreground"
-                        />
-                        <p className="text-left w-full text-foreground font-black text-base leading-none uppercase">
-                          {t("qrCodeWith")}
-                        </p>
-                      </div>
-
-                      <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-                        <StyledQRCode value={tableQrUrl} size={230} />
-                      </div>
+                  <div className="flex flex-col items-center w-[230px] gap-0">
+                    <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
+                      <ScaledText
+                        text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
+                        className="text-foreground"
+                      />
+                      <p className="text-right w-full text-foreground font-black text-base leading-none uppercase">
+                        {t("qrCodeAt")}
+                      </p>
+                      <ScaledText
+                        text={`${t("table")} ${tNum}`}
+                        className="text-foreground"
+                      />
+                      <p className="text-left w-full text-foreground font-black text-base leading-none uppercase">
+                        {t("qrCodeWith")}
+                      </p>
                     </div>
+
+                    <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                      <StyledQRCode value={tableQrUrl} size={230} />
+                    </div>
+                  </div>
                 </Card>
               </div>
             );
@@ -752,34 +803,34 @@ function QrCodeGeneratorCard({
         ) : (
           <div className="relative origin-top print-color-adjust-exact break-inside-avoid flex justify-center items-start">
             <Card className="flex flex-col items-center justify-center p-4 bg-white shadow-sm print:shadow-none print:ring-0 print:rounded-none w-max print:border print:border-dashed print:border-black/40">
-                <div className="flex flex-col items-center w-[230px] gap-0">
-                  <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
-                    <ScaledText 
-                      text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
-                      className="text-foreground"
-                    />
-                    <p className="text-right w-full text-foreground font-black text-base leading-none uppercase">
-                      {t("qrCodeFor")}
-                    </p>
-                    <ScaledText 
-                      text={t("pickup")}
-                      className="text-foreground"
-                    />
-                    <p className="text-left w-full text-foreground font-black text-base leading-none uppercase">
-                      {t("qrCodeWith")}
-                    </p>
-                  </div>
-
-                  <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
-                    <StyledQRCode value={qrUrl} size={230} />
-                  </div>
+              <div className="flex flex-col items-center w-[230px] gap-0">
+                <div className="text-center w-[84%] mx-auto flex flex-col justify-center gap-[2px]">
+                  <ScaledText
+                    text={`${t("qrCodeTitleLine1")} ${t("qrCodeTitleLine2")}`}
+                    className="text-foreground"
+                  />
+                  <p className="text-right w-full text-foreground font-black text-base leading-none uppercase">
+                    {t("qrCodeFor")}
+                  </p>
+                  <ScaledText text={t("pickup")} className="text-foreground" />
+                  <p className="text-left w-full text-foreground font-black text-base leading-none uppercase">
+                    {t("qrCodeWith")}
+                  </p>
                 </div>
+
+                <div className="relative bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                  <StyledQRCode value={qrUrl} size={230} />
+                </div>
+              </div>
             </Card>
           </div>
         )}
       </div>
 
-      <Dialog open={deleteTablesDialogOpen} onOpenChange={setDeleteTablesDialogOpen}>
+      <Dialog
+        open={deleteTablesDialogOpen}
+        onOpenChange={setDeleteTablesDialogOpen}
+      >
         <DialogContent className="bg-primary text-primary-foreground border-border/20">
           <DialogHeader>
             <DialogTitle>
@@ -794,10 +845,18 @@ function QrCodeGeneratorCard({
             </DialogDescription>
           </DialogHeader>
           <div className="flex w-full gap-3 mt-2">
-            <Button variant="outline" onClick={() => setDeleteTablesDialogOpen(false)} className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTablesDialogOpen(false)}
+              className="flex-1 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10 text-primary-foreground hover:text-primary-foreground"
+            >
               {t("cancel")}
             </Button>
-            <Button variant="destructive" onClick={confirmRemoveTables} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Button
+              variant="destructive"
+              onClick={confirmRemoveTables}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               {t("delete")}
             </Button>
           </div>
@@ -841,11 +900,11 @@ export function OverviewContent({
       <div className="flex-1 space-y-4">
         <div className="flex items-center justify-between space-y-2 print:hidden">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("overview")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {t("overview")}
+            </h1>
             {organization.address && (
-              <p className="text-muted-foreground">
-                {organization.address}
-              </p>
+              <p className="text-muted-foreground">{organization.address}</p>
             )}
           </div>
           <RefreshButton />
@@ -874,7 +933,9 @@ export function OverviewContent({
                 <ForkKnife className="w-6 h-6" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="font-semibold text-lg leading-none">{t("menu")}</span>
+                <span className="font-semibold text-lg leading-none">
+                  {t("menu")}
+                </span>
                 <span className="text-sm text-muted-foreground leading-relaxed text-balance">
                   {t("quickMenuDesc")}
                 </span>
@@ -888,7 +949,9 @@ export function OverviewContent({
                 <ClipboardText className="w-6 h-6" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="font-semibold text-lg leading-none">{t("orders")}</span>
+                <span className="font-semibold text-lg leading-none">
+                  {t("orders")}
+                </span>
                 <span className="text-sm text-muted-foreground leading-relaxed text-balance">
                   {t("quickOrdersDesc")}
                 </span>
@@ -902,7 +965,9 @@ export function OverviewContent({
                 <Archive className="w-6 h-6" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="font-semibold text-lg leading-none">{t("archive")}</span>
+                <span className="font-semibold text-lg leading-none">
+                  {t("archive")}
+                </span>
                 <span className="text-sm text-muted-foreground leading-relaxed text-balance">
                   {t("quickArchiveDesc")}
                 </span>
@@ -916,7 +981,9 @@ export function OverviewContent({
                 <Gear className="w-6 h-6" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="font-semibold text-lg leading-none">{t("settings")}</span>
+                <span className="font-semibold text-lg leading-none">
+                  {t("settings")}
+                </span>
                 <span className="text-sm text-muted-foreground leading-relaxed text-balance">
                   {t("quickSettingsDesc")}
                 </span>

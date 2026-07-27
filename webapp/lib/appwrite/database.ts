@@ -154,11 +154,7 @@ export async function updateMenuCategory(
 
 export async function deleteMenuCategory(id: string) {
   const { tablesDB } = createAdminClient();
-  return tablesDB.deleteDocument(
-    DATABASE_ID,
-    COLLECTIONS.MENU_CATEGORIES,
-    id,
-  );
+  return tablesDB.deleteDocument(DATABASE_ID, COLLECTIONS.MENU_CATEGORIES, id);
 }
 
 // ─── Menu Items ─────────────────────────────────────────────────
@@ -250,21 +246,12 @@ export async function updateMenuItem(
   data: Partial<CreateMenuItemData>,
 ) {
   const { tablesDB } = createAdminClient();
-  return tablesDB.updateDocument(
-    DATABASE_ID,
-    COLLECTIONS.MENU_ITEMS,
-    id,
-    data,
-  );
+  return tablesDB.updateDocument(DATABASE_ID, COLLECTIONS.MENU_ITEMS, id, data);
 }
 
 export async function deleteMenuItem(id: string) {
   const { tablesDB } = createAdminClient();
-  return tablesDB.deleteDocument(
-    DATABASE_ID,
-    COLLECTIONS.MENU_ITEMS,
-    id,
-  );
+  return tablesDB.deleteDocument(DATABASE_ID, COLLECTIONS.MENU_ITEMS, id);
 }
 
 export async function updateCategorySortOrders(
@@ -366,7 +353,10 @@ export async function createOrder(data: CreateOrderData): Promise<Order> {
       }
     }
   } catch (error) {
-    console.error("Failed to fetch last order number, defaulting to 001", error);
+    console.error(
+      "Failed to fetch last order number, defaulting to 001",
+      error,
+    );
   }
 
   const orderNumber = String(nextNum).padStart(3, "0");
@@ -454,11 +444,7 @@ export async function createOrderSession(
 export async function deleteOrderSession(id: string) {
   const { tablesDB } = createAdminClient();
 
-  return tablesDB.deleteDocument(
-    DATABASE_ID,
-    COLLECTIONS.ORDERS_SESSIONS,
-    id,
-  );
+  return tablesDB.deleteDocument(DATABASE_ID, COLLECTIONS.ORDERS_SESSIONS, id);
 }
 
 // ─── Availability Sessions ────────────────────────────────────

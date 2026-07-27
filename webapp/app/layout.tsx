@@ -1,4 +1,4 @@
-import { Poppins, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import type { Metadata } from "next";
 
 import "./globals.css";
@@ -9,11 +9,6 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
-});
-
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -55,12 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={cn(
-        "light antialiased",
-        fontMono.variable,
-        "font-sans",
-        poppins.variable,
-      )}
+      className={cn("light antialiased", "font-sans", poppins.variable)}
     >
       <body className="bg-background text-foreground">
         {children}

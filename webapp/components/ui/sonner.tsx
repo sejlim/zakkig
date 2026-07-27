@@ -27,9 +27,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
-        success: (
-          <Check weight="bold" className="size-[18px] text-inherit" />
-        ),
+        success: <Check weight="bold" className="size-[18px] text-inherit" />,
         info: <Info weight="fill" className="size-[18px] text-inherit" />,
         warning: (
           <WarningCircle weight="fill" className="size-[18px] text-inherit" />

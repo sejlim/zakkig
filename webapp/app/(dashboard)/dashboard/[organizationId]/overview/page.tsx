@@ -18,12 +18,13 @@ export default async function OverviewPage({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  const [organization, orders, availabilitySessions, orderSessions] = await Promise.all([
-    getOrganization(organizationId),
-    getOrders(organizationId),
-    getAvailabilitySessions(organizationId),
-    getOrderSessions(organizationId),
-  ]);
+  const [organization, orders, availabilitySessions, orderSessions] =
+    await Promise.all([
+      getOrganization(organizationId),
+      getOrders(organizationId),
+      getAvailabilitySessions(organizationId),
+      getOrderSessions(organizationId),
+    ]);
 
   if (!organization) return null;
 

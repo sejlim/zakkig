@@ -43,7 +43,9 @@ async function deleteAvailabilitySessionAction(
   }
 }
 
-export async function generateAvailabilitySessionAction(organizationId: string) {
+export async function generateAvailabilitySessionAction(
+  organizationId: string,
+) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
 
@@ -54,7 +56,10 @@ export async function generateAvailabilitySessionAction(organizationId: string) 
     revalidatePath(`/dashboard/${organizationId}/overview`);
     return { success: true, session };
   } catch (error: unknown) {
-    console.error("Fehler beim Neu-Generieren der Availability Session:", error);
+    console.error(
+      "Fehler beim Neu-Generieren der Availability Session:",
+      error,
+    );
     return {
       error: "Sitzungen konnten nicht neu generiert werden.",
     };

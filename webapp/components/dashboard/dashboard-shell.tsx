@@ -91,7 +91,7 @@ export function DashboardShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-l border-primary-foreground/10 bg-primary text-primary-foreground transition-transform duration-300 lg:transition-none lg:relative print:hidden",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-l border-primary-foreground/10 bg-primary text-primary-foreground lg:relative print:hidden",
           isExpanded ? "w-64" : "w-16",
           "max-lg:w-64", // Always wide on mobile
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
@@ -279,7 +279,9 @@ export function DashboardShell({
             <CaretRight weight="bold" className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 lg:pt-4 print:overflow-visible print:p-0 print:block">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 lg:pt-4 print:overflow-visible print:p-0 print:block">
+          {children}
+        </main>
       </div>
     </div>
   );

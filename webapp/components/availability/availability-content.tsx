@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useTransition, useCallback, useEffect, useMemo } from "react";
+import {
+  useState,
+  useTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -68,23 +74,34 @@ export function AvailabilityContent({
   const handleToggleItem = useCallback(
     (itemId: string, available: boolean) => {
       setItems((prevItems) =>
-        prevItems.map((i) => (i.$id === itemId ? { ...i, available } : i))
+        prevItems.map((i) => (i.$id === itemId ? { ...i, available } : i)),
       );
       startTransition(async () => {
-        const res = await toggleMenuItemAvailability(itemId, available, organizationId);
+        const res = await toggleMenuItemAvailability(
+          itemId,
+          available,
+          organizationId,
+        );
         if (!res.success) {
           // Revert on error
           setItems((prevItems) =>
-            prevItems.map((i) => (i.$id === itemId ? { ...i, available: !available } : i))
+            prevItems.map((i) =>
+              i.$id === itemId ? { ...i, available: !available } : i,
+            ),
           );
         }
       });
     },
-    [organizationId]
+    [organizationId],
   );
 
   const handleToggleCustomization = useCallback(
-    (itemId: string, stepId: string, optionId: string | null, available: boolean) => {
+    (
+      itemId: string,
+      stepId: string,
+      optionId: string | null,
+      available: boolean,
+    ) => {
       setItems((prevItems) =>
         prevItems.map((i) => {
           if (i.$id !== itemId) return i;
@@ -110,7 +127,7 @@ export function AvailabilityContent({
             }
           });
           return { ...i, customizations: JSON.stringify(updatedSteps) };
-        })
+        }),
       );
       startTransition(async () => {
         const res = await toggleCustomizationAvailabilityAction(
@@ -118,7 +135,7 @@ export function AvailabilityContent({
           stepId,
           optionId,
           available,
-          organizationId
+          organizationId,
         );
         if (!res.success) {
           // Revert on error
@@ -126,7 +143,7 @@ export function AvailabilityContent({
         }
       });
     },
-    [initialItems, organizationId]
+    [initialItems, organizationId],
   );
 
   return (
@@ -154,7 +171,9 @@ export function AvailabilityContent({
             {/* Left Column (Even Index: 0, 2, 4...) */}
             <div className="flex flex-col gap-6 flex-1 min-w-0">
               {leftCategories.map((category) => {
-                const categoryItems = items.filter((i) => i.categoryId === category.$id);
+                const categoryItems = items.filter(
+                  (i) => i.categoryId === category.$id,
+                );
                 return (
                   <CategorySection
                     key={category.$id}
@@ -170,7 +189,9 @@ export function AvailabilityContent({
             {/* Right Column (Odd Index: 1, 3, 5...) */}
             <div className="flex flex-col gap-6 flex-1 min-w-0">
               {rightCategories.map((category) => {
-                const categoryItems = items.filter((i) => i.categoryId === category.$id);
+                const categoryItems = items.filter(
+                  (i) => i.categoryId === category.$id,
+                );
                 return (
                   <CategorySection
                     key={category.$id}
@@ -186,7 +207,9 @@ export function AvailabilityContent({
         ) : (
           <div className="flex flex-col gap-6 w-full">
             {categories.map((category) => {
-              const categoryItems = items.filter((i) => i.categoryId === category.$id);
+              const categoryItems = items.filter(
+                (i) => i.categoryId === category.$id,
+              );
               return (
                 <CategorySection
                   key={category.$id}
@@ -213,7 +236,12 @@ function CategorySection({
   category: MenuCategory;
   items: MenuItem[];
   onToggleItem: (id: string, available: boolean) => void;
-  onToggleCustomization: (itemId: string, stepId: string, optionId: string | null, available: boolean) => void;
+  onToggleCustomization: (
+    itemId: string,
+    stepId: string,
+    optionId: string | null,
+    available: boolean,
+  ) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -280,7 +308,12 @@ function ItemsMasonryGrid({
 }: {
   items: MenuItem[];
   onToggleItem: (id: string, available: boolean) => void;
-  onToggleCustomization: (itemId: string, stepId: string, optionId: string | null, available: boolean) => void;
+  onToggleCustomization: (
+    itemId: string,
+    stepId: string,
+    optionId: string | null,
+    available: boolean,
+  ) => void;
 }) {
   const renderCard = (item: MenuItem) => (
     <ItemCardView
@@ -294,7 +327,7 @@ function ItemsMasonryGrid({
   const cols2: MenuItem[][] = [[], []];
   const cols3: MenuItem[][] = [[], [], []];
   const cols4: MenuItem[][] = [[], [], [], []];
-  
+
   items.forEach((item, i) => {
     cols2[i % 2].push(item);
     cols3[i % 3].push(item);
@@ -320,31 +353,17 @@ function ItemsMasonryGrid({
 
       {/* 3 Columns (Desktop xl to < 2xl) */}
       <div className="hidden xl:grid 2xl:hidden grid-cols-3 gap-4 items-start">
-        <div className="flex flex-col gap-4">
-          {cols3[0].map(renderCard)}
-        </div>
-        <div className="flex flex-col gap-4">
-          {cols3[1].map(renderCard)}
-        </div>
-        <div className="flex flex-col gap-4">
-          {cols3[2].map(renderCard)}
-        </div>
+        <div className="flex flex-col gap-4">{cols3[0].map(renderCard)}</div>
+        <div className="flex flex-col gap-4">{cols3[1].map(renderCard)}</div>
+        <div className="flex flex-col gap-4">{cols3[2].map(renderCard)}</div>
       </div>
 
       {/* 4 Columns (Large Desktop >= 2xl) */}
       <div className="hidden 2xl:grid grid-cols-4 gap-4 items-start">
-        <div className="flex flex-col gap-4">
-          {cols4[0].map(renderCard)}
-        </div>
-        <div className="flex flex-col gap-4">
-          {cols4[1].map(renderCard)}
-        </div>
-        <div className="flex flex-col gap-4">
-          {cols4[2].map(renderCard)}
-        </div>
-        <div className="flex flex-col gap-4">
-          {cols4[3].map(renderCard)}
-        </div>
+        <div className="flex flex-col gap-4">{cols4[0].map(renderCard)}</div>
+        <div className="flex flex-col gap-4">{cols4[1].map(renderCard)}</div>
+        <div className="flex flex-col gap-4">{cols4[2].map(renderCard)}</div>
+        <div className="flex flex-col gap-4">{cols4[3].map(renderCard)}</div>
       </div>
     </>
   );
@@ -357,7 +376,12 @@ function ItemCardView({
 }: {
   item: MenuItem;
   onToggleItem: (id: string, available: boolean) => void;
-  onToggleCustomization: (itemId: string, stepId: string, optionId: string | null, available: boolean) => void;
+  onToggleCustomization: (
+    itemId: string,
+    stepId: string,
+    optionId: string | null,
+    available: boolean,
+  ) => void;
 }) {
   const steps = parseCustomizations(item.customizations);
   const [showOptions, setShowOptions] = useState(false);
@@ -382,9 +406,14 @@ function ItemCardView({
 
           <div className="flex flex-col gap-1 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-base text-foreground break-words">{item.name}</span>
+              <span className="font-semibold text-base text-foreground break-words">
+                {item.name}
+              </span>
               {steps.length > 0 && (
-                <Badge variant="outline" className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0">
+                <Badge
+                  variant="outline"
+                  className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
+                >
                   <SlidersHorizontal className="w-3 h-3" weight="bold" />
                   {steps.length} {steps.length === 1 ? "Schritt" : "Schritte"}
                 </Badge>
@@ -420,7 +449,11 @@ function ItemCardView({
             className="flex items-center justify-between w-full text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1"
           >
             <span>{t("customization")}</span>
-            {showOptions ? <CaretUp className="h-3.5 w-3.5" weight="bold" /> : <CaretDown className="h-3.5 w-3.5" weight="bold" />}
+            {showOptions ? (
+              <CaretUp className="h-3.5 w-3.5" weight="bold" />
+            ) : (
+              <CaretDown className="h-3.5 w-3.5" weight="bold" />
+            )}
           </button>
 
           {showOptions && (
@@ -438,7 +471,14 @@ function ItemCardView({
                       <div className="flex items-center shrink-0">
                         <Switch
                           checked={stepAvailable}
-                          onCheckedChange={(checked) => onToggleCustomization(item.$id, stepId, null, checked)}
+                          onCheckedChange={(checked) =>
+                            onToggleCustomization(
+                              item.$id,
+                              stepId,
+                              null,
+                              checked,
+                            )
+                          }
                           title={t("toggleStepAvailability")}
                         />
                       </div>
@@ -447,8 +487,10 @@ function ItemCardView({
                     {/* Options List */}
                     <div className="pl-2 space-y-1 border-l-2 border-primary/20">
                       {(step.options || []).map((opt, oIdx) => {
-                        const optId = opt.id || (opt as any).$id || `opt-${oIdx}`;
-                        const optAvailable = opt.available !== false && stepAvailable;
+                        const optId =
+                          opt.id || (opt as any).$id || `opt-${oIdx}`;
+                        const optAvailable =
+                          opt.available !== false && stepAvailable;
                         return (
                           <div
                             key={optId}
@@ -469,7 +511,14 @@ function ItemCardView({
                               <Switch
                                 checked={opt.available !== false}
                                 disabled={!stepAvailable}
-                                onCheckedChange={(checked) => onToggleCustomization(item.$id, stepId, optId, checked)}
+                                onCheckedChange={(checked) =>
+                                  onToggleCustomization(
+                                    item.$id,
+                                    stepId,
+                                    optId,
+                                    checked,
+                                  )
+                                }
                                 title={t("toggleOptionAvailability")}
                               />
                             </div>
