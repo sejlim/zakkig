@@ -855,15 +855,21 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
   const { active } = useDndContext();
   const isDraggingItem = active?.data.current?.type === "item";
 
-  useEffect(() => {
+  // Sync nameVal when category.name changes (render-time update)
+  const [prevCategoryName, setPrevCategoryName] = useState(category.name);
+  if (category.name !== prevCategoryName) {
+    setPrevCategoryName(category.name);
     setNameVal(category.name);
-  }, [category.name]);
+  }
 
-  useEffect(() => {
+  // Sync isEditingName when autoEditName changes (render-time update)
+  const [prevAutoEditName, setPrevAutoEditName] = useState(autoEditName);
+  if (autoEditName !== prevAutoEditName) {
+    setPrevAutoEditName(autoEditName);
     if (autoEditName) {
       setIsEditingName(true);
     }
-  }, [autoEditName]);
+  }
 
   const handleSaveName = async () => {
     onEditComplete?.();

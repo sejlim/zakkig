@@ -81,6 +81,14 @@ const statusVariants: Record<
   cancelled: "destructive",
 };
 
+const dateFormatter = new Intl.DateTimeFormat("de-DE", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 export function ArchiveContent({
   orders,
   organizationId,
@@ -104,16 +112,18 @@ export function ArchiveContent({
 
   // 1. Filter
   if (selectedTypes.length > 0) {
+    const typesSet = new Set(selectedTypes);
     processedOrders = processedOrders.filter((o) => {
       const isDineIn = o.type === "dine-in" || !!o.tableNumber;
-      if (selectedTypes.includes("dine-in") && isDineIn) return true;
-      if (selectedTypes.includes("takeaway") && !isDineIn) return true;
+      if (typesSet.has("dine-in") && isDineIn) return true;
+      if (typesSet.has("takeaway") && !isDineIn) return true;
       return false;
     });
   }
   if (selectedStatuses.length > 0) {
+    const statusesSet = new Set(selectedStatuses);
     processedOrders = processedOrders.filter((o) =>
-      selectedStatuses.includes(o.status),
+      statusesSet.has(o.status),
     );
   }
 
@@ -234,14 +244,6 @@ export function ArchiveContent({
       URL.revokeObjectURL(url);
     }
   }
-
-  const dateFormatter = new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
   return (
     <div className="flex-1 space-y-4">

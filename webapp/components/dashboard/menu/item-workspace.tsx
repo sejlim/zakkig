@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -71,13 +71,13 @@ export function ItemWorkspace({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State
-  const [categoryId, setCategoryId] = useState(selectedCategoryId);
+  const categoryIdRef = useRef(selectedCategoryId);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [available, setAvailable] = useState(true);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [removeImage, setRemoveImage] = useState(false);
+  const selectedFileRef = useRef<File | null>(null);
+  const removeImageRef = useRef(false);
   const [enableCustomizations, setEnableCustomizations] = useState(false);
   const [customizationSteps, setCustomizationSteps] = useState<
     CustomizationStep[]
@@ -92,13 +92,13 @@ export function ItemWorkspace({
       setErrors({});
       setIsSubmitting(false);
       if (editingItem) {
-        setCategoryId(editingItem.categoryId);
+        categoryIdRef.current = editingItem.categoryId;
         setName(editingItem.name);
         setDescription(editingItem.description || "");
         setPrice((editingItem.price / 100).toFixed(2));
         setAvailable(editingItem.available);
-        setSelectedFile(null);
-        setRemoveImage(false);
+        selectedFileRef.current = null;
+        removeImageRef.current = false;
 
         try {
           const parsed = JSON.parse(editingItem.customizations || "[]");
@@ -114,13 +114,13 @@ export function ItemWorkspace({
           setEnableCustomizations(false);
         }
       } else {
-        setCategoryId(selectedCategoryId || (categories[0]?.$id ?? ""));
+        categoryIdRef.current = selectedCategoryId || (categories[0]?.$id ?? "");
         setName("");
         setDescription("");
         setPrice("");
         setAvailable(true);
-        setSelectedFile(null);
-        setRemoveImage(false);
+        selectedFileRef.current = null;
+        removeImageRef.current = false;
         setCustomizationSteps([]);
         setEnableCustomizations(false);
       }
@@ -170,7 +170,7 @@ export function ItemWorkspace({
     const formData = new FormData();
 
     formData.append("organizationId", organizationId);
-    formData.append("categoryId", categoryId);
+    formData.append("categoryId", categoryIdRef.current);
     formData.append("name", name.trim());
     formData.append("description", description);
     formData.append("price", price);
@@ -180,13 +180,13 @@ export function ItemWorkspace({
     if (editingItem) {
       formData.append("itemId", editingItem.$id);
       formData.append("existingImageId", editingItem.imageId || "");
-      if (removeImage) {
+      if (removeImageRef.current) {
         formData.append("removeImage", "true");
       }
     }
 
-    if (selectedFile) {
-      formData.append("image", selectedFile);
+    if (selectedFileRef.current) {
+      formData.append("image", selectedFileRef.current);
     }
 
     const finalSteps = enableCustomizations ? customizationSteps : [];
@@ -267,12 +267,12 @@ export function ItemWorkspace({
                       className="flex-1"
                       existingImageId={editingItem?.imageId}
                       onFileSelect={(file) => {
-                        setSelectedFile(file);
-                        setRemoveImage(false);
+                        selectedFileRef.current = file;
+                        removeImageRef.current = false;
                       }}
                       onRemoveExisting={() => {
-                        setRemoveImage(true);
-                        setSelectedFile(null);
+                        removeImageRef.current = true;
+                        selectedFileRef.current = null;
                       }}
                     />
                   </div>
