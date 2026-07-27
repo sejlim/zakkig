@@ -697,8 +697,8 @@ export function MenuContent({
               </div>
             ) : activeCategory ? (
               <Card className="opacity-95 shadow-2xl scale-[1.02] border-2 border-primary rounded-xl overflow-hidden bg-background">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 gap-4 w-full">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-2 sm:gap-4 w-full">
+                  <div className="flex items-center gap-3 min-w-0 flex-1 w-full">
                     <button
                       type="button"
                       className="cursor-grabbing p-1 rounded text-muted-foreground transition-colors touch-none shrink-0"
@@ -710,12 +710,12 @@ export function MenuContent({
                     <div className="text-lg font-semibold text-foreground text-left bg-transparent border-0 p-0 min-w-0 flex-1 break-words">
                       {activeCategory.name}
                     </div>
-                    <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0">
+                    <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0 ml-auto sm:ml-0">
                       {itemsByCategory[activeCategory.$id]?.length || 0}
                     </Badge>
                   </div>
 
-                  <div className="flex items-center justify-end gap-1.5 shrink-0 pointer-events-none">
+                  <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pointer-events-none border-t border-border/40 pt-2 sm:pt-0 sm:border-t-0 w-full sm:w-auto">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -920,8 +920,8 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
             "ring-2 ring-primary bg-primary/5",
         )}
       >
-        <CardHeader className="flex flex-row items-center justify-between pb-2 gap-4 w-full">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-2 sm:gap-4 w-full">
+          <div className="flex items-center gap-3 min-w-0 flex-1 w-full">
             <button
               type="button"
               {...attributes}
@@ -974,13 +974,13 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
               </button>
             )}
             {!isEditingName && (
-              <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0">
+              <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0 ml-auto sm:ml-0">
                 {categoryItems.length}
               </Badge>
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-1.5 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 border-t border-border/40 pt-2 sm:pt-0 sm:border-t-0 w-full sm:w-auto">
             <Button
               variant="ghost"
               size="icon"
