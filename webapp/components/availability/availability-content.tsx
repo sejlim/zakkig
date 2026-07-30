@@ -152,7 +152,7 @@ export function AvailabilityContent({
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">
-            {t("availability" as any)}
+            {t("availability")}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -326,12 +326,10 @@ function ItemsMasonryGrid({
 
   const cols2: MenuItem[][] = [[], []];
   const cols3: MenuItem[][] = [[], [], []];
-  const cols4: MenuItem[][] = [[], [], [], []];
 
   items.forEach((item, i) => {
     cols2[i % 2].push(item);
     cols3[i % 3].push(item);
-    cols4[i % 4].push(item);
   });
 
   return (
@@ -351,19 +349,11 @@ function ItemsMasonryGrid({
         </div>
       </div>
 
-      {/* 3 Columns (Desktop xl to < 2xl) */}
-      <div className="hidden xl:grid 2xl:hidden grid-cols-3 gap-4 items-start">
+      {/* 3 Columns (Desktop xl+) */}
+      <div className="hidden xl:grid grid-cols-3 gap-4 items-start">
         <div className="flex flex-col gap-4">{cols3[0].map(renderCard)}</div>
         <div className="flex flex-col gap-4">{cols3[1].map(renderCard)}</div>
         <div className="flex flex-col gap-4">{cols3[2].map(renderCard)}</div>
-      </div>
-
-      {/* 4 Columns (Large Desktop >= 2xl) */}
-      <div className="hidden 2xl:grid grid-cols-4 gap-4 items-start">
-        <div className="flex flex-col gap-4">{cols4[0].map(renderCard)}</div>
-        <div className="flex flex-col gap-4">{cols4[1].map(renderCard)}</div>
-        <div className="flex flex-col gap-4">{cols4[2].map(renderCard)}</div>
-        <div className="flex flex-col gap-4">{cols4[3].map(renderCard)}</div>
       </div>
     </>
   );
@@ -424,7 +414,7 @@ function ItemCardView({
                 {item.description}
               </p>
             )}
-            <span className="text-sm font-bold text-foreground">
+            <span className="text-sm font-bold text-foreground whitespace-nowrap">
               {formatPrice(item.price)}
             </span>
           </div>
@@ -457,7 +447,7 @@ function ItemCardView({
           </button>
 
           {showOptions && (
-            <div className="mt-2 space-y-3 bg-muted/20 p-2.5 rounded-lg border border-border/40">
+            <div className="mt-2 space-y-3">
               {steps.map((step, sIdx) => {
                 const stepId = step.id || (step as any).$id || `step-${sIdx}`;
                 const stepAvailable = step.available !== false;
@@ -485,7 +475,7 @@ function ItemCardView({
                     </div>
 
                     {/* Options List */}
-                    <div className="pl-2 space-y-1 border-l-2 border-primary/20">
+                    <div className="pt-1 space-y-1">
                       {(step.options || []).map((opt, oIdx) => {
                         const optId =
                           opt.id || (opt as any).$id || `opt-${oIdx}`;
@@ -494,7 +484,7 @@ function ItemCardView({
                         return (
                           <div
                             key={optId}
-                            className="flex items-center justify-between gap-2 text-xs py-1 px-1.5 rounded transition-colors hover:bg-muted/40"
+                            className="flex items-center justify-between gap-2 text-xs py-1"
                           >
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
                               <span className="font-medium text-foreground truncate">

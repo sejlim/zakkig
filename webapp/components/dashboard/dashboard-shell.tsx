@@ -161,12 +161,11 @@ export function DashboardShell({
                     key={item.href}
                     variant="ghost"
                     className={cn(
-                      isExpanded ? "w-full justify-start" : "mx-auto",
+                      "w-full justify-start px-2.5 h-10 overflow-hidden",
                       isActive
                         ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90 hover:text-primary"
                         : "text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground",
                     )}
-                    size={!isExpanded ? "icon" : "default"}
                     aria-label={!isExpanded ? item.label : undefined}
                     onClick={() => {
                       setIsMobileOpen(false);
@@ -177,7 +176,7 @@ export function DashboardShell({
                       weight={isActive ? "fill" : "regular"}
                       className="h-5 w-5 shrink-0"
                     />
-                    {isExpanded && <span className="ml-2">{item.label}</span>}
+                    {isExpanded && <span className="ml-1">{item.label}</span>}
                   </Button>
                 );
               })}
@@ -185,7 +184,12 @@ export function DashboardShell({
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/10 p-4 flex flex-col gap-4 shrink-0">
+        <div
+          className={cn(
+            "border-t border-primary-foreground/10 flex flex-col gap-4 shrink-0",
+            isExpanded ? "p-4" : "p-3 py-4",
+          )}
+        >
           <Link
             href={`/dashboard/${organization?.$id || "default"}/settings`}
             className={cn(
@@ -226,31 +230,32 @@ export function DashboardShell({
           >
             <form
               action={signOutAction}
-              className={cn(!isExpanded && "w-full flex justify-center")}
+              className={cn(!isExpanded && "w-full")}
             >
               <Button
                 type="submit"
                 variant="ghost"
-                size={!isExpanded ? "icon" : "default"}
                 className={cn(
-                  isExpanded && "w-full justify-start",
+                  "justify-start h-10 overflow-hidden",
+                  isExpanded ? "px-3" : "px-2.5 w-full",
                   "text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground",
                 )}
               >
-                <SignOut />
-                {isExpanded && <span className="ml-2">{t("signOut")}</span>}
+                <SignOut className="h-5 w-5 shrink-0" />
+                {isExpanded && <span className="ml-1">{t("signOut")}</span>}
               </Button>
             </form>
             <Button
               variant="ghost"
-              size={!isExpanded ? "icon" : "default"}
               onClick={() => setLocale(locale === "de" ? "en" : "de")}
-              className="text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground"
-            >
-              <Globe />
-              {isExpanded && (
-                <span className="ml-2">{locale.toUpperCase()}</span>
+              className={cn(
+                "justify-start h-10 overflow-hidden",
+                isExpanded ? "px-3" : "px-2.5 w-full",
+                "text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground"
               )}
+            >
+              <Globe className="h-5 w-5 shrink-0" />
+              {isExpanded && <span className="ml-1">{locale.toUpperCase()}</span>}
             </Button>
           </div>
         </div>

@@ -274,7 +274,7 @@ export function MainPage() {
               variant="ghost"
               size="icon"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity duration-200 bg-transparent min-w-0 w-auto h-auto min-h-0 p-0"
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity duration-200 bg-transparent hover:bg-transparent min-w-0 w-auto h-auto min-h-0 p-0"
               aria-label={t("scrollToTopLabel")}
             >
               <Image

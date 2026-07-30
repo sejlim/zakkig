@@ -51,10 +51,11 @@ Erfordert eine gültige Session (E-Mail, Passwort, HttpOnly Cookie).
 - `app.zakkig.de/dashboard/{organizationId}/menu`
 - `app.zakkig.de/dashboard/{organizationId}/settings`
 
-**Kitchen Board (Geschützt)**
+**Staff Devices (Geschützt)**
 Einmaliges Pairing über das Dashboard erzeugt eine dauerhafte Session. Keine Passwort-Eingabe im Küchenalltag.
 
-- `app.zakkig.de/orders/{organizationId}`
+- `app.zakkig.de/orders/{organizationId}` (Kitchen Board)
+- `app.zakkig.de/availability/{organizationId}` (Verfügbarkeits-Steuerung)
 
 **Gast-Routen (Öffentlich, Keine Session)**
 Zugriff ausschließlich über Parameter, ohne Registrierung.
@@ -71,14 +72,14 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
   - **Quick-Links:** Navigation zu den weiteren Dashboard-Seiten.
   - **Kitchen-Session Management:** Ansicht zum Erstellen und Verwalten von Kitchen-Sessions inkl. kopierbarem Pairing-Link.
   - **QR-Code Generator:** Erstellung von QR-Codes für To-Go und To-Stay (inkl. sichtbarer Tischnummer über dem Code). Generierte QR-Codes sind als PDF für den Druck herunterladbar.
-- **Live-Bestellungen (`/live-orders`):** Echtzeit-Ansicht der aktiven Bestellungen (Pending, Preparing, Ready).
+- **Live-Bestellungen (`/live-orders`):** Echtzeit-Ansicht der aktiven Bestellungen (In Bearbeitung, Abgeschlossen, Storniert).
 - **Archiv (`/archive`):** Detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater.
 - **Menu (`/menu`):** Zentrale Verwaltung der Speisekarte, Getränke, Kategorien, Preise und Bilder.
 - **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten, Stripe-Details sowie die Möglichkeit, eine Löschanfrage für das Konto zu senden.
 
 ### 2.3 Core Features: Kitchen Board View
 
-- **Aufbau:** Zweiteilige Ansicht ("In Bearbeitung" und "Abgeschlossen"). Aktualisiert sich via Appwrite WebSockets in Echtzeit.
+- **Aufbau:** Ansicht mit den Status "In Bearbeitung", "Abgeschlossen" und "Storniert". Aktualisiert sich via Appwrite WebSockets in Echtzeit.
 - **Ablauf:** Eingehende Bestellungen erscheinen als Kacheln in historischer Reihenfolge. Ein Klick markiert die Bestellung als abgeschlossen und verschiebt sie.
 - **Cleanup:** Abgeschlossene Kacheln können bei Ausgabe an den Kunden manuell gelöscht werden, ansonsten verschwinden sie nach 10 Minuten automatisch.
 

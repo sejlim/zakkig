@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
         </Link>
         <LanguageSwitcher
           variant="outline"
-          className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+          className="h-10 px-3 bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
         />
       </div>
       {state.success ? (
