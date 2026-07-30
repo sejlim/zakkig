@@ -493,9 +493,9 @@ export function ArchiveContent({
                         </TableCell>
                         <TableCell className="text-sm min-w-[250px]">
                           <div className="flex flex-wrap gap-x-3 gap-y-1">
-                            {items.map((item, idx) => (
+                            {items.map((item: any) => (
                               <div
-                                key={`${item.menuItemId}-${idx}`}
+                                key={item.cartItemId || item.id || item.menuItemId}
                                 className="whitespace-nowrap"
                               >
                                 <span className="font-semibold">

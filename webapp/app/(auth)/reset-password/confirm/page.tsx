@@ -420,17 +420,13 @@ function PasswordResetFormContent({
 }
 
 export default function ResetPasswordConfirmPage() {
-  const { locale } = useTranslation();
+  const { t, locale } = useTranslation();
 
   return (
     <Card className="w-full bg-primary text-primary-foreground border-border/5">
       <div className="w-full flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary-foreground/10">
         <Link
-          href={
-            locale === "en"
-              ? "https://www.zakkig.de/en"
-              : "https://www.zakkig.de"
-          }
+          href={t("homepageUrl")}
           target="_blank"
           rel="noreferrer"
         >

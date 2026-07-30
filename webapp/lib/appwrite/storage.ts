@@ -11,12 +11,12 @@ export async function uploadMenuImage(
   userId: string,
 ): Promise<string> {
   const { storage } = createAdminClient();
-  const [{ ID, Permission, Role }, { InputFile }] = await Promise.all([
-    import("node-appwrite"),
-    import("node-appwrite/file"),
-  ]);
+  const [[{ ID, Permission, Role }, { InputFile }], arrayBuffer] =
+    await Promise.all([
+      Promise.all([import("node-appwrite"), import("node-appwrite/file")]),
+      file.arrayBuffer(),
+    ]);
 
-  const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const fileName = file.name || "image.png";
   const inputFile = InputFile.fromBuffer(buffer, fileName);

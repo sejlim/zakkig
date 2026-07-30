@@ -105,11 +105,7 @@ function OtpForm({ state }: { state: any }) {
     <Card className="w-full bg-primary text-primary-foreground border-none shadow-none sm:border-primary-foreground/10 sm:shadow-sm">
       <div className="w-full flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary-foreground/10">
         <Link
-          href={
-            locale === "en"
-              ? "https://www.zakkig.de/en"
-              : "https://www.zakkig.de"
-          }
+          href={t("homepageUrl")}
           target="_blank"
           rel="noreferrer"
         >
@@ -327,11 +323,7 @@ function SignUpForm({
     <Card className="w-full bg-primary text-primary-foreground border-none shadow-none sm:border-primary-foreground/10 sm:shadow-sm">
       <div className="w-full flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary-foreground/10">
         <Link
-          href={
-            locale === "en"
-              ? "https://www.zakkig.de/en"
-              : "https://www.zakkig.de"
-          }
+          href={t("homepageUrl")}
           target="_blank"
           rel="noreferrer"
         >
@@ -653,11 +645,7 @@ function SignUpForm({
                   <p className="text-xs text-muted-foreground">
                     {t("termsAgreementPrefix")}
                     <a
-                      href={
-                        locale === "de"
-                          ? "https://www.zakkig.de/agb"
-                          : "https://www.zakkig.de/en/terms"
-                      }
+                      href={t("termsUrl")}
                       className="underline hover:text-foreground"
                       target="_blank"
                       rel="noreferrer"
@@ -666,11 +654,7 @@ function SignUpForm({
                     </a>
                     {t("termsAgreementMiddle")}
                     <a
-                      href={
-                        locale === "de"
-                          ? "https://www.zakkig.de/datenschutz"
-                          : "https://www.zakkig.de/en/privacy"
-                      }
+                      href={t("privacyUrl")}
                       className="underline hover:text-foreground"
                       target="_blank"
                       rel="noreferrer"

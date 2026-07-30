@@ -68,9 +68,9 @@ function OrderGrid({
           </CardHeader>
           <CardContent className="p-4 pt-2 pb-4">
             <div className="flex flex-col gap-2.5">
-              {items.map((item, idx) => (
+              {items.map((item: any) => (
                 <div
-                  key={`${item.menuItemId || "item"}-${idx}`}
+                  key={item.cartItemId || item.id || item.menuItemId}
                   className="flex justify-between items-baseline text-base py-0.5"
                 >
                   <span className="font-semibold text-foreground leading-snug">

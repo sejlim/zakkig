@@ -45,8 +45,7 @@ export function DashboardShell({
   const { isExpanded, toggleSidebar } = useSidebarStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const zakkigUrl =
-    locale === "de" ? "https://www.zakkig.de" : "https://www.zakkig.de/en";
+  const zakkigUrl = t("homepageUrl");
 
   const navItems = [
     {
@@ -216,7 +215,7 @@ export function DashboardShell({
                   {organization?.name ?? "Zakkig"}
                 </span>
                 <span className="text-xs text-primary-foreground/70 truncate">
-                  {user?.name || user?.email || "Benutzer"}
+                  {user?.name || user?.email || t("userFallback")}
                 </span>
               </div>
             )}

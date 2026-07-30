@@ -433,6 +433,10 @@ export const translations = {
     notFoundText:
       "Die von dir gesuchte Seite existiert nicht oder wurde verschoben.",
     backHome: "Zurück zur Startseite",
+    userFallback: "Benutzer",
+    homepageUrl: "https://www.zakkig.de",
+    termsUrl: "https://www.zakkig.de/agb",
+    privacyUrl: "https://www.zakkig.de/datenschutz",
   },
   en: {
     // Auth
@@ -854,7 +858,11 @@ export const translations = {
     notFoundTitle: "Page not found",
     notFoundText:
       "The page you are looking for does not exist or has been moved.",
-    backHome: "Back to home",
+    backHome: "Back to Home",
+    userFallback: "User",
+    homepageUrl: "https://www.zakkig.de/en",
+    termsUrl: "https://www.zakkig.de/en/terms",
+    privacyUrl: "https://www.zakkig.de/en/privacy",
   },
 } as const;
 

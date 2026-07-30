@@ -78,11 +78,10 @@ export function OrderTracker({
             ✕
           </div>
           <h2 className="text-xl font-bold text-foreground">
-            {t("orderCancelledTitle") || "Bestellung storniert"}
+            {t("orderCancelledTitle")}
           </h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            {t("orderCancelledDesc") ||
-              "Diese Bestellung wurde storniert. Falls du bereits online oder vor Ort bezahlt hast, wende dich bitte für eine Rückerstattung direkt an das Personal."}
+            {t("orderCancelledDesc")}
           </p>
         </Card>
       </div>

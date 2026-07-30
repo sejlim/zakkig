@@ -212,7 +212,7 @@ export function CustomizationBuilder({
       ) : (
         <div className="p-4 text-center border border-dashed border-primary-foreground/20 rounded-xl">
           <p className="text-sm text-primary-foreground/70 font-medium">
-            {t("noStepsAdded") || "Noch keine Schritte hinzugefügt."}
+            {t("noStepsAdded")}
           </p>
         </div>
       )}
