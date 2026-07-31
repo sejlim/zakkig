@@ -163,7 +163,7 @@ async function createOrderSessionAction(organizationId: string) {
   try {
     const session = await createOrderSession(organizationId, user.$id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
-    return { success: true, session };
+    return { success: true, session: structuredClone(session) };
   } catch (error: unknown) {
     const message =
       error instanceof Error
@@ -202,7 +202,7 @@ export async function generateOrderSessionAction(organizationId: string) {
     await Promise.all(existing.map((s) => deleteOrderSession(s.$id)));
     const session = await createOrderSession(organizationId, user.$id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
-    return { success: true, session };
+    return { success: true, session: structuredClone(session) };
   } catch (error: unknown) {
     console.error("Fehler beim Neu-Generieren der Order Session:", error);
     return {

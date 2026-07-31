@@ -11,5 +11,5 @@ export default async function ArchivePage({
   const { organizationId } = await params;
   const orders = await getOrders(organizationId);
 
-  return <ArchiveContent orders={orders} organizationId={organizationId} />;
+  return <ArchiveContent orders={structuredClone(orders)} organizationId={organizationId} />;
 }

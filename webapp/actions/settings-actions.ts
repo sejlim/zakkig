@@ -28,7 +28,16 @@ export async function updateBusinessAction(
   try {
     let logoFileId = existingLogoId;
 
-    if (logoFile && logoFile.size > 0) {
+    if (formData.get("removeLogo") === "true") {
+      if (existingLogoId) {
+        try {
+          await deleteMenuImage(existingLogoId);
+        } catch {
+          /* ignore */
+        }
+      }
+      logoFileId = "";
+    } else if (logoFile && logoFile.size > 0) {
       if (existingLogoId) {
         try {
           await deleteMenuImage(existingLogoId);

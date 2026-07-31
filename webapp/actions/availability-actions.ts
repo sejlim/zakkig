@@ -15,7 +15,7 @@ async function createAvailabilitySessionAction(organizationId: string) {
   try {
     const session = await createAvailabilitySession(organizationId, user.$id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
-    return { success: true, session };
+    return { success: true, session: structuredClone(session) };
   } catch (error: unknown) {
     console.error("Fehler beim Erstellen der Availability Session:", error);
     return {
@@ -54,7 +54,7 @@ export async function generateAvailabilitySessionAction(
     await Promise.all(existing.map((s) => deleteAvailabilitySession(s.$id)));
     const session = await createAvailabilitySession(organizationId, user.$id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
-    return { success: true, session };
+    return { success: true, session: structuredClone(session) };
   } catch (error: unknown) {
     console.error(
       "Fehler beim Neu-Generieren der Availability Session:",

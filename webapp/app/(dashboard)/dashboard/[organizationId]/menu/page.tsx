@@ -16,8 +16,8 @@ export default async function MenuPage({
 
   return (
     <MenuContent
-      categories={categories}
-      items={items}
+      categories={structuredClone(categories)}
+      items={structuredClone(items)}
       organizationId={organizationId}
     />
   );
