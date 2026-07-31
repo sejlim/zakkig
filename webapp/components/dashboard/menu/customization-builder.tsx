@@ -272,7 +272,8 @@ function SortableStepCard({
   };
 
   // Sync isEditingName when autoEditStepName changes (render-time update)
-  const [prevAutoEditStepName, setPrevAutoEditStepName] = useState(autoEditStepName);
+  const [prevAutoEditStepName, setPrevAutoEditStepName] =
+    useState(autoEditStepName);
   if (autoEditStepName !== prevAutoEditStepName) {
     setPrevAutoEditStepName(autoEditStepName);
     if (autoEditStepName) {

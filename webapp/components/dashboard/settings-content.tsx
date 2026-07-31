@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import {
   updateBusinessAction,
   requestAccountDeletionAction,
+  updateUserNameAction,
 } from "@/actions/settings-actions";
 import type { Organization } from "@/lib/types";
 import type { Models } from "node-appwrite";
@@ -35,16 +36,26 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    organization.logoFileId ? getImagePreviewUrl(organization.logoFileId) : null,
+    organization.logoFileId
+      ? getImagePreviewUrl(organization.logoFileId)
+      : null,
   );
   const [removeLogo, setRemoveLogo] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  const [userState, userAction, isUserPending] = useActionState(
+    updateUserNameAction,
+    {},
+  );
 
   useEffect(() => {
     if (businessState.success) {
       toast.success(t("saved"));
     }
-  }, [businessState, t]);
+    if (userState.success) {
+      toast.success(t("saved"));
+    }
+  }, [businessState.success, userState.success, t]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -56,11 +67,15 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
         return;
       }
       if (!file.type.startsWith("image/")) return;
-      
+
       setRemoveLogo(false);
       const url = URL.createObjectURL(file);
-      setImagePreview(url);
       
+      setImagePreview((prev) => {
+        if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return url;
+      });
+
       // Update file input using DataTransfer
       if (fileInputRef.current) {
         const dataTransfer = new DataTransfer();
@@ -87,22 +102,47 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold">{t("accountSettings")}</h3>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="account-name" className="text-sm font-medium">
-                  {t("name")}
-                </label>
-                <Input id="account-name" value={user.name || ""} disabled />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="account-email" className="text-sm font-medium">
-                  {t("email")}
-                </label>
-                <Input id="account-email" value={user.email} disabled />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {t("accountDataInfo")}
-              </p>
+            <CardContent>
+              <form action={userAction} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="account-name" className="text-sm font-medium">
+                    {t("name")}
+                  </label>
+                  <Input
+                    id="account-name"
+                    name="name"
+                    defaultValue={user.name || ""}
+                    maxLength={128}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="account-email"
+                    className="text-sm font-medium"
+                  >
+                    {t("email")}
+                  </label>
+                  <Input id="account-email" value={user.email} disabled />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("accountDataInfo")}
+                </p>
+                {userState.error && (
+                  <p className="text-sm text-destructive font-medium">
+                    {userState.error}
+                  </p>
+                )}
+                <div className="pt-2 flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={isUserPending}
+                    variant="outline"
+                    className="w-full sm:w-auto font-semibold px-8"
+                  >
+                    {t("save")}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
 
@@ -133,7 +173,10 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   value={removeLogo ? "true" : "false"}
                 />
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="business-name" className="text-sm font-medium">
+                  <label
+                    htmlFor="business-name"
+                    className="text-sm font-medium"
+                  >
                     {t("restaurantName")}
                   </label>
                   <Input
@@ -145,7 +188,10 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="business-address" className="text-sm font-medium">
+                  <label
+                    htmlFor="business-address"
+                    className="text-sm font-medium"
+                  >
                     {t("address")}
                   </label>
                   <TextArea
@@ -157,8 +203,10 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">{t("logo")}</label>
+                  <label htmlFor="business-logo" className="text-sm font-medium">{t("logo")}</label>
                   <div
+                    role="button"
+                    tabIndex={0}
                     className={cn(
                       "relative rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden flex flex-col items-center justify-center min-h-[200px]",
                       isDragging
@@ -168,6 +216,12 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                           : "border-muted-foreground/30 hover:border-primary/50 bg-muted/10",
                     )}
                     onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }
+                    }}
                     onDragOver={(e) => {
                       e.preventDefault();
                       setIsDragging(true);
@@ -188,11 +242,28 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                             {t("changeImage")}
                           </span>
                         </div>
-                        <button
-                          type="button"
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setImagePreview((prev) => {
+                                if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+                                return null;
+                              });
+                              setRemoveLogo(true);
+                              if (fileInputRef.current)
+                                fileInputRef.current.value = "";
+                            }
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setImagePreview(null);
+                            setImagePreview((prev) => {
+                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+                              return null;
+                            });
                             setRemoveLogo(true);
                             if (fileInputRef.current)
                               fileInputRef.current.value = "";
@@ -201,7 +272,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                           title={t("removeImage")}
                         >
                           <X className="w-3.5 h-3.5" weight="bold" />
-                        </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-2 p-6 text-center text-muted-foreground">
@@ -238,8 +309,11 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                           }
                           setRemoveLogo(false);
                           const reader = new FileReader();
-                          reader.onload = (e) => {
-                            setImagePreview(e.target?.result as string);
+                          reader.onload = (ev) => {
+                            setImagePreview((prev) => {
+                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+                              return ev.target?.result as string;
+                            });
                           };
                           reader.readAsDataURL(file);
                         }
@@ -253,7 +327,11 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   </p>
                 )}
                 <div className="pt-2 flex justify-end">
-                  <Button type="submit" disabled={isBusinessPending} className="w-full sm:w-auto font-semibold px-8">
+                  <Button
+                    type="submit"
+                    disabled={isBusinessPending}
+                    className="w-full sm:w-auto font-semibold px-8"
+                  >
                     {t("save")}
                   </Button>
                 </div>

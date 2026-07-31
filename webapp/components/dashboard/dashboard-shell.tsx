@@ -250,11 +250,13 @@ export function DashboardShell({
               className={cn(
                 "justify-start h-10 overflow-hidden",
                 isExpanded ? "px-3" : "px-2.5 w-full",
-                "text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground"
+                "text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground",
               )}
             >
               <Globe className="h-5 w-5 shrink-0" />
-              {isExpanded && <span className="ml-1">{locale.toUpperCase()}</span>}
+              {isExpanded && (
+                <span className="ml-1">{locale.toUpperCase()}</span>
+              )}
             </Button>
           </div>
         </div>

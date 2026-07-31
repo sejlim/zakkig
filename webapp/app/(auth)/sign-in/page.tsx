@@ -91,11 +91,7 @@ function OtpForm({ state }: { state: any }) {
   return (
     <Card className="w-full bg-primary text-primary-foreground border-none shadow-none sm:border-primary-foreground/10 sm:shadow-sm">
       <div className="w-full flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary-foreground/10">
-        <Link
-          href={t("homepageUrl")}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <Link href={t("homepageUrl")} target="_blank" rel="noreferrer">
           <Image
             src="https://www.zakkig.de/full.svg"
             alt="zakkig"
@@ -243,11 +239,7 @@ function SignInForm({
   return (
     <Card className="w-full bg-primary text-primary-foreground border-none shadow-none sm:border-primary-foreground/10 sm:shadow-sm">
       <div className="w-full flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary-foreground/10">
-        <Link
-          href={t("homepageUrl")}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <Link href={t("homepageUrl")} target="_blank" rel="noreferrer">
           <Image
             src="https://www.zakkig.de/full.svg"
             alt="zakkig"

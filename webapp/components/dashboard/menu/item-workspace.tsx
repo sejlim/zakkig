@@ -41,7 +41,7 @@ import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
 import { ImageUpload } from "./image-upload";
 import { CustomizationBuilder } from "./customization-builder";
-import { PRESET_TEMPLATES, type PresetTemplate } from "@/lib/preset-templates";
+
 import {
   createMenuItemAction,
   updateMenuItemAction,
@@ -114,7 +114,8 @@ export function ItemWorkspace({
           setEnableCustomizations(false);
         }
       } else {
-        categoryIdRef.current = selectedCategoryId || (categories[0]?.$id ?? "");
+        categoryIdRef.current =
+          selectedCategoryId || (categories[0]?.$id ?? "");
         setName("");
         setDescription("");
         setPrice("");
@@ -127,26 +128,7 @@ export function ItemWorkspace({
     }
   }, [open, editingItem, selectedCategoryId, categories]);
 
-  // Apply a generic preset template
-  const applyPreset = (preset: PresetTemplate) => {
-    if (preset.steps.length > 0) {
-      const clonedSteps: CustomizationStep[] = preset.steps.map((s, sIdx) => ({
-        ...s,
-        id: crypto.randomUUID(),
-        sortOrder: sIdx,
-        options: s.options.map((o, oIdx) => ({
-          ...o,
-          id: crypto.randomUUID(),
-          sortOrder: oIdx,
-        })),
-      }));
-      setCustomizationSteps(clonedSteps);
-      setEnableCustomizations(true);
-    } else {
-      setCustomizationSteps([]);
-      setEnableCustomizations(false);
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

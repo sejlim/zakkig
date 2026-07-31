@@ -2,15 +2,17 @@
   "name": "webapp",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=26.0.0"
+  },
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
-    "build": "next build",
-    "start": "next start --port 3001",
-    "lint": "next lint",
+    "dev": "dotenv -e ../.env -- next dev --port 3001",
+    "build": "dotenv -e ../.env -- next build",
+    "start": "dotenv -e ../.env -- next start --port 3001",
+    "lint": "dotenv -e ../.env -- next lint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit",
-    "db:init": "node scripts/db-init.js"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -40,10 +42,11 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.0.0",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "^16.2.10",
     "prettier": "^3.4.2",

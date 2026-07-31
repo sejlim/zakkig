@@ -75,7 +75,7 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
 - **Live-Bestellungen (`/live-orders`):** Echtzeit-Ansicht der aktiven Bestellungen (In Bearbeitung, Abgeschlossen, Storniert).
 - **Archiv (`/archive`):** Detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater.
 - **Menu (`/menu`):** Zentrale Verwaltung der Speisekarte, Getränke, Kategorien, Preise und Bilder.
-- **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten, Stripe-Details sowie die Möglichkeit, eine Löschanfrage für das Konto zu senden.
+- **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten (z. B. Logo-Upload im Full-Width Layout auf Desktop) und Stripe-Details. Die Kontolöschung erfolgt über einen zweistufigen Verifizierungsprozess: Eine Appwrite Function (`deleteAccount`) generiert einen temporären Token und sendet eine Bestätigungs-E-Mail über den eigenen SMTP-Server (Appwrite Messaging). Erst nach Klick auf den E-Mail-Link wird das Konto restlos durch die Appwrite Function gelöscht.
 
 ### 2.3 Core Features: Kitchen Board View
 
@@ -250,3 +250,59 @@ Die Marketingseite wird als SEO-optimierter One-Pager über **Appwrite Sites** g
 
 - **Meta Title:** Lass Kunden selbst bestellen und bezahlen
 - **Meta Description:** Egal ob zum Mitnehmen oder am Tisch, biete deinen Kunden eine digitale Möglichkeit zum Bestellen und Bezahlen. Sie scannen einfach einen QR-Code mit dem eigenen Handy, während dein Personal sich Wichtigerem widmen kann.
+
+---
+
+## TEIL 7: ENTWICKLER-SETUP & INFRASTRUKTUR
+
+Dieser Abschnitt richtet sich an Entwickler und enthält technische Details zur Initialisierung, Architektur und zum Deployment der Appwrite-basierten Infrastruktur.
+
+### 7.1 Umgebungsvariablen (Zentrale Architektur)
+
+Das Projekt nutzt bewusst **nur eine einzige, zentrale `.env` Datei** im Projekt-Root.
+- Es gibt **keine Symlinks** und **keine verschachtelten `.env`-Dateien** in den Unterordnern.
+- Die Unterprojekte (`webapp` und `website`) nutzen das NPM-Paket `dotenv-cli`. In der jeweiligen `package.json` ist jeder Befehl (z. B. `dev`, `build`, `lint`) so konfiguriert, dass er die Variablen aus dem Root-Ordner automatisch injiziert (z. B. `dotenv -e ../.env -- next dev`).
+- **Datenbank-Routing:** Die Datenbank-IDs sind explizit getrennt (`NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP` und `NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBSITE`), sodass jedes Projekt auf seinen eigenen Datenbank-Scope zugreift.
+
+### 7.2 Datenbank-Schema (Infrastructure as Code)
+
+Das gesamte Appwrite Datenbank-Schema (alle Tabellen, Kollektionen, Attribute, Datentypen und Indizes) ist deklarativ in der `appwrite.json` definiert.
+Um eine frische Datenbank zu initialisieren oder Updates am Schema vorzunehmen, musst du zunächst mit der CLI in einer aktiven Entwickler-Sitzung eingeloggt sein (authentifiziert sich gegen das Projekt in der `appwrite.json`):
+
+```bash
+npx appwrite-cli login
+```
+
+Führe anschließend im Root-Ordner aus:
+
+```bash
+npx appwrite-cli push tables
+```
+
+*(Hinweis: Manuelle JavaScript-Initialisierungsskripte werden hierfür nicht verwendet.)*
+
+### 7.3 Appwrite Funktionen
+
+Die Geschäftslogik, die nicht sicher auf dem Client oder als Next.js Server Action ausgeführt werden kann (z. B. Kontolöschung mit E-Mail-Verifizierung), wird in **Appwrite Functions** ausgelagert.
+- **Speicherort:** `/appwrite/functions/<functionName>`
+- **Laufzeitumgebung (Runtime):** Alle Funktionen laufen einheitlich auf `node-26`.
+- **Deployment:** Funktionen müssen immer mit dem Flag `--with-variables` ausgerollt werden. Dadurch liest die CLI die lokale `.env` aus dem Projekt-Root und pusht die Variablen sicher als Umgebungsvariablen in die Cloud-Umgebung der Funktion:
+  ```bash
+  npx appwrite-cli push functions --all --with-variables
+  ```
+
+### 7.4 Appwrite CLI Konfiguration (`appwrite.json`)
+
+Die Datei `appwrite.json` im Root steuert das Projekt-Deployment. 
+- Die darin hartkodierten Werte wie `projectId` und `endpoint` sind **kein** Sicherheitsrisiko. Es handelt sich um öffentliche Konfigurationswerte, die der CLI lediglich als Kontext dienen, gegen welchen Workspace sie arbeitet. 
+- **Sensible Daten (API Keys etc.)** gehören ausschließlich in die zentrale `.env`.
+
+### 7.5 Authentifizierung & Server-Side Rendering (SSR)
+
+Für Next.js Server Components wird das **Node.js Appwrite SDK** (`node-appwrite`) verwendet. 
+- Für administrative Aufgaben greift der Server über den `APPWRITE_API_KEY` zu. 
+- Für benutzerspezifische Aktionen (z. B. Dashboard-Zugriff) wird der Session-Cookie des Nutzers (Appwrite Auth) entgegengenommen und ein Client mit diesen Session-Daten instanziiert.
+
+### 7.6 Appwrite Messaging (E-Mail & SMTP)
+
+Der native SMTP-Service des Gastronomen ist in Appwrite angebunden. Alle ausgehenden transaktionalen Mails (wie z. B. die Token-Mails für den `deleteAccount`-Flow oder OTP-Logins) werden serverseitig über das Appwrite Messaging SDK ausgelöst.

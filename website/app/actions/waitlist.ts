@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { db, WEBSITE_DB_ID } from "@/lib/db";
+import { db, WEBSITE_DB_ID } from "@/lib/appwrite";
 import { ID, Query } from "node-appwrite";
 
 const waitlistSchema = z.object({

@@ -1,13 +1,40 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { after } from "next/server";
 import { updateOrganization } from "@/lib/appwrite/database";
 import { uploadMenuImage, deleteMenuImage } from "@/lib/appwrite/storage";
-import { getUser } from "@/lib/appwrite/server";
+import { getUser, createAdminClient, createSessionClient } from "@/lib/appwrite/server";
+import { ID, Functions } from "node-appwrite";
+import crypto from "crypto";
 
 export interface SettingsActionState {
   error?: string;
   success?: boolean;
+}
+
+export async function updateUserNameAction(
+  _prevState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const user = await getUser();
+  if (!user) return { error: "Nicht authentifiziert." };
+
+  const name = formData.get("name") as string;
+  if (!name) return { error: "Name ist erforderlich." };
+
+  try {
+    const { users } = createAdminClient();
+    await users.updateName(user.$id, name);
+    return { success: true };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Fehler beim Speichern des Namens.";
+    return { error: message };
+  }
 }
 
 export async function updateBusinessAction(
@@ -66,13 +93,47 @@ export async function updateBusinessAction(
   }
 }
 
-export async function requestAccountDeletionAction(): Promise<SettingsActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
+import { ExecutionMethod } from "node-appwrite";
 
-  // Placeholder: In production, this would send an email to support
-  // or create a deletion request in the database
-  return { success: true };
+export async function requestAccountDeletionAction() {
+  try {
+    const session = await createSessionClient();
+    if (!session) {
+      return { success: false, error: "Not authenticated" };
+    }
+    const { account } = session;
+    const user = await account.get();
+
+    if (!user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    const { client } = await createAdminClient();
+    const functions = new Functions(client);
+
+    if (!process.env.NEXT_PUBLIC_APP_URL) {
+      throw new Error("Missing NEXT_PUBLIC_APP_URL");
+    }
+
+    // Call the Appwrite function to handle the token generation and email sending
+    await functions.createExecution(
+      "deleteAccount",
+      JSON.stringify({
+        action: "request",
+        userId: user.$id,
+        locale: (await cookies()).get("NEXT_LOCALE")?.value || "de",
+        appUrl: process.env.NEXT_PUBLIC_APP_URL
+      }),
+      false, // async
+      "/", // path
+      ExecutionMethod.POST // method
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Account deletion request failed:", error);
+    return { success: false, error: "Failed to request deletion" };
+  }
 }
 
 export async function toggleFeatureAction(

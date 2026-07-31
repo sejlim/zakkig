@@ -1,9 +1,10 @@
 "use client";
 
-import { useTranslation, type TranslationKey } from "@/lib/i18n";
+import { useTranslation, type TranslationKeys } from "@/lib/i18n";
+import { type ComponentProps } from "react";
 
-interface LocalizedTextProps {
-  tKey: TranslationKey;
+export interface LocalizedTextProps extends Omit<ComponentProps<"span">, "children"> {
+  tKey: TranslationKeys;
   params?: Record<string, string | number>;
   className?: string;
   as?: React.ElementType;

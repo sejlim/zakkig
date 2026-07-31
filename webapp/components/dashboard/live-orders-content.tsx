@@ -70,7 +70,7 @@ function OrderGrid({
             <div className="flex flex-col gap-2.5">
               {items.map((item: any, index: number) => (
                 <div
-                  key={`${item.cartItemId || item.id || item.menuItemId || 'item'}-${index}`}
+                  key={`${item.cartItemId || item.id || item.menuItemId || "item"}-${index}`}
                   className="flex justify-between items-baseline text-base py-0.5"
                 >
                   <span className="font-semibold text-foreground leading-snug">
