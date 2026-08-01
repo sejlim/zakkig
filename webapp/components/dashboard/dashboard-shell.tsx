@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -44,6 +44,27 @@ export function DashboardShell({
   const { locale, setLocale } = useLanguageStore();
   const { isExpanded, toggleSidebar } = useSidebarStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    import("@/lib/appwrite/client").then(({ client }) => {
+      // Subscribe to the current user's account events
+      unsubscribe = client.subscribe("account", (response) => {
+        const events = response.events || [];
+        if (
+          events.some(
+            (e) => e.includes(".delete") && (e.includes("users.") || e.includes("sessions."))
+          )
+        ) {
+          // Force sign out and redirect
+          signOutAction();
+        }
+      });
+    });
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   const zakkigUrl = t("homepageUrl");
 

@@ -77,8 +77,10 @@ export async function getUser(): Promise<Models.User<Models.Preferences> | null>
 
   try {
     return await sessionClient.account.get();
-  } catch (error) {
-    console.error("getUser error:", error);
+  } catch (error: any) {
+    if (error?.code !== 401) {
+      console.error("getUser error:", error);
+    }
     return null;
   }
 }

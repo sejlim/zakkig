@@ -443,43 +443,7 @@
                 }
             ]
         },
-        {
-            "$id": "kitchen_sessions",
-            "$permissions": [],
-            "databaseId": "webapp",
-            "name": "Kitchen Sessions",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "organizationId",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "token",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "size": 255,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "expiresAt",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                }
-            ],
-            "indexes": []
-        },
+
         {
             "$id": "orders_sessions",
             "$permissions": [],

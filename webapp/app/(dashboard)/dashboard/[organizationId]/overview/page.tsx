@@ -3,9 +3,10 @@ import {
   getOrders,
   getAvailabilitySessions,
   getOrderSessions,
+  createAvailabilitySession,
+  createOrderSession,
 } from "@/lib/appwrite/database";
-import { generateAvailabilitySessionAction } from "@/actions/availability-actions";
-import { generateOrderSessionAction } from "@/actions/order-actions";
+import { getUser } from "@/lib/appwrite/server";
 import { OverviewContent } from "@/components/dashboard/overview-content";
 import { SessionsOverviewCard } from "@/components/dashboard/sessions-overview-card";
 import { headers } from "next/headers";
@@ -28,21 +29,8 @@ export default async function OverviewPage({
 
   if (!organization) return null;
 
-  let availabilityToken = availabilitySessions[0]?.token;
-  if (!availabilityToken) {
-    const res = await generateAvailabilitySessionAction(organizationId);
-    if (res.success && res.session) {
-      availabilityToken = res.session.token;
-    }
-  }
-
-  let orderToken = orderSessions[0]?.token;
-  if (!orderToken) {
-    const res = await generateOrderSessionAction(organizationId);
-    if (res.success && res.session) {
-      orderToken = res.session.token;
-    }
-  }
+  const availabilityToken = availabilitySessions[0]?.token;
+  const orderToken = orderSessions[0]?.token;
 
   const headersList = await headers();
   const host = headersList.get("host") || "";

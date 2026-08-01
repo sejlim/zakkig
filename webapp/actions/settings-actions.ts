@@ -136,6 +136,41 @@ export async function requestAccountDeletionAction() {
   }
 }
 
+export async function confirmAccountDeletionAction(
+  userId: string,
+  token: string
+) {
+  try {
+    const { client } = await createAdminClient();
+    const functions = new Functions(client);
+
+    const result = await functions.createExecution(
+      "deleteAccount",
+      JSON.stringify({
+        action: "confirm",
+        userId,
+        token
+      }),
+      false, // async
+      "/", // path
+      ExecutionMethod.POST // method
+    );
+
+    const response = JSON.parse(result.responseBody);
+    if (!response.success) {
+      return { success: false, error: response.error || "Failed to confirm deletion" };
+    }
+
+    const { signOut } = await import("@/lib/appwrite/auth");
+    await signOut();
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Account deletion confirm failed:", error);
+    return { success: false, error: error.message || "Failed to confirm deletion" };
+  }
+}
+
 export async function toggleFeatureAction(
   organizationId: string,
   feature: "to-go" | "to-stay",

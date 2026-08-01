@@ -14,6 +14,8 @@ import {
 import {
   createOrganization,
   getOrganizationByOwner,
+  createAvailabilitySession,
+  createOrderSession,
 } from "@/lib/appwrite/database";
 import { getUser, createAdminClient } from "@/lib/appwrite/server";
 import { Query } from "node-appwrite";
@@ -144,6 +146,16 @@ export async function verifyOtpAction(
         ownerId: userId,
       });
       orgId = org.$id;
+      
+      // Initialize default sessions to avoid SSR race conditions later
+      try {
+        await Promise.all([
+          createAvailabilitySession(orgId, userId),
+          createOrderSession(orgId, userId)
+        ]);
+      } catch (e) {
+        console.error("Failed to create initial sessions", e);
+      }
     } else {
       const org = await getOrganizationByOwner(userId);
       if (org) {

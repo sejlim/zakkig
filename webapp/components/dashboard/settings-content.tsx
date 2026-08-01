@@ -8,7 +8,7 @@ import { Textarea as TextArea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { WarningCircle, UploadSimple, X } from "@phosphor-icons/react";
+import { WarningCircle, UploadSimple, X, SpinnerGap } from "@phosphor-icons/react";
 import { RefreshButton } from "./refresh-button";
 import { useTranslation } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/appwrite/client";
@@ -42,6 +42,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   );
   const [removeLogo, setRemoveLogo] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [userState, userAction, isUserPending] = useActionState(
     updateUserNameAction,
@@ -52,10 +53,15 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
     if (businessState.success) {
       toast.success(t("saved"));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessState]);
+
+  useEffect(() => {
     if (userState.success) {
       toast.success(t("saved"));
     }
-  }, [businessState.success, userState.success, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userState]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -94,16 +100,14 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
         <RefreshButton />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start w-full">
-        {/* Left Column */}
-        <div className="flex flex-col gap-6 w-full min-w-0">
-          {/* Account Settings */}
-          <Card>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
+        {/* Account Settings */}
+        <Card className="flex flex-col h-full">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold">{t("accountSettings")}</h3>
             </CardHeader>
-            <CardContent>
-              <form action={userAction} className="flex flex-col gap-4">
+            <CardContent className="flex-1 flex flex-col">
+              <form action={userAction} className="flex flex-col gap-4 flex-1">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="account-name" className="text-sm font-medium">
                     {t("name")}
@@ -132,12 +136,12 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                     {userState.error}
                   </p>
                 )}
-                <div className="pt-2 flex justify-end">
+                <div className="pt-2 flex justify-end mt-auto">
                   <Button
                     type="submit"
                     disabled={isUserPending}
                     variant="outline"
-                    className="w-full sm:w-auto font-semibold px-8"
+                    className="w-full font-semibold px-8"
                   >
                     {t("save")}
                   </Button>
@@ -146,16 +150,16 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             </CardContent>
           </Card>
 
-          {/* Business Settings */}
-          <Card>
+        {/* Business Settings */}
+        <Card className="flex flex-col h-full">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold">{t("businessSettings")}</h3>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col">
               <form
                 action={businessAction}
                 noValidate
-                className="flex flex-col gap-4"
+                className="flex flex-col gap-4 flex-1"
               >
                 <input
                   type="hidden"
@@ -326,11 +330,12 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                     {businessState.error}
                   </p>
                 )}
-                <div className="pt-2 flex justify-end">
+                <div className="pt-2 flex justify-end mt-auto">
                   <Button
                     type="submit"
                     disabled={isBusinessPending}
-                    className="w-full sm:w-auto font-semibold px-8"
+                    variant="outline"
+                    className="w-full font-semibold px-8"
                   >
                     {t("save")}
                   </Button>
@@ -338,32 +343,28 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
               </form>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Right Column */}
-        <div className="flex flex-col gap-6 w-full min-w-0">
-          {/* Stripe Settings */}
-          <Card>
+        {/* Stripe Settings */}
+        <Card className="flex flex-col h-full">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold">{t("stripeSettings")}</h3>
               <p className="text-sm text-muted-foreground">Stripe Connect</p>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
+            <CardContent className="flex flex-col gap-4 flex-1">
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{t("stripeNotConnected")}</Badge>
               </div>
               <Button
                 variant="outline"
                 onClick={() => toast(t("comingSoon") as string)}
-                className="w-full sm:w-auto font-semibold"
+                className="w-full font-semibold mt-auto"
               >
                 {t("connectStripe")}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-destructive/50 border">
+        {/* Danger Zone */}
+        <Card className="flex flex-col h-full border-destructive/50 border">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold text-destructive">
                 {t("deleteAccount")}
@@ -372,21 +373,32 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 {t("deleteAccountDescription")}
               </p>
             </CardHeader>
-            <CardContent>
-              <Button
-                variant="destructive"
+            <CardContent className="flex-1 flex flex-col">
+              <div className="mt-auto">
+                <Button
+                  variant="outline"
+                  disabled={isDeleting}
                 onClick={async () => {
-                  await requestAccountDeletionAction();
-                  toast.success(t("deletionRequestSent"));
+                  setIsDeleting(true);
+                  try {
+                    await requestAccountDeletionAction();
+                    toast.success(t("deletionRequestSent"));
+                  } finally {
+                    setIsDeleting(false);
+                  }
                 }}
-                className="w-full sm:w-auto font-semibold"
-              >
-                <WarningCircle className="mr-2" weight="bold" />
-                {t("requestDeletion")}
-              </Button>
+                  className="w-full font-semibold border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
+                >
+                  {isDeleting ? (
+                    <SpinnerGap className="mr-2 animate-spin" weight="bold" />
+                  ) : (
+                    <WarningCircle className="mr-2" weight="bold" />
+                  )}
+                  {t("requestDeletion")}
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        </div>
       </div>
     </div>
   );

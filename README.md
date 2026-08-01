@@ -205,10 +205,10 @@ Das System setzt auf eine hochskalierbare, serverlose Architektur mit **Appwrite
 
 ### 5.1 Architektur Übersicht & Repository (GitHub)
 
-Das Projekt besteht aus zwei komplett unabhängigen Next.js-Applikationen in einem gemeinsamen GitHub-Repository.
+Das Projekt besteht aus zwei komplett unabhängigen Next.js-Applikationen in einem gemeinsamen GitHub-Repository (Monorepo-Ansatz). Beide Frontends werden nativ über **Appwrite Sites** deployed und als statische SSR/SSG-Anwendungen global über das Appwrite CDN ausgeliefert.
 
-- **Frontend Marketing (`website/`):** B2B Landingpage für den Vertrieb (deployed auf `zakkig.de`).
-- **Frontend SaaS App (`webapp/`):** Admin Dashboard der Wirte, Bestell-UI der Gäste und das Echtzeit Kitchen Board (deployed auf `app.zakkig.de`).
+- **Frontend Marketing (`website/`):** B2B Landingpage für den Vertrieb (deployed über Appwrite Sites auf `zakkig.de`).
+- **Frontend SaaS App (`webapp/`):** Admin Dashboard der Wirte, Bestell-UI der Gäste und das Echtzeit Kitchen Board (deployed über Appwrite Sites auf `app.zakkig.de`).
 
 ### 5.2 Der Technologie Stack
 
@@ -222,10 +222,10 @@ Das Projekt besteht aus zwei komplett unabhängigen Next.js-Applikationen in ein
 
 1. **Database:** NoSQL für Gastronomen, Speisekarten, Bestellungen und Logs.
 2. **Realtime:** WebSockets für das Kitchen Board und den Takeaway-Tracker.
-3. **Storage:** S3-kompatibel für Speisekarten-Bilder (WebP-Kompression).
+3. **Storage:** S3-kompatibel für Speisekarten-Bilder (WebP-Kompression) über den `menu-images` Bucket.
 4. **Auth:** Onboarding und Session-Management.
-5. **Functions:** Node.js-basierte Endpunkte für Stripe Webhooks und Geschäftslogik.
-6. **Sites:** Globales CDN-Hosting der Next.js Frontends.
+5. **Functions:** Isolierte Node.js-basierte Serverless Endpunkte. Hier läuft tiefgreifende Geschäftslogik, die nicht im Client liegen darf (z.B. komplexe kaskadierende Datenbank-Löschungen beim Account-Delete Flow oder Stripe Webhooks). Diese werden über die Appwrite CLI deployt (`npx appwrite-cli push functions`).
+6. **Sites:** Globales CDN-Hosting der Next.js Frontends. Verknüpft direkt mit dem GitHub-Repository für automatisiertes CI/CD Deployment bei neuen Commits.
 7. **Messaging:** Native Anbindung unseres externen Hetzner SMTP-Mailservers für transaktionale Mails.
 
 ### 5.4 Domain, E-Mail & CI/CD

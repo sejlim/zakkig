@@ -326,8 +326,8 @@ export const translations = {
     connectStripe: "Stripe verbinden",
     comingSoon: "Kommt bald",
     deleteAccount: "Konto löschen",
-    deleteAccountDescription: "Eine Anfrage zur Löschung deines Kontos senden.",
-    requestDeletion: "Löschanfrage senden",
+    deleteAccountDescription: "Es wird dir eine E-Mail mit einem Bestätigungslink geschickt, über den du dein Konto unwiderruflich löschen kannst.",
+    requestDeletion: "Konto löschen",
     save: "Speichern",
     saved: "Gespeichert!",
     cancel: "Abbrechen",
@@ -406,9 +406,9 @@ export const translations = {
     reorderCategories: "Kategorien anordnen",
     reorderTables: "Tische anordnen",
     reorder: "Reihenfolge ändern",
-    deletionRequestSent: "Löschanfrage gesendet.",
+    deletionRequestSent: "E-Mail zur Bestätigung verschickt.",
     accountDataInfo:
-      "Account-Daten können derzeit über das Appwrite Dashboard geändert werden.",
+      "Aus Sicherheitsgründen kann die verknüpfte E-Mail-Adresse nur manuell von uns geändert werden. Bitte sende dazu eine E-Mail von deiner aktuell verknüpften Adresse an selim@zakkig.de mit dem Betreff 'zakkig Konto Email Adresse ändern' und nenne uns in der Nachricht die neue gewünschte E-Mail-Adresse. Die Änderung dauert im Schnitt bis zu 7 Tage.",
     invalidToken: "Ungültiger oder abgelaufener Token.",
     notAcceptingOrders:
       "{name} nimmt momentan keine Tisch-Bestellungen über das Smartphone entgegen.",
@@ -433,10 +433,19 @@ export const translations = {
     notFoundText:
       "Die von dir gesuchte Seite existiert nicht oder wurde verschoben.",
     backHome: "Zurück zur Startseite",
+    backToDashboard: "Zurück zum Dashboard",
     userFallback: "Benutzer",
     homepageUrl: "https://www.zakkig.de",
     termsUrl: "https://www.zakkig.de/agb",
     privacyUrl: "https://www.zakkig.de/datenschutz",
+
+    // Delete Account
+    deleteAccountConfirmTitle: "Konto endgültig löschen",
+    deleteAccountConfirmDesc: "Klicke auf die Schaltfläche unten, um dein Konto und alle dazugehörigen betriebsbezogenen Daten unwiderruflich zu löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+    deleteAccountConfirmButton: "Konto unwiderruflich löschen",
+    accountDeletedSuccess: "Konto erfolgreich gelöscht",
+    accountDeletedDesc: "Dein Konto und alle zugehörigen Daten wurden unwiderruflich gelöscht.",
+    deletingAccount: "Wird gelöscht...",
   },
   en: {
     // Auth
@@ -755,8 +764,8 @@ export const translations = {
     connectStripe: "Connect Stripe",
     comingSoon: "Coming soon",
     deleteAccount: "Delete Account",
-    deleteAccountDescription: "Send a request to delete your account.",
-    requestDeletion: "Send deletion request",
+    deleteAccountDescription: "You will receive an email with a confirmation link to permanently delete your account.",
+    requestDeletion: "Delete account",
     save: "Save",
     saved: "Saved!",
     cancel: "Cancel",
@@ -832,9 +841,9 @@ export const translations = {
     reorderCategories: "Reorder categories",
     reorderTables: "Reorder tables",
     reorder: "Change order",
-    deletionRequestSent: "Deletion request sent.",
+    deletionRequestSent: "Confirmation email sent.",
     accountDataInfo:
-      "Account data can currently be modified via the Appwrite Dashboard.",
+      "For security reasons, the linked email address can only be changed manually by us. Please send an email from your currently linked address to selim@zakkig.de with the subject 'zakkig Change Account Email Address' and specify the new desired email address in the message. The change takes up to 7 days on average.",
     invalidToken: "Invalid or expired token.",
     notAcceptingOrders:
       "{name} is currently not accepting table orders via smartphone.",
@@ -859,10 +868,19 @@ export const translations = {
     notFoundText:
       "The page you are looking for does not exist or has been moved.",
     backHome: "Back to Home",
+    backToDashboard: "Back to Dashboard",
     userFallback: "User",
     homepageUrl: "https://www.zakkig.de/en",
     termsUrl: "https://www.zakkig.de/en/terms",
     privacyUrl: "https://www.zakkig.de/en/privacy",
+
+    // Delete Account
+    deleteAccountConfirmTitle: "Permanently delete account",
+    deleteAccountConfirmDesc: "Click the button below to permanently delete your account and all associated business data. This action cannot be undone.",
+    deleteAccountConfirmButton: "Permanently delete account",
+    accountDeletedSuccess: "Account successfully deleted",
+    accountDeletedDesc: "Your account and all associated data have been permanently deleted.",
+    deletingAccount: "Deleting...",
   },
 } as const;
 
