@@ -271,6 +271,7 @@ export const translations = {
     removeImage: "Bild entfernen",
     dragOrClick: "Bild hierher ziehen oder klicken",
     maxFileSize: "JPG, PNG bis 5 MB",
+    imageTooLargeTitle: "Bild zu groß",
     imageTooLarge: "Das Foto darf maximal 5 MB groß sein.",
     customization: "Zusammenstellung",
     customizationDesc:
@@ -719,6 +720,7 @@ export const translations = {
     removeImage: "Remove image",
     dragOrClick: "Drag image here or click to upload",
     maxFileSize: "JPG, PNG up to 5 MB",
+    imageTooLargeTitle: "File too large",
     imageTooLarge: "The photo must not exceed 5 MB.",
     customization: "Customization",
     customizationDesc:

@@ -177,78 +177,47 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="business-logo" className="text-sm font-medium">{t("logo")}</label>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      "relative rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden flex flex-col items-center justify-center min-h-[200px]",
-                      isDragging
-                        ? "border-primary-foreground bg-primary-foreground/10"
-                        : imagePreview
-                          ? "border-transparent"
-                          : "border-muted-foreground/30 hover:border-primary/50 bg-muted/10",
-                    )}
-                    onClick={() => fileInputRef.current?.click()}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                  <div className="relative">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className={cn(
+                        "relative rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden flex flex-col items-center justify-center min-h-[200px]",
+                        isDragging
+                          ? "border-primary-foreground bg-primary-foreground/10"
+                          : imagePreview
+                            ? "border-transparent"
+                            : "border-muted-foreground/30 hover:border-primary/50 bg-muted/10",
+                      )}
+                      onClick={() => fileInputRef.current?.click()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      onDragOver={(e) => {
                         e.preventDefault();
-                        fileInputRef.current?.click();
-                      }
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDragging(true);
-                    }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={handleDrop}
-                  >
-                    {imagePreview ? (
-                      <div className="relative w-full h-full min-h-[200px]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={imagePreview}
-                          alt="Logo"
-                          className="absolute inset-0 w-full h-full object-contain p-4"
-                        />
-                        <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 group">
-                          <span className="text-white font-medium text-sm bg-black/50 px-3 py-1.5 rounded-full z-10 transition-transform group-hover:scale-105">
-                            {t("changeImage")}
-                          </span>
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={handleDrop}
+                    >
+                      {imagePreview ? (
+                        <div className="relative w-full h-full min-h-[200px]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={imagePreview}
+                            alt="Logo"
+                            className="absolute inset-0 w-full h-full object-contain p-4"
+                          />
+                          <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 group">
+                            <span className="text-white font-medium text-sm bg-black/50 px-3 py-1.5 rounded-full z-10 transition-transform group-hover:scale-105">
+                              {t("changeImage")}
+                            </span>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setImagePreview((prev) => {
-                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-                              return null;
-                            });
-                            setRemoveLogo(true);
-                            if (fileInputRef.current) {
-                              fileInputRef.current.value = "";
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setImagePreview((prev) => {
-                                if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-                                return null;
-                              });
-                              setRemoveLogo(true);
-                              if (fileInputRef.current)
-                                fileInputRef.current.value = "";
-                            }
-                          }}
-                          className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 hover:bg-destructive/90 transition-colors shadow-sm z-10"
-                          title={t("removeImage")}
-                        >
-                          <X className="w-3.5 h-3.5" weight="bold" />
-                        </button>
-                      </div>
-                    ) : (
+                      ) : (
                       <div className="flex flex-col items-center justify-center gap-2 p-6 text-center text-muted-foreground">
                         {isDragging ? (
                           <UploadSimple
@@ -266,6 +235,41 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                         </p>
                       </div>
                     )}
+                    </div>
+                    {imagePreview && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setImagePreview((prev) => {
+                            if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+                            return null;
+                          });
+                          setRemoveLogo(true);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setImagePreview((prev) => {
+                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+                              return null;
+                            });
+                            setRemoveLogo(true);
+                            if (fileInputRef.current)
+                              fileInputRef.current.value = "";
+                          }
+                        }}
+                        className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 hover:bg-destructive/90 transition-colors shadow-sm z-10"
+                        title={t("removeImage")}
+                      >
+                        <X className="w-3.5 h-3.5" weight="bold" />
+                      </button>
+                    )}
                     <input
                       ref={fileInputRef}
                       id="business-logo"
@@ -277,7 +281,9 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                         const file = e.target.files?.[0];
                         if (file) {
                           if (file.size > 5 * 1024 * 1024) {
-                            toast.error(t("imageTooLarge"));
+                            toast.error(t("imageTooLargeTitle"), {
+                              description: t("imageTooLarge"),
+                            });
                             e.target.value = "";
                             return;
                           }

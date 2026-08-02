@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
-const appwriteEndpoint =
-  process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1";
+const appwriteEndpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!;
 const appwriteHostname = new URL(appwriteEndpoint).hostname;
 
 const nextConfig: NextConfig = {
@@ -19,6 +18,10 @@ const nextConfig: NextConfig = {
         hostname: "zakkig.de",
       },
     ],
+  },
+  serverExternalPackages: [],
+  serverActions: {
+    bodySizeLimit: "5mb",
   },
 };
 

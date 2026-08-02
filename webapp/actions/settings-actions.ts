@@ -36,7 +36,7 @@ export async function logoutAllDevicesAction(): Promise<void> {
   redirect("/");
 }
 
-export async function updateUserNameAction(
+async function updateUserNameAction(
   _prevState: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
@@ -176,12 +176,12 @@ export async function requestEmailChangeAction() {
       return { success: false, error: "Not authenticated" };
     }
 
-    const { client } = await createAdminClient();
-    const functions = new Functions(client);
-
     if (!process.env.NEXT_PUBLIC_APP_URL) {
       throw new Error("Missing NEXT_PUBLIC_APP_URL");
     }
+
+    const { client } = await createAdminClient();
+    const functions = new Functions(client);
 
     await functions.createExecution(
       "changeEmail",
@@ -264,6 +264,11 @@ export async function confirmEmailChangeOtpAction(
 
     if (!userId || !token || !email || !otp) {
       return { success: false, error: "Missing required fields" };
+    }
+
+    const currentUser = await getUser();
+    if (!currentUser || currentUser.$id !== userId) {
+      return { success: false, error: "Nicht authentifiziert." };
     }
 
     const { client } = await createAdminClient();

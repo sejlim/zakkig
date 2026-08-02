@@ -157,7 +157,7 @@ export async function resetPassword(email: string) {
 
   await account.createRecovery(
     email,
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/reset-password/confirm`,
+    `${process.env.NEXT_PUBLIC_APP_URL}/reset-password/confirm`,
   );
 }
 
