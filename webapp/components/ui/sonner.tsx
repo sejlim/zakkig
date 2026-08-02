@@ -7,7 +7,7 @@ import {
   Check,
   Info,
   WarningCircle,
-  Warning,
+  ExclamationMark,
   SpinnerGap,
 } from "@phosphor-icons/react";
 
@@ -33,7 +33,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <WarningCircle weight="fill" className="size-[18px] text-inherit" />
         ),
         error: (
-          <WarningCircle weight="fill" className="size-[18px] text-inherit" />
+          <ExclamationMark weight="bold" className="size-[18px] text-inherit" />
         ),
         loading: (
           <SpinnerGap className="size-[18px] animate-spin text-inherit" />

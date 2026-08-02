@@ -61,7 +61,7 @@ function ChangeEmailOtpForm() {
     if (res?.error) {
       toast.error(res.error);
     } else if (res?.success) {
-      toast.success("Email-Adresse erfolgreich geändert!");
+      toast.success(t("emailChangedSuccess" as any));
       router.push("/");
     }
   };
@@ -84,7 +84,7 @@ function ChangeEmailOtpForm() {
     if (res?.error) {
       toast.error(res.error);
     } else {
-      toast.success("Ein neuer Bestätigungscode wurde gesendet.");
+      toast.success(t("newOtpSent" as any));
     }
   };
 

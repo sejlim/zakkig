@@ -36,7 +36,7 @@ function ChangeEmailConfirmForm() {
       toast.error(state.error);
     }
     if (state.success) {
-      toast.success("Ein Bestätigungscode wurde an die neue Email-Adresse gesendet.");
+      toast.success(t("emailChangeConfirmSent" as any));
       // Redirect to OTP page with userId, email and token
       router.push(`/change-email/otp?userId=${state.userId}&email=${encodeURIComponent(state.email as string)}&token=${state.token}`);
     }
@@ -82,9 +82,9 @@ function ChangeEmailConfirmForm() {
   return (
     <>
       <CardHeader className="flex-col items-start gap-1 pt-4">
-        <CardTitle className="text-2xl">Neue Email-Adresse</CardTitle>
+        <CardTitle className="text-2xl">{t("newEmailAddress" as any)}</CardTitle>
         <CardDescription className="text-primary-foreground/80">
-          Bitte gib deine neue Email-Adresse ein. Wir senden dir einen Anmeldecode, um diese zu bestätigen.
+          {t("newEmailAddressDesc" as any)}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -121,12 +121,12 @@ function ChangeEmailConfirmForm() {
             {isPending ? (
               <>
                 <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
-                Bitte warten...
+                {t("pleaseWait" as any)}
               </>
             ) : (
               <>
                 <EnvelopeSimple className="w-5 h-5" weight="bold" />
-                Code anfordern
+                {t("requestVerificationCode" as any)}
               </>
             )}
           </Button>

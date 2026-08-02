@@ -50,9 +50,7 @@ export function ImageUpload({
       if (preview) URL.revokeObjectURL(preview);
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
-          toast.error(t("imageTooLargeTitle"), {
-            description: t("imageTooLarge"),
-          });
+          toast.error(t("imageTooLarge"));
           return;
         }
         if (!file.type.startsWith("image/")) return;

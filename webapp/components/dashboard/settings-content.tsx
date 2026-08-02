@@ -281,9 +281,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                         const file = e.target.files?.[0];
                         if (file) {
                           if (file.size > 5 * 1024 * 1024) {
-                            toast.error(t("imageTooLargeTitle"), {
-                              description: t("imageTooLarge"),
-                            });
+                            toast.error(t("imageTooLarge"));
                             e.target.value = "";
                             return;
                           }
