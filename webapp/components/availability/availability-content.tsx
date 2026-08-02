@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CaretDown, CaretUp, SlidersHorizontal } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { useTranslation, formatPrice } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/appwrite/client";
 import {
@@ -21,6 +22,7 @@ import {
   toggleCustomizationAvailabilityAction,
 } from "@/actions/menu-actions";
 import { RefreshButton } from "@/components/dashboard/refresh-button";
+import { subscribeToOrganization } from "@/lib/appwrite/realtime";
 import type { MenuCategory, MenuItem, CustomizationStep } from "@/lib/types";
 
 interface AvailabilityContentProps {
@@ -57,6 +59,7 @@ export function AvailabilityContent({
   organizationId,
 }: AvailabilityContentProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [, startTransition] = useTransition();
   const isDesktop = useIsDesktop();
@@ -70,6 +73,23 @@ export function AvailabilityContent({
     });
     return { leftCategories: left, rightCategories: right };
   }, [categories]);
+
+  useEffect(() => {
+    if (!organizationId) return;
+    const unsubscribeOrg = subscribeToOrganization(organizationId, (response) => {
+      const events = response.events || [];
+      const isDelete = events.some(
+        (e: string) => e.includes(".delete") || e.includes("delete"),
+      );
+      if (isDelete) {
+        router.push("/");
+      }
+    });
+
+    return () => {
+      unsubscribeOrg();
+    };
+  }, [organizationId]);
 
   const handleToggleItem = useCallback(
     (itemId: string, available: boolean) => {

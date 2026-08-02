@@ -9,6 +9,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LocalizedText } from "@/components/ui/localized-text";
 
+import { SessionPoller } from "@/components/session-poller";
+
 export const metadata = { title: "Verfügbarkeit" };
 
 export default async function AvailabilityPage({
@@ -65,6 +67,7 @@ export default async function AvailabilityPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <SessionPoller organizationId={organizationId} type="availability" />
       <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
         <AvailabilityContent
           categories={structuredClone(categories)}

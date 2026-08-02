@@ -295,6 +295,12 @@ function SignUpForm({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (step < 3) {
+      handleNext();
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
     const errors: Record<string, string> = {};
 
@@ -676,8 +682,7 @@ function SignUpForm({
 
             {step < 3 ? (
               <Button
-                type="button"
-                onClick={handleNext}
+                type="submit"
                 className={cn(
                   "h-11 gap-2 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100",
                   step === 1 ? "w-full" : "flex-1",

@@ -8,6 +8,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LocalizedText } from "@/components/ui/localized-text";
 
+import { SessionPoller } from "@/components/session-poller";
+
 export const metadata = { title: "Live-Bestellungen" };
 
 export default async function KitchenBoardPage({
@@ -63,6 +65,7 @@ export default async function KitchenBoardPage({
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
+      <SessionPoller organizationId={organizationId} type="orders" />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <LiveOrdersContent
           organizationId={organizationId}

@@ -171,6 +171,7 @@ function SuccessState({ locale, t }: { locale: string; t: any }) {
   );
 }
 
+// react-doctor-ignore react-doctor/prefer-explicit-variants
 function PasswordResetFormContent({
   locale,
   t,

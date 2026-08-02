@@ -87,6 +87,7 @@ export function ItemWorkspace({
   const [errors, setErrors] = useState<{ name?: string; price?: string }>({});
 
   // Reset or initialize state when workspace opens
+  // react-doctor-ignore react-doctor/no-adjust-state-on-prop-change
   useEffect(() => {
     if (open) {
       setErrors({});

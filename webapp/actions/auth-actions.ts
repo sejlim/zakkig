@@ -241,3 +241,29 @@ export async function confirmPasswordResetAction(
     return { error: "resetFailed" };
   }
 }
+
+export async function verifySessionAction() {
+  const user = await getUser();
+  return { isValid: !!user };
+}
+
+export async function verifyTerminalSessionAction(organizationId: string, type: "orders" | "availability") {
+  const cookieStore = await cookies();
+  const cookieName = type === "orders" ? `order_session_${organizationId}` : `availability_session_${organizationId}`;
+  const token = cookieStore.get(cookieName)?.value;
+  if (!token) return { isValid: false };
+
+  try {
+    if (type === "orders") {
+      const { getOrderSessions } = await import("@/lib/appwrite/database");
+      const sessions = await getOrderSessions(organizationId);
+      return { isValid: sessions.some((s) => s.token === token) };
+    } else {
+      const { getAvailabilitySessions } = await import("@/lib/appwrite/database");
+      const sessions = await getAvailabilitySessions(organizationId);
+      return { isValid: sessions.some((s) => s.token === token) };
+    }
+  } catch (e) {
+    return { isValid: false };
+  }
+}

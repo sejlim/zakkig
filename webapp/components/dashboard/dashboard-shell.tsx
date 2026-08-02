@@ -46,23 +46,21 @@ export function DashboardShell({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    import("@/lib/appwrite/client").then(({ client }) => {
-      // Subscribe to the current user's account events
-      unsubscribe = client.subscribe("account", (response) => {
-        const events = response.events || [];
-        if (
-          events.some(
-            (e) => e.includes(".delete") && (e.includes("users.") || e.includes("sessions."))
-          )
-        ) {
-          // Force sign out and redirect
-          signOutAction();
+    // Fallback polling for session validation (checks every 15 minutes)
+    const interval = setInterval(async () => {
+      try {
+        const { verifySessionAction } = await import("@/actions/auth-actions");
+        const { isValid } = await verifySessionAction();
+        if (!isValid) {
+          window.location.href = "/sign-in";
         }
-      });
-    });
+      } catch (e) {
+        // ignore network errors
+      }
+    }, 15 * 60 * 1000); // 15 minutes
+
     return () => {
-      if (unsubscribe) unsubscribe();
+      clearInterval(interval);
     };
   }, []);
 

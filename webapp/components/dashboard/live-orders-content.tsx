@@ -14,11 +14,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import { subscribeToOrders } from "@/lib/appwrite/realtime";
+import { subscribeToOrders, subscribeToOrganization } from "@/lib/appwrite/realtime";
 import { RefreshButton } from "./refresh-button";
 import { updateOrderStatusAction } from "@/actions/order-actions";
 import { KITCHEN_CLEANUP_TIMEOUT } from "@/lib/constants";
 import type { Order, OrderItem } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 interface LiveOrdersContentProps {
   orders: Order[];
@@ -68,9 +69,9 @@ function OrderGrid({
           </CardHeader>
           <CardContent className="p-4 pt-2 pb-4">
             <div className="flex flex-col gap-2.5">
-              {items.map((item: any, index: number) => (
+              {items.map((item: any) => (
                 <div
-                  key={`${item.cartItemId || item.id || item.menuItemId || "item"}-${index}`}
+                  key={item.cartItemId || item.id || item.menuItemId || item.name}
                   className="flex justify-between items-baseline text-base py-0.5"
                 >
                   <span className="font-semibold text-foreground leading-snug">
@@ -150,6 +151,7 @@ export function LiveOrdersContent({
   isStaffView,
 }: LiveOrdersContentProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [localOrders, setLocalOrders] = useState<Order[]>(orders);
   const [now, setNow] = useState<number>(Date.now());
@@ -209,6 +211,24 @@ export function LiveOrdersContent({
       unsubscribe();
     };
   }, [organizationId, t]);
+
+  // Realtime subscription for organization deletion
+  useEffect(() => {
+    if (!organizationId) return;
+    const unsubscribeOrg = subscribeToOrganization(organizationId, (response) => {
+      const events = response.events || [];
+      const isDelete = events.some(
+        (e: string) => e.includes(".delete") || e.includes("delete"),
+      );
+      if (isDelete) {
+        router.push("/");
+      }
+    });
+
+    return () => {
+      unsubscribeOrg();
+    };
+  }, [organizationId]);
 
   if (!mounted) {
     return null;

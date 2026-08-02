@@ -30,11 +30,11 @@ function DeleteAccountConfirmForm() {
     token || "",
   );
   
-  const formAction = async (prevState: any, formData: FormData) => {
+  const formAction = async () => {
     return await boundAction();
   };
 
-  const [state, dispatch, isPending] = useActionState(formAction, {});
+  const [state, dispatch, isPending] = useActionState<{ success?: boolean; error?: string }, void>(formAction, {});
   const { t, locale } = useTranslation();
 
   useEffect(() => {
@@ -50,7 +50,7 @@ function DeleteAccountConfirmForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     startTransition(() => {
-      dispatch(new FormData());
+      dispatch();
     });
   };
 
@@ -101,7 +101,7 @@ function SuccessState({ locale, t }: { locale: string; t: any }) {
       </CardHeader>
       <CardContent>
         <div className="mt-2">
-          <Link href={t("homepageUrl" as any)} className="w-full">
+          <Link href="/" className="w-full">
             <Button
               type="button"
               className="w-full gap-2 h-11 text-base bg-primary-foreground text-primary hover:bg-primary-foreground/90"
@@ -133,10 +133,20 @@ function DeleteConfirmFormContent({
       <CardContent>
         <form
           onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+            }
+          }}
           className="flex flex-col gap-4"
         >
           <Button
             type="submit"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+              }
+            }}
             variant="destructive"
             className="w-full gap-2 mt-4 h-11 text-base bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
             disabled={isPending}
@@ -158,11 +168,11 @@ function DeleteConfirmFormContent({
 
       <CardFooter className="justify-center pb-6 bg-transparent border-t border-primary-foreground/10 pt-6">
         <p className="text-sm text-primary-foreground/80">
+          {t("changedMind" as any)}{" "}
           <Link
             href="/dashboard"
-            className="font-semibold text-primary-foreground underline-offset-4 hover:underline flex items-center gap-2 justify-center"
+            className="font-semibold text-primary-foreground underline-offset-4 hover:underline"
           >
-            <ArrowLeft className="w-4 h-4" />
             {t("backToDashboard" as any)}
           </Link>
         </p>

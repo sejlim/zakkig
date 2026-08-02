@@ -16,7 +16,8 @@ import { cn } from "@/lib/utils";
 import {
   updateBusinessAction,
   requestAccountDeletionAction,
-  updateUserNameAction,
+  requestEmailChangeAction,
+  logoutAllDevicesAction,
 } from "@/actions/settings-actions";
 import type { Organization } from "@/lib/types";
 import type { Models } from "node-appwrite";
@@ -43,11 +44,17 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   const [removeLogo, setRemoveLogo] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
 
-  const [userState, userAction, isUserPending] = useActionState(
-    updateUserNameAction,
-    {},
-  );
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  const [isEmailChanging, setIsEmailChanging] = useState(false);
 
   useEffect(() => {
     if (businessState.success) {
@@ -55,13 +62,6 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessState]);
-
-  useEffect(() => {
-    if (userState.success) {
-      toast.success(t("saved"));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userState]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -101,55 +101,6 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
-        {/* Account Settings */}
-        <Card className="flex flex-col h-full">
-            <CardHeader className="flex-col items-start pb-4">
-              <h3 className="text-lg font-semibold">{t("accountSettings")}</h3>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <form action={userAction} className="flex flex-col gap-4 flex-1">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="account-name" className="text-sm font-medium">
-                    {t("name")}
-                  </label>
-                  <Input
-                    id="account-name"
-                    name="name"
-                    defaultValue={user.name || ""}
-                    maxLength={128}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="account-email"
-                    className="text-sm font-medium"
-                  >
-                    {t("email")}
-                  </label>
-                  <Input id="account-email" value={user.email} disabled />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t("accountDataInfo")}
-                </p>
-                {userState.error && (
-                  <p className="text-sm text-destructive font-medium">
-                    {userState.error}
-                  </p>
-                )}
-                <div className="pt-2 flex justify-end mt-auto">
-                  <Button
-                    type="submit"
-                    disabled={isUserPending}
-                    variant="outline"
-                    className="w-full font-semibold px-8"
-                  >
-                    {t("save")}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
         {/* Business Settings */}
         <Card className="flex flex-col h-full">
             <CardHeader className="flex-col items-start pb-4">
@@ -177,6 +128,12 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   value={removeLogo ? "true" : "false"}
                 />
                 <div className="flex flex-col gap-2">
+                  <label htmlFor="business-email" className="text-sm font-medium">
+                    {t("email")}
+                  </label>
+                  <Input id="business-email" value={user.email} disabled />
+                </div>
+                <div className="flex flex-col gap-2">
                   <label
                     htmlFor="business-name"
                     className="text-sm font-medium"
@@ -185,10 +142,22 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   </label>
                   <Input
                     id="business-name"
-                    name="name"
+                    name="organizationName"
                     defaultValue={organization.name}
                     required
                     maxLength={80}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="business-user-name" className="text-sm font-medium">
+                    {t("name")}
+                  </label>
+                  <Input
+                    id="business-user-name"
+                    name="userName"
+                    defaultValue={user.name || ""}
+                    maxLength={128}
+                    required
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -246,9 +215,20 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                             {t("changeImage")}
                           </span>
                         </div>
-                        <div
-                          role="button"
-                          tabIndex={0}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setImagePreview((prev) => {
+                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+                              return null;
+                            });
+                            setRemoveLogo(true);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
@@ -262,21 +242,11 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                                 fileInputRef.current.value = "";
                             }
                           }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setImagePreview((prev) => {
-                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-                              return null;
-                            });
-                            setRemoveLogo(true);
-                            if (fileInputRef.current)
-                              fileInputRef.current.value = "";
-                          }}
                           className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 hover:bg-destructive/90 transition-colors shadow-sm z-10"
                           title={t("removeImage")}
                         >
                           <X className="w-3.5 h-3.5" weight="bold" />
-                        </div>
+                        </button>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-2 p-6 text-center text-muted-foreground">
@@ -364,30 +334,98 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
           </Card>
 
         {/* Danger Zone */}
-        <Card className="flex flex-col h-full border-destructive/50 border">
+        <Card className="col-span-1 xl:col-span-2 flex flex-col h-full border-destructive/50 border">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold text-destructive">
-                {t("deleteAccount")}
+                {t("dangerZone" as any)}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {t("deleteAccountDescription")}
+                {t("dangerZoneDescription" as any)}
               </p>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className="mt-auto">
+            <CardContent className="flex-1 flex flex-col gap-6 items-stretch">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="h-full flex flex-col justify-between gap-4 p-4 border border-border rounded-lg">
+                  <div className="flex flex-col gap-1">
+                    <h4 className="font-medium text-foreground">{t("logoutAllDevices")}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {t("logoutAllDevicesDescription")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    disabled={isLoggingOutAll}
+                    onClick={async () => {
+                      setIsLoggingOutAll(true);
+                      try {
+                        await logoutAllDevicesAction();
+                        // Redirection is handled by the action
+                      } catch (error) {
+                        setIsLoggingOutAll(false);
+                      }
+                    }}
+                    className="w-full mt-auto font-semibold"
+                  >
+                    {isLoggingOutAll ? (
+                      <SpinnerGap className="mr-2 animate-spin" weight="bold" />
+                    ) : null}
+                    {t("logoutAllDevices")}
+                  </Button>
+                </div>
+
+                <div className="h-full flex flex-col justify-between gap-4 p-4 border border-border rounded-lg">
+                  <div className="flex flex-col gap-1">
+                    <h4 className="font-medium text-foreground">{t("changeEmailAddress" as any)}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {t("changeEmailDescription" as any)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    disabled={isEmailChanging}
+                    onClick={async () => {
+                      setIsEmailChanging(true);
+                      try {
+                        const res = await requestEmailChangeAction();
+                        if (res?.error) {
+                          toast.error(res.error);
+                        } else {
+                          toast.success(t("changeEmailRequestSent" as any));
+                        }
+                      } finally {
+                        setIsEmailChanging(false);
+                      }
+                    }}
+                    className="w-full mt-auto font-semibold"
+                  >
+                    {isEmailChanging ? (
+                      <SpinnerGap className="mr-2 animate-spin" weight="bold" />
+                    ) : null}
+                    {t("changeEmailButton" as any)}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="w-full flex flex-col justify-between gap-4 p-4 border border-border rounded-lg">
+                <div className="flex flex-col gap-1">
+                  <h4 className="font-medium text-foreground">{t("deleteAccount")}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {t("deleteAccountDescription")}
+                  </p>
+                </div>
                 <Button
                   variant="outline"
                   disabled={isDeleting}
-                onClick={async () => {
-                  setIsDeleting(true);
-                  try {
-                    await requestAccountDeletionAction();
-                    toast.success(t("deletionRequestSent"));
-                  } finally {
-                    setIsDeleting(false);
-                  }
-                }}
-                  className="w-full font-semibold border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
+                  onClick={async () => {
+                    setIsDeleting(true);
+                    try {
+                      await requestAccountDeletionAction();
+                      toast.success(t("deletionRequestSent"));
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  }}
+                  className="w-full mt-auto font-semibold border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
                 >
                   {isDeleting ? (
                     <SpinnerGap className="mr-2 animate-spin" weight="bold" />

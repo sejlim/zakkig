@@ -38,3 +38,18 @@ export function subscribeToOrder(
     callback as (event: RealtimeResponseEvent<unknown>) => void,
   );
 }
+
+/**
+ * Subscribe to a specific organization's changes (e.g. deletion).
+ */
+export function subscribeToOrganization(
+  organizationId: string,
+  callback: (event: RealtimeResponseEvent<Record<string, unknown>>) => void,
+) {
+  const channel = `databases.${DATABASE_ID}.collections.${COLLECTIONS.ORGANIZATIONS}.documents.${organizationId}`;
+
+  return client.subscribe(
+    channel,
+    callback as (event: RealtimeResponseEvent<unknown>) => void,
+  );
+}
