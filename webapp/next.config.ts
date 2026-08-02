@@ -19,9 +19,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: [],
-  serverActions: {
-    bodySizeLimit: "5mb",
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+      allowedOrigins: ["app.zakkig.de"],
+    },
   },
 };
 
