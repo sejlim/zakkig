@@ -18,8 +18,7 @@ const waitlistSchema = z.object({
 type FormData = z.infer<typeof waitlistSchema>;
 
 export function WaitlistForm() {
-  const { t, locale } = useTranslation();
-  const privacyHref = locale === "en" ? "/en/privacy" : "/datenschutz";
+  const { t } = useTranslation();
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -107,7 +106,7 @@ export function WaitlistForm() {
       <p className="mt-4 text-xs text-zinc-500 font-light text-left leading-normal px-4">
         {t("waitlistConsentPrefix")}{" "}
         <a
-          href={privacyHref}
+          href={t("privacyUrl" as any)}
           className="text-white hover:underline font-normal"
         >
           {t("waitlistConsentLinkText")}

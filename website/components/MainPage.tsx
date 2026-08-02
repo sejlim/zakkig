@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 export function MainPage() {
-  const { t, locale } = useTranslation();
-  const isEn = locale === "en";
+  const { t } = useTranslation();
 
   return (
     <div className="w-full">
@@ -288,13 +287,13 @@ export function MainPage() {
             </Button>
             <div className="flex flex-col items-end gap-1 text-right text-sm md:flex-row md:gap-8 md:text-base tracking-widest">
               <Link
-                href={isEn ? "/en/legal" : "/impressum"}
+                href={t("legalUrl" as any)}
                 className="font-bold uppercase hover:text-white transition-colors duration-200"
               >
                 {t("legalLink")}
               </Link>
               <Link
-                href={isEn ? "/en/privacy" : "/datenschutz"}
+                href={t("privacyUrl" as any)}
                 className="font-bold uppercase hover:text-white transition-colors duration-200"
               >
                 {t("privacyLink")}

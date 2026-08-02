@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useTranslation } from "../lib/i18n";
 
 export default function NotFound() {
-  const { t, locale } = useTranslation();
-  const isEn = locale === "en";
+  const { t } = useTranslation();
 
   return (
     <div className="bg-black text-white min-h-screen flex items-center justify-center px-6">
@@ -20,7 +19,7 @@ export default function NotFound() {
           {t("notFoundText")}
         </p>
         <Link
-          href={isEn ? "/en" : "/"}
+          href={t("homeUrl" as any)}
           className="px-6 py-3 bg-white text-black hover:bg-zinc-200 transition-colors duration-200 rounded-full font-semibold inline-block text-sm cursor-pointer"
         >
           {t("backHome")}
