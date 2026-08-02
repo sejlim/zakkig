@@ -13,6 +13,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { cn } from "@/lib/utils";
 import {
   signUpAction,
+  checkEmailExistsAction,
   verifyOtpAction,
   resendOtpAction,
 } from "@/actions/auth-actions";
@@ -269,8 +270,6 @@ function SignUpForm({
 
       if (Object.keys(errors).length === 0) {
         setIsCheckingEmail(true);
-        const { checkEmailExistsAction } =
-          await import("@/actions/auth-actions");
         const res = await checkEmailExistsAction(email);
         setIsCheckingEmail(false);
         if (res.exists) {

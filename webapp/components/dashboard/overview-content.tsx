@@ -903,9 +903,6 @@ export function OverviewContent({
             <h1 className="text-2xl font-bold tracking-tight">
               {t("overview")}
             </h1>
-            {organization.address && (
-              <p className="text-muted-foreground">{organization.address}</p>
-            )}
           </div>
           <RefreshButton />
         </div>

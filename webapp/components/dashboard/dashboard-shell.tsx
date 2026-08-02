@@ -25,6 +25,7 @@ import type { Organization } from "@/lib/types";
 import type { Models } from "node-appwrite";
 import Image from "next/image";
 import { getImagePreviewUrl } from "@/lib/appwrite/client";
+import { verifySessionAction } from "@/actions/auth-actions";
 import { signOutAction } from "@/actions/auth-actions";
 
 interface DashboardShellProps {
@@ -49,7 +50,6 @@ export function DashboardShell({
     // Fallback polling for session validation (checks every 15 minutes)
     const interval = setInterval(async () => {
       try {
-        const { verifySessionAction } = await import("@/actions/auth-actions");
         const { isValid } = await verifySessionAction();
         if (!isValid) {
           window.location.href = "/sign-in";
@@ -236,6 +236,11 @@ export function DashboardShell({
                 <span className="text-xs text-primary-foreground/70 truncate">
                   {user?.name || user?.email || t("userFallback")}
                 </span>
+                {organization?.address && (
+                  <span className="text-xs text-primary-foreground/70 whitespace-pre-wrap leading-tight">
+                    {organization.address}
+                  </span>
+                )}
               </div>
             )}
           </Link>
