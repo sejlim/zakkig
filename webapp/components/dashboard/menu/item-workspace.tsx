@@ -104,7 +104,16 @@ export function ItemWorkspace({
         try {
           const parsed = JSON.parse(editingItem.customizations || "[]");
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setCustomizationSteps(parsed);
+            const sanitized = parsed.map((step, i) => ({
+              ...step,
+              id: step.id || `step_${Date.now()}_${i}`,
+              options: (step.options || []).map((opt: any, j: number) => ({
+                ...opt,
+                id: opt.id || `opt_${Date.now()}_${i}_${j}`,
+                extraPrice: opt.extraPrice ?? opt.priceAdjustment ?? 0
+              }))
+            }));
+            setCustomizationSteps(sanitized);
             setEnableCustomizations(true);
           } else {
             setCustomizationSteps([]);

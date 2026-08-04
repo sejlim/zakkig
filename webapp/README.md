@@ -53,3 +53,24 @@ Die Webapp ist vollständig zweisprachig (Deutsch / Englisch).
 
 - **CRUD-Operationen:** Änderungen (z.B. Menü-Items erstellen, E-Mails ändern) laufen fast ausnahmslos über **Next.js Server Actions**. Das hält sensible Appwrite-Zugriffscodes (API Keys) sicher auf dem Server.
 - **Realtime-Daten:** Für das Live-Erlebnis (Bestellungen, ausverkaufte Items) abonniert der Client über den öffentlichen Appwrite-Client Änderungen an bestimmten Datenbank-Dokumenten. Wenn der Server eine Änderung durchführt (z.B. Item ausverkauft), pusht Appwrite dies an alle lauschenden Clients, welche daraufhin ihr UI ohne Page-Reload aktualisieren.
+
+---
+
+## 💳 Zahlungsabwicklung (Stripe Connect)
+
+Die Webapp integriert **Stripe Connect** für das Zahlungs-Routing (Multi-Party-Payments) zwischen dem Gast, dem Restaurant und der Zakkig Plattform.
+
+### Onboarding (Dashboard)
+- Restaurant-Besitzer können über das Dashboard (`/settings`) ein Stripe-Konto erstellen bzw. verbinden. 
+- Wir nutzen den **Stripe Connect Onboarding Flow** mit Rückleitungen zur Applikation.
+- Sobald das Onboarding abgeschlossen ist, wird in der Datenbank (`organizations`) der Status `stripeOnboardingComplete` gesetzt und die `stripeAccountId` hinterlegt.
+
+### Guest Ordering & Checkout
+- Die Gäste nutzen die Routen `/to-go/[orgId]` und `/to-stay/[orgId]`.
+- Der Checkout passiert **embedded (direkt auf der Seite)** über das Stripe Payment Element (`@stripe/react-stripe-js`).
+- Das System nutzt **Destination Charges (mit Transfer Data)**. Dabei läuft die Zahlung primär über den Stripe-Account der Plattform (Zakkig). Der Hauptbetrag (abzüglich der 1% Zakkig-Plattformgebühr) wird dabei automatisch als `transfer_data.amount` an das verbundene Restaurant-Konto weitergeleitet. Die Stripe-Transaktionsgebühren (Processing Fees) trägt somit automatisch das Restaurant.
+
+### Serverseitige Appwrite Functions
+Zur Absicherung der Stripe-Zahlungen nutzen wir Appwrite Serverless Functions (Code in `/appwrite/functions/`):
+1. **`create-payment-intent`**: Wird vom Frontend über die Appwrite SDK aufgerufen, sobald der Checkout-Sheet geöffnet wird. Validiert den Warenkorb gegen die Datenbank, berechnet die Plattformgebühr (1%) und erstellt den Stripe PaymentIntent mit den nötigen Transfer-Daten für das Restaurant. Gibt das `client_secret` an das Frontend zurück.
+2. **`stripe-webhook`**: Ein sicherer Endpunkt, der die Stripe Webhooks (`payment_intent.succeeded`) empfängt. Die Funktion validiert die Stripe-Signatur kryptografisch, schreibt daraufhin die finale Bestellung (`Order`) manipulationssicher in die Appwrite-Datenbank und leert den Warenkorb-State (per Metadaten) indirekt ab.

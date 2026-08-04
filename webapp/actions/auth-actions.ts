@@ -18,6 +18,7 @@ import {
   createOrderSession,
 } from "@/lib/appwrite/database";
 import { getUser, createAdminClient } from "@/lib/appwrite/server";
+import { cookies } from "next/headers";
 import { Query } from "node-appwrite";
 export interface AuthActionState {
   error?: string;

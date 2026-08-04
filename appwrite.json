@@ -36,6 +36,40 @@
             "commands": "npm install",
             "ignore": "node_modules\n.tmp",
             "path": "appwrite/functions/changeEmail"
+        },
+        {
+            "$id": "create-payment-intent",
+            "name": "create-payment-intent",
+            "enabled": true,
+            "logging": true,
+            "runtime": "node-26",
+            "buildSpecification": "s-2vcpu-2gb",
+            "runtimeSpecification": "s-2vcpu-2gb",
+            "deploymentRetention": 7,
+            "events": [],
+            "schedule": "",
+            "timeout": 15,
+            "entrypoint": "src/main.js",
+            "commands": "npm install",
+            "ignore": "node_modules\n.tmp",
+            "path": "appwrite/functions/create-payment-intent"
+        },
+        {
+            "$id": "stripe-webhook",
+            "name": "stripe-webhook",
+            "enabled": true,
+            "logging": true,
+            "runtime": "node-26",
+            "buildSpecification": "s-2vcpu-2gb",
+            "runtimeSpecification": "s-2vcpu-2gb",
+            "deploymentRetention": 7,
+            "events": [],
+            "schedule": "",
+            "timeout": 15,
+            "entrypoint": "src/main.js",
+            "commands": "npm install",
+            "ignore": "node_modules\n.tmp",
+            "path": "appwrite/functions/stripe-webhook"
         }
     ],
     "tablesDB": [
@@ -103,6 +137,13 @@
                     "size": 255,
                     "default": null,
                     "encrypt": false
+                },
+                {
+                    "key": "stripeOnboardingComplete",
+                    "type": "boolean",
+                    "required": false,
+                    "array": false,
+                    "default": false
                 },
                 {
                     "key": "isToGoEnabled",

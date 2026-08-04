@@ -19,6 +19,10 @@ import {
   requestEmailChangeAction,
   logoutAllDevicesAction,
 } from "@/actions/settings-actions";
+import {
+  connectStripeAction,
+  createStripeDashboardLinkAction,
+} from "@/actions/stripe-actions";
 import type { Organization } from "@/lib/types";
 import type { Models } from "node-appwrite";
 
@@ -45,6 +49,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
+  const [isStripeLoading, setIsStripeLoading] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -325,14 +330,47 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
             </CardHeader>
             <CardContent className="flex flex-col gap-4 flex-1">
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{t("stripeNotConnected")}</Badge>
+                {organization.stripeOnboardingComplete ? (
+                  <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 border-emerald-500/20">{t("stripeConnected")}</Badge>
+                ) : organization.stripeAccountId ? (
+                  <Badge variant="destructive">{t("stripeOnboardingIncomplete" as any)}</Badge>
+                ) : (
+                  <Badge variant="secondary">{t("stripeNotConnected")}</Badge>
+                )}
               </div>
               <Button
                 variant="outline"
-                onClick={() => toast(t("comingSoon") as string)}
+                disabled={isStripeLoading}
+                onClick={async () => {
+                  setIsStripeLoading(true);
+                  try {
+                    if (organization.stripeOnboardingComplete) {
+                      const res = await createStripeDashboardLinkAction(organization.$id);
+                      if (res.url) {
+                        window.open(res.url, "_blank");
+                      } else {
+                        toast.error(res.error || t("error"));
+                      }
+                    } else {
+                      const res = await connectStripeAction(organization.$id);
+                      if (res.url) {
+                        window.location.href = res.url;
+                      } else {
+                        toast.error(res.error || t("error"));
+                      }
+                    }
+                  } finally {
+                    setIsStripeLoading(false);
+                  }
+                }}
                 className="w-full font-semibold mt-auto"
               >
-                {t("connectStripe")}
+                {isStripeLoading ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
+                {organization.stripeOnboardingComplete
+                  ? t("openStripeDashboard" as any)
+                  : organization.stripeAccountId
+                  ? t("continueOnboarding" as any)
+                  : t("connectStripe")}
               </Button>
             </CardContent>
           </Card>

@@ -9,11 +9,15 @@ import {
 } from "@phosphor-icons/react";
 import { useTranslation, formatPrice } from "@/lib/i18n";
 import { useCartStore } from "@/store/cart-store";
-import { placeOrderAction } from "@/actions/order-actions";
+import { createPaymentIntentAction } from "@/actions/checkout-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { CheckoutForm } from "./checkout-form";
+
 import { toast } from "sonner";
 import {
   Sheet,
@@ -40,12 +44,18 @@ export function CartSheet({
   tableNumber,
   onOrderSuccess,
 }: CartSheetProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { items, total } = useCartStore();
-  const [paymentMethod, setPaymentMethod] = useState<string>("apple-pay");
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [stripePromise] = useState(() => {
+    return loadStripe(
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+      organization.stripeAccountId ? { stripeAccount: organization.stripeAccountId } : undefined
+    );
+  });
 
-  async function onSubmit(formData: FormData) {
+  async function onContinueToPayment(formData: FormData) {
     const email = formData.get("email") as string;
 
     if (!email) {
@@ -53,19 +63,23 @@ export function CartSheet({
       return;
     }
 
-    formData.append("organizationId", organization.$id);
-    formData.append("type", type);
-    if (tableNumber) formData.append("tableNumber", tableNumber);
-    formData.append("items", JSON.stringify(items));
-    formData.append("total", total().toString());
-
     startTransition(async () => {
-      const result = await placeOrderAction({}, formData);
+      const result = await createPaymentIntentAction({
+        organizationId: organization.$id,
+        type,
+        tableNumber,
+        items,
+        total: total(),
+        email,
+      });
 
-      if (result.success && result.orderId && result.orderNumber) {
-        onOrderSuccess(result.orderId, result.orderNumber);
-      } else {
-        toast.error(result.error || t("error"));
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (result.clientSecret) {
+        setClientSecret(result.clientSecret);
       }
     });
   }
@@ -87,83 +101,58 @@ export function CartSheet({
         </SheetHeader>
 
         <div className="p-0">
-          <form
-            action={onSubmit}
-            noValidate
-            className="space-y-6 overflow-y-auto max-h-[calc(90vh-8rem)] pb-8 px-1"
-          >
-            <div className="space-y-3">
-              <Label>{t("paymentMethod")}</Label>
-              <div className="flex flex-wrap gap-2 w-full">
-                <Button
-                  type="button"
-                  variant={
-                    paymentMethod === "apple-pay" ? "default" : "outline"
-                  }
-                  onClick={() => setPaymentMethod("apple-pay")}
-                  className="flex-1 h-12"
-                >
-                  <AppleLogo weight="fill" className="mr-2 h-5 w-5" /> Apple Pay
-                </Button>
-                <Button
-                  type="button"
-                  variant={
-                    paymentMethod === "google-pay" ? "default" : "outline"
-                  }
-                  onClick={() => setPaymentMethod("google-pay")}
-                  className="flex-1 h-12"
-                >
-                  <GoogleLogo weight="bold" className="mr-2 h-5 w-5" /> Google
-                  Pay
-                </Button>
-                <Button
-                  type="button"
-                  variant={paymentMethod === "card" ? "default" : "outline"}
-                  onClick={() => setPaymentMethod("card")}
-                  className="flex-1 h-12"
-                >
-                  <CreditCard className="mr-2 h-5 w-5" /> {t("card")}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Testmodus: Zahlung wird simuliert.
-              </p>
+          {!organization.stripeOnboardingComplete ? (
+            <div className="p-4 text-center">
+              <p className="text-destructive font-medium mb-2">{t("onlineOrderingUnavailable" as any)}</p>
+              <p className="text-sm text-muted-foreground">{t("onlineOrderingUnavailableDesc" as any)}</p>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("emailForReceipt")}</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="name@beispiel.de"
-                required
-              />
-            </div>
-
-            <Separator />
-
-            <div className="bg-muted/50 p-4 rounded-lg text-sm space-y-2">
-              <p>
-                <strong>{t("buyingFrom")}</strong> {organization.name}
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-14 text-lg"
-              disabled={isPending}
+          ) : !clientSecret ? (
+            <form
+              action={onContinueToPayment}
+              noValidate
+              className="space-y-6 overflow-y-auto max-h-[calc(90vh-8rem)] pb-8 px-1"
             >
-              {isPending && (
-                <CircleNotch className="mr-2 h-5 w-5 animate-spin" />
-              )}
-              {isPending ? t("loading") : t("placeOrder")}
-            </Button>
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("emailForReceipt")}</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@beispiel.de"
+                  required
+                />
+              </div>
 
-            <p className="text-center text-muted-foreground text-xs leading-relaxed mt-2">
-              {t("paymentDisclaimer")} {t("agreeToTerms")}
-            </p>
-          </form>
+              <Separator />
+
+              <div className="bg-muted/50 p-4 rounded-lg text-sm space-y-2">
+                <p>
+                  <strong>{t("buyingFrom")}</strong> {organization.name}
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-14 text-lg"
+                disabled={isPending}
+              >
+                {isPending && (
+                  <CircleNotch className="mr-2 h-5 w-5 animate-spin" />
+                )}
+                {isPending ? t("loading") : t("checkout")}
+              </Button>
+
+              <p className="text-center text-muted-foreground text-xs leading-relaxed mt-2">
+                {t("paymentDisclaimer")} {t("agreeToTerms")}
+              </p>
+            </form>
+          ) : (
+            <div className="px-1 pb-8 overflow-y-auto max-h-[calc(90vh-8rem)]">
+              <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' }, locale: locale as any }}>
+                <CheckoutForm returnUrl={`${window.location.origin}/${type === "dine-in" ? "to-stay" : "to-go"}/${organization.$id}/success`} />
+              </Elements>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

@@ -1,0 +1,105 @@
+"use server";
+
+import { headers } from "next/headers";
+import { getOrganization } from "@/lib/appwrite/database";
+import { createAdminClient } from "@/lib/appwrite/server";
+import { revalidatePath } from "next/cache";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20" as any,
+});
+
+export async function connectStripeAction(organizationId: string) {
+  try {
+    const org = await getOrganization(organizationId);
+    if (!org) throw new Error("Organization not found");
+
+    const headerList = await headers();
+    const origin = headerList.get("origin") || "http://localhost:3001";
+    
+    let accountId = org.stripeAccountId;
+
+    // 1. Create a Stripe account if it doesn't exist
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        country: "DE",
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+      accountId = account.id;
+
+      // Save to database
+      const { tablesDB } = createAdminClient();
+      await tablesDB.updateDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP!,
+        "organizations",
+        organizationId,
+        { stripeAccountId: accountId }
+      );
+    }
+
+    // 2. Create an Account Link for onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${origin}/dashboard/${organizationId}/settings`,
+      return_url: `${origin}/dashboard/${organizationId}/settings/stripe-return`,
+      type: "account_onboarding",
+    });
+
+    return { url: accountLink.url };
+  } catch (error: any) {
+    console.error("connectStripeAction error:", error);
+    return { error: error.message };
+  }
+}
+
+export async function getStripeAccountStatusAction(organizationId: string) {
+  try {
+    const org = await getOrganization(organizationId);
+    if (!org || !org.stripeAccountId) {
+      return { isConnected: false, isOnboardingComplete: false };
+    }
+
+    const account = await stripe.accounts.retrieve(org.stripeAccountId);
+    
+    // An account is fully usable when details are submitted and charges are enabled
+    const isComplete = account.details_submitted && account.charges_enabled;
+
+    // Update DB if status changed
+    if (isComplete !== org.stripeOnboardingComplete) {
+      const { tablesDB } = createAdminClient();
+      await tablesDB.updateDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP!,
+        "organizations",
+        organizationId,
+        { stripeOnboardingComplete: isComplete }
+      );
+      revalidatePath(`/dashboard/${organizationId}/settings`);
+    }
+
+    return { 
+      isConnected: true, 
+      isOnboardingComplete: isComplete 
+    };
+  } catch (error: any) {
+    console.error("getStripeAccountStatusAction error:", error);
+    return { error: error.message };
+  }
+}
+
+export async function createStripeDashboardLinkAction(organizationId: string) {
+  try {
+    const org = await getOrganization(organizationId);
+    if (!org || !org.stripeAccountId) throw new Error("No Stripe account connected");
+
+    const loginLink = await stripe.accounts.createLoginLink(org.stripeAccountId);
+    return { url: loginLink.url };
+  } catch (error: any) {
+    console.error("createStripeDashboardLinkAction error:", error);
+    return { error: error.message };
+  }
+}

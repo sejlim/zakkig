@@ -189,7 +189,7 @@ export function CustomizationBuilder({
             <div className="flex flex-col gap-4">
               {steps.map((step, index) => (
                 <SortableStepCard
-                  key={step.id}
+                  key={step.id || `step-${index}`}
                   step={step}
                   stepIndex={index}
                   totalSteps={steps.length}
@@ -300,15 +300,15 @@ function SortableStepCard({
     transition,
   };
 
-  const [minVal, setMinVal] = useState(() => step.minSelections.toString());
-  const [maxVal, setMaxVal] = useState(() => step.maxSelections.toString());
-  const [incVal, setIncVal] = useState(() => step.includedCount.toString());
+  const [minVal, setMinVal] = useState(() => (step.minSelections ?? 0).toString());
+  const [maxVal, setMaxVal] = useState(() => (step.maxSelections ?? 1).toString());
+  const [incVal, setIncVal] = useState(() => (step.includedCount ?? 0).toString());
 
   // Sync props to local state if they change externally
   useEffect(() => {
-    setMinVal(step.minSelections.toString());
-    setMaxVal(step.maxSelections.toString());
-    setIncVal(step.includedCount.toString());
+    setMinVal((step.minSelections ?? 0).toString());
+    setMaxVal((step.maxSelections ?? 1).toString());
+    setIncVal((step.includedCount ?? 0).toString());
   }, [step.minSelections, step.maxSelections, step.includedCount]);
 
   return (
@@ -608,7 +608,7 @@ function SortableStepCard({
                   <div className="flex flex-col gap-2">
                     {step.options.map((option, optIndex) => (
                       <OptionRow
-                        key={option.id}
+                        key={option.id || `opt-${optIndex}`}
                         option={option}
                         optionIndex={optIndex}
                         disabled={step.available === false}
@@ -738,7 +738,7 @@ function OptionRow({
 
         <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
           <Switch
-            checked={option.available}
+            checked={option.available ?? true}
             disabled={disabled}
             onCheckedChange={(checked) => onUpdate({ available: checked })}
             className="shrink-0 data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"

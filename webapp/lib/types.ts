@@ -17,6 +17,7 @@ export interface Organization extends AppwriteDocument {
   logoFileId: string;
   ownerId: string;
   stripeAccountId: string;
+  stripeOnboardingComplete: boolean;
   isToGoEnabled: boolean;
   isToStayEnabled: boolean;
   legalName: string;
@@ -160,8 +161,14 @@ export interface AvailabilitySession extends AppwriteDocument {
 // ─── Cart (Client State) ────────────────────────────────────────
 
 export interface CartItem {
+  id: string; // Unique ID for this specific configured item
   menuItemId: string;
   name: string;
   price: number;
   quantity: number;
+  customizations?: {
+    stepName: string;
+    optionName: string;
+    extraPrice: number;
+  }[];
 }

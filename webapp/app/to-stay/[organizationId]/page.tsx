@@ -56,6 +56,27 @@ export default async function ToStayPage({
     );
   }
 
+  if (!organization.stripeOnboardingComplete) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-background text-center">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
+          <Storefront
+            className="w-8 h-8 text-muted-foreground"
+            weight="duotone"
+          />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">
+          <LocalizedText tKey="onlineOrderingUnavailable" />
+        </h1>
+        <LocalizedText
+          tKey="onlineOrderingUnavailableDesc"
+          className="text-muted-foreground max-w-sm"
+          as="p"
+        />
+      </div>
+    );
+  }
+
   return (
     <GuestFrontend
       organization={structuredClone(organization)}
