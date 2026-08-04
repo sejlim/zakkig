@@ -13,21 +13,12 @@ export const client = new Client()
 
 const storage = new Storage(client);
 
-export function getImagePreviewUrl(
-  fileId: string,
-  width = 400,
-  height = 400,
-): string {
+export function getImagePreviewUrl(fileId: string): string {
   if (!fileId) return "";
   try {
-    const preview = storage.getFilePreview(
-      BUCKETS.MENU_IMAGES,
-      fileId,
-      width,
-      height,
-    );
+    const preview = storage.getFilePreview(BUCKETS.MENU_IMAGES, fileId);
     return String(preview);
   } catch {
-    return `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKETS.MENU_IMAGES}/files/${fileId}/preview?width=${width}&height=${height}&project=${APPWRITE_PROJECT_ID}`;
+    return `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKETS.MENU_IMAGES}/files/${fileId}/preview?project=${APPWRITE_PROJECT_ID}`;
   }
 }

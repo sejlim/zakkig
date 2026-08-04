@@ -88,7 +88,7 @@ export function ImageUpload({
   };
 
   const existingUrl = existingImageId
-    ? getImagePreviewUrl(existingImageId, 400, 300)
+    ? getImagePreviewUrl(existingImageId)
     : null;
 
   const hasImage = preview || (showExisting && existingUrl);

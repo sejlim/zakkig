@@ -130,17 +130,18 @@ export function MenuContent({
   const isDesktop = useIsDesktop();
 
   // Persistent client state for categories and items to eliminate drag & drop flickering
-  const [categories, setCategories] =
-    useState<MenuCategory[]>(initialCategories);
-  const [items, setItems] = useState<MenuItem[]>(initialItems);
+  const [categories, setCategories] = useState<MenuCategory[]>(() => 
+    Array.from(new Map(initialCategories.map(c => [c.$id, c])).values())
+  );
+  const [items, setItems] = useState<MenuItem[]>(() =>
+    Array.from(new Map(initialItems.map(i => [i.$id, i])).values())
+  );
+
 
   useEffect(() => {
-    setCategories(initialCategories);
-  }, [initialCategories]);
-
-  useEffect(() => {
-    setItems(initialItems);
-  }, [initialItems]);
+    setCategories(Array.from(new Map(initialCategories.map(c => [c.$id, c])).values()));
+    setItems(Array.from(new Map(initialItems.map(i => [i.$id, i])).values()));
+  }, [initialCategories, initialItems]);
 
   // Dialog & Sheet states
   const [showItemSheet, setShowItemSheet] = useState(false);
@@ -1111,7 +1112,7 @@ const ItemRowView = memo(function ItemRowView({
   } catch {}
 
   const imageUrl = useMemo(
-    () => (item.imageId ? getImagePreviewUrl(item.imageId, 120, 120) : null),
+    () => (item.imageId ? getImagePreviewUrl(item.imageId) : null),
     [item.imageId],
   );
 
@@ -1120,37 +1121,39 @@ const ItemRowView = memo(function ItemRowView({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-xl border bg-background p-3 gap-3 touch-none",
+        "flex flex-col rounded-xl border bg-background overflow-hidden touch-none shadow-sm transition-shadow hover:shadow-md",
         isDragging ? "opacity-20 bg-muted/30 border-border/40" : "opacity-100",
       )}
     >
-      {/* Main Content Area */}
-      <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-        {/* Drag Handle */}
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-colors shrink-0 touch-none mt-0.5 sm:mt-0"
-        >
-          <DotsSixVertical className="h-4 w-4" weight="bold" />
-        </button>
+      {/* Top Image */}
+      {imageUrl && (
+        <div className="relative w-full h-40 sm:h-48 bg-muted border-b border-border/40">
+          <Image
+            src={imageUrl}
+            alt={item.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 500px"
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      )}
 
-        {/* Thumbnail */}
-        {imageUrl ? (
-          <div className="relative w-12 h-12 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-border/40 shrink-0 bg-muted flex items-center justify-center shadow-xs">
-            <Image
-              src={imageUrl}
-              alt={item.name}
-              fill
-              sizes="48px"
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-        ) : null}
+      {/* Content Area */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-4">
+        {/* Left Side: Handle & Info */}
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          {/* Drag Handle */}
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors shrink-0 touch-none mt-0.5 sm:mt-0"
+          >
+            <DotsSixVertical className="h-5 w-5" weight="bold" />
+          </button>
 
-        {/* Info */}
+          {/* Info */}
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-base text-foreground break-words">
@@ -1178,8 +1181,8 @@ const ItemRowView = memo(function ItemRowView({
         </div>
       </div>
 
-      {/* Action Controls - Toolbar Row on Mobile */}
-      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t border-border/40 pt-2 sm:pt-0 sm:border-t-0 mt-1 sm:mt-0 w-full sm:w-auto">
+      {/* Action Controls */}
+      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-border/40 pt-3 sm:pt-0 sm:border-t-0 mt-2 sm:mt-0 w-full sm:w-auto">
         <Switch
           checked={item.available}
           onCheckedChange={(checked) => onToggleAvailability(checked)}
@@ -1208,6 +1211,7 @@ const ItemRowView = memo(function ItemRowView({
         </div>
       </div>
     </div>
+  </div>
   );
 });
 

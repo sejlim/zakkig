@@ -40,24 +40,23 @@ function GuestHeader({
 }) {
   const { t } = useTranslation();
   return (
-    <header className="bg-primary text-primary-foreground rounded-b-3xl shadow-lg border-b border-primary-foreground/10 px-6 py-4 flex items-center justify-between relative z-20">
-      <div className="w-12 h-12 relative flex-shrink-0 bg-primary-foreground/10 rounded-xl border border-primary-foreground/20 overflow-hidden">
-        {organization.logoFileId ? (
-          <Image src={getImagePreviewUrl(organization.logoFileId)} alt={organization.name} fill className="object-cover" sizes="48px" />
-        ) : (
-          <Storefront className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-zinc-400" />
-        )}
-      </div>
-      <div className="text-center flex-1 px-4 text-primary-foreground">
-        <h1 className="text-lg font-bold line-clamp-1">{organization.name}</h1>
-        {type === "dine-in" && tableNumber && (
-          <p className="text-sm text-primary-foreground/70">
-            {t("table")} {tableNumber}
-          </p>
-        )}
-      </div>
-      <div className="flex justify-end">
-        <LanguageSwitcher className="h-10 px-3 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10" variant="ghost" />
+    <header className="bg-primary text-primary-foreground rounded-b-3xl shadow-lg border-b border-primary-foreground/10 relative z-20 overflow-hidden flex flex-col">
+      {organization.logoFileId ? (
+        <div className="w-full h-40 md:h-48 relative flex-shrink-0">
+          <Image src={getImagePreviewUrl(organization.logoFileId)} alt={organization.name} fill className="object-contain p-4" sizes="100vw" />
+        </div>
+      ) : (
+        <div className="w-full py-12 md:py-16 flex items-center justify-center flex-shrink-0 px-4">
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-center text-primary">
+            {organization.name}
+          </h2>
+        </div>
+      )}
+      
+      <div id="header-text" className={`flex flex-col items-center justify-center gap-2 ${organization.logoFileId ? 'pt-1 pb-5' : 'pb-6'}`}>
+        <span className="text-base font-medium text-primary-foreground text-center">
+          {type === "takeaway" ? t("titleToGo" as any) : `${t("titleToStay" as any)} ${tableNumber || ""}`}
+        </span>
       </div>
     </header>
   );
@@ -195,6 +194,7 @@ function GuestMenu({
   return (
     <>
       <div 
+        id="category-nav"
         ref={categoryNavRef}
         className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 shadow-sm overflow-x-auto no-scrollbar scroll-smooth"
       >
@@ -231,7 +231,18 @@ function GuestMenu({
                   const totalQuantity = itemCartItems.reduce((acc, curr) => acc + curr.quantity, 0);
 
                   return (
-                    <Card key={item.$id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={item.$id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow p-0 gap-0">
+                      {item.imageId && (
+                        <div className="relative w-full h-48 bg-muted">
+                          <Image
+                            src={getImagePreviewUrl(item.imageId)}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 500px"
+                          />
+                        </div>
+                      )}
                       <div className="flex">
                         <div className="flex-1 p-4 flex flex-col justify-between">
                           <div>
@@ -242,56 +253,17 @@ function GuestMenu({
                               </p>
                             )}
                           </div>
-                          <div className="mt-4 flex items-end justify-between">
+                          <div className="mt-4 flex items-center justify-between">
                             <div className="flex flex-col">
                               <span className="font-bold">{formatPrice(item.price)}</span>
                             </div>
                             
-                            {item.customizations && item.customizations !== "[]" ? (
-                               <Button size="sm" className="rounded-full px-4" onClick={() => handleAddClick(item)}>
-                                 <Plus weight="bold" className="mr-1" /> {t("addToCart")}
-                                 {totalQuantity > 0 && <Badge variant="secondary" className="ml-2 px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm rounded-full">{totalQuantity}</Badge>}
-                               </Button>
-                            ) : (
-                              totalQuantity > 0 ? (
-                                <div className="flex items-center gap-3 bg-muted rounded-full p-1 border">
-                                  <button
-                                    type="button"
-                                    aria-label={t("removeFromCart")}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-background shadow-sm text-foreground"
-                                    onClick={() => updateQuantity(item.$id, totalQuantity - 1)}
-                                  >
-                                    <Minus weight="bold" />
-                                  </button>
-                                  <span className="font-medium w-4 text-center">{totalQuantity}</span>
-                                  <button
-                                    type="button"
-                                    aria-label={t("addToCart")}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-                                    onClick={() => updateQuantity(item.$id, totalQuantity + 1)}
-                                  >
-                                    <Plus weight="bold" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <Button size="sm" className="rounded-full px-4" onClick={() => handleAddClick(item)}>
-                                  <Plus weight="bold" className="mr-1" /> {t("addToCart")}
-                                </Button>
-                              )
-                            )}
+                            <Button size="sm" className="rounded-full px-4" onClick={() => handleAddClick(item)}>
+                              <Plus weight="bold" className="mr-1" /> {t("addToCart")}
+                              {totalQuantity > 0 && <Badge variant="secondary" className="ml-2 px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm rounded-full">{totalQuantity}</Badge>}
+                            </Button>
                           </div>
                         </div>
-                        {item.imageId && (
-                          <div className="w-32 relative shrink-0">
-                            <Image
-                              src={getImagePreviewUrl(item.imageId)}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                              sizes="128px"
-                            />
-                          </div>
-                        )}
                       </div>
                     </Card>
                   );
@@ -424,39 +396,52 @@ function GuestBottomNav({
   const { itemCount } = useCartStore();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      <div className="bg-primary text-primary-foreground/70 rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t border-primary-foreground/10 pb-safe pb-2 pt-2">
-        <div className="flex max-w-md mx-auto">
-          <button
-            type="button"
-            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1.5 transition-colors ${activeTab === "menu" ? "text-primary-foreground" : "hover:text-primary-foreground/90"}`}
-            onClick={() => setActiveTab("menu")}
-          >
-            <ForkKnife
-              weight={activeTab === "menu" ? "fill" : "regular"}
-              className="h-5 w-5"
-            />
-            <span className="text-[11px] font-semibold tracking-wide uppercase">{t("menuTab")}</span>
-          </button>
-          <button
-            type="button"
-            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1.5 relative transition-colors ${activeTab === "cart" ? "text-primary-foreground" : "hover:text-primary-foreground/90"}`}
-            onClick={() => setActiveTab("cart")}
-          >
-            <ShoppingCart
-              weight={activeTab === "cart" ? "fill" : "regular"}
-              className="h-5 w-5"
-            />
-            <span className="text-[11px] font-semibold tracking-wide uppercase">{t("cartTab")}</span>
-            {itemCount() > 0 && (
-              <Badge
-                className="absolute top-1 right-[20%] sm:right-[30%] px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm"
-              >
-                {itemCount()}
-              </Badge>
-            )}
-          </button>
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-stretch justify-between gap-3">
+      {/* Left side: Main Nav */}
+      <div className="flex-1 bg-primary text-primary-foreground/70 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t border-x border-primary-foreground/10 pb-safe pb-2 pt-2 px-2 flex pointer-events-auto">
+        <button
+          type="button"
+          className={`flex-1 flex flex-col items-center justify-center py-2 gap-1.5 transition-colors ${activeTab === "menu" ? "text-primary-foreground" : "hover:text-primary-foreground/90"}`}
+          onClick={() => {
+            setActiveTab("menu");
+            setTimeout(() => {
+              const el = document.getElementById("header-text");
+              if (el) {
+                const y = el.getBoundingClientRect().top + window.scrollY - 10;
+                window.scrollTo({ top: y, behavior: "smooth" });
+              }
+            }, 50);
+          }}
+        >
+          <ForkKnife
+            weight={activeTab === "menu" ? "fill" : "regular"}
+            className="h-5 w-5"
+          />
+          <span className="text-[11px] font-semibold tracking-wide uppercase">{t("menuTab")}</span>
+        </button>
+        <button
+          type="button"
+          className={`flex-1 flex flex-col items-center justify-center py-2 gap-1.5 relative transition-colors ${activeTab === "cart" ? "text-primary-foreground" : "hover:text-primary-foreground/90"}`}
+          onClick={() => setActiveTab("cart")}
+        >
+          <ShoppingCart
+            weight={activeTab === "cart" ? "fill" : "regular"}
+            className="h-5 w-5"
+          />
+          <span className="text-[11px] font-semibold tracking-wide uppercase">{t("cartTab")}</span>
+          {itemCount() > 0 && (
+            <Badge
+              className="absolute top-1 right-[20%] sm:right-[30%] px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm"
+            >
+              {itemCount()}
+            </Badge>
+          )}
+        </button>
+      </div>
+      
+      {/* Right side: Language Switcher */}
+      <div className="bg-primary text-primary-foreground/70 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t border-x border-primary-foreground/10 pb-safe pb-2 pt-2 px-2 flex pointer-events-auto items-center justify-center">
+        <LanguageSwitcher className="h-10 px-3 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10" variant="ghost" />
       </div>
     </div>
   );
@@ -473,10 +458,6 @@ export function GuestFrontend({
 }: GuestFrontendProps) {
   const router = useRouter();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    document.title = `zakkig: ${type === "takeaway" ? t("titleToGo" as any) : t("titleToStay" as any)}`;
-  }, [t, type]);
 
   const [activeTab, setActiveTab] = useState<"menu" | "cart">("menu");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
