@@ -233,7 +233,7 @@ export function DashboardShell({
                 <span className="truncate font-semibold text-sm">
                   {organization?.name ?? "Zakkig"}
                 </span>
-                <span className="text-xs text-primary-foreground/70 truncate">
+                <span className="text-xs text-primary-foreground/70 truncate italic">
                   {user?.name || user?.email || t("userFallback")}
                 </span>
                 {organization?.address && (
