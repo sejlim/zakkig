@@ -141,7 +141,7 @@ export function CustomizationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">{item.name}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{item.name}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
@@ -212,7 +212,8 @@ export function CustomizationModal({
 
         <div className="mt-8 pt-4 border-t sticky bottom-0 bg-background pb-safe z-10">
           <Button 
-            className="w-full h-14 text-lg" 
+            size="lg"
+            className="w-full rounded-full font-bold h-12 text-base shadow-md" 
             onClick={handleAdd}
             disabled={!isValid}
           >

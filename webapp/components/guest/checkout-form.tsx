@@ -37,9 +37,10 @@ export function CheckoutForm({ returnUrl }: { returnUrl: string }) {
     <form onSubmit={handleSubmit} className="space-y-6 mt-4">
       <PaymentElement options={{ layout: "tabs" }} />
       <Button 
-        disabled={!stripe || isProcessing} 
         type="submit" 
-        className="w-full h-14 text-lg"
+        size="lg"
+        disabled={!stripe || isProcessing} 
+        className="w-full rounded-full font-bold h-12 text-base shadow-md"
       >
         {isProcessing ? <SpinnerGap className="mr-2 h-5 w-5 animate-spin" /> : null}
         {isProcessing ? t("processingPayment" as any) : t("orderAndPay" as any)}

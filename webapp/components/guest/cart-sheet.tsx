@@ -130,7 +130,8 @@ export function CartSheet({
 
               <Button
                 type="submit"
-                className="w-full h-14 text-lg"
+                size="lg"
+                className="w-full rounded-full font-bold h-12 text-base shadow-md"
                 disabled={isPending}
               >
                 {isPending && (
