@@ -22,6 +22,7 @@ import {
 import {
   connectStripeAction,
   createStripeDashboardLinkAction,
+  completeTestStripeOnboardingAction,
 } from "@/actions/stripe-actions";
 import type { Organization } from "@/lib/types";
 import type { Models } from "node-appwrite";
@@ -338,40 +339,83 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   <Badge variant="secondary">{t("stripeNotConnected")}</Badge>
                 )}
               </div>
-              <Button
-                variant="outline"
-                disabled={isStripeLoading}
-                onClick={async () => {
-                  setIsStripeLoading(true);
-                  try {
-                    if (organization.stripeOnboardingComplete) {
-                      const res = await createStripeDashboardLinkAction(organization.$id);
-                      if (res.url) {
-                        window.open(res.url, "_blank");
-                      } else {
-                        toast.error(res.error || t("error"));
-                      }
-                    } else {
-                      const res = await connectStripeAction(organization.$id);
-                      if (res.url) {
-                        window.location.href = res.url;
-                      } else {
-                        toast.error(res.error || t("error"));
-                      }
-                    }
-                  } finally {
-                    setIsStripeLoading(false);
-                  }
-                }}
-                className="w-full font-semibold mt-auto"
-              >
-                {isStripeLoading ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
+
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {organization.stripeOnboardingComplete
-                  ? t("openStripeDashboard" as any)
-                  : organization.stripeAccountId
-                  ? t("continueOnboarding" as any)
-                  : t("connectStripe")}
-              </Button>
+                  ? t("stripeConnectedDesc" as any)
+                  : t("stripeDescription" as any)}
+              </p>
+
+              {organization.stripeAccountId && (
+                <div className="bg-muted/40 p-3 rounded-lg border text-xs flex flex-col gap-1">
+                  <span className="font-medium text-foreground">{t("stripeAccountIdLabel" as any)}</span>
+                  <code className="font-mono text-muted-foreground select-all break-all">
+                    {organization.stripeAccountId}
+                  </code>
+                </div>
+              )}
+
+              <div className="mt-auto pt-4 flex flex-col gap-2">
+                <Button
+                  variant={organization.stripeOnboardingComplete ? "outline" : "default"}
+                  disabled={isStripeLoading}
+                  onClick={async () => {
+                    setIsStripeLoading(true);
+                    try {
+                      if (organization.stripeOnboardingComplete) {
+                        const res = await createStripeDashboardLinkAction(organization.$id);
+                        if (res.url) {
+                          window.open(res.url, "_blank");
+                        } else {
+                          toast.error(res.error || t("error"));
+                        }
+                      } else {
+                        const res = await connectStripeAction(organization.$id);
+                        if (res.url) {
+                          window.location.href = res.url;
+                        } else {
+                          toast.error(res.error || t("error"));
+                        }
+                      }
+                    } finally {
+                      setIsStripeLoading(false);
+                    }
+                  }}
+                  className="w-full font-semibold h-11"
+                >
+                  {isStripeLoading ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
+                  {organization.stripeOnboardingComplete
+                    ? t("openStripeDashboard" as any)
+                    : organization.stripeAccountId
+                    ? t("continueOnboarding" as any)
+                    : t("connectStripeWithIban" as any)}
+                </Button>
+
+                {process.env.NODE_ENV === "development" && !organization.stripeOnboardingComplete && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    disabled={isStripeLoading}
+                    onClick={async () => {
+                      setIsStripeLoading(true);
+                      try {
+                        const res = await completeTestStripeOnboardingAction(organization.$id);
+                        if (res.success) {
+                          toast.success(t("stripeConnectedSuccessfully" as any));
+                        } else {
+                          toast.error(res.error || t("error"));
+                        }
+                      } finally {
+                        setIsStripeLoading(false);
+                      }
+                    }}
+                  >
+                    {t("testOnboardingHelper" as any)}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 

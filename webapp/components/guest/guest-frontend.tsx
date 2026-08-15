@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Minus, ShoppingCart, ForkKnife } from "@phosphor-icons/react";
+import { Plus, Minus, ShoppingCart, ForkKnife, ShoppingBag, PicnicTable } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useTranslation, formatPrice } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/appwrite/client";
@@ -39,24 +39,43 @@ function GuestHeader({
   tableNumber?: string;
 }) {
   const { t } = useTranslation();
+  const orderingBadgeText =
+    type === "takeaway"
+      ? t("titleToGo" as any)
+      : `${t("titleToStay" as any)} ${tableNumber || ""}`;
+
+  const OrderingIcon = type === "takeaway" ? ShoppingBag : PicnicTable;
+
   return (
-    <header className="bg-primary text-primary-foreground rounded-b-3xl shadow-lg border-b border-primary-foreground/10 relative z-20 overflow-hidden flex flex-col">
-      {organization.logoFileId ? (
-        <div className="w-full h-40 md:h-48 relative flex-shrink-0">
-          <Image src={getImagePreviewUrl(organization.logoFileId)} alt={organization.name} fill className="object-contain p-4" sizes="100vw" />
+    <header className="bg-primary text-primary-foreground relative z-20 flex flex-col items-center px-4 pt-5 pb-6 shrink-0">
+      <div className="max-w-sm w-full flex flex-col items-stretch">
+        {organization.logoFileId ? (
+          <div className="w-full relative rounded-2xl overflow-hidden bg-white shadow-sm flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={getImagePreviewUrl(organization.logoFileId)}
+              alt={organization.name}
+              className="w-full h-auto object-contain rounded-2xl p-2.5 max-h-[360px]"
+            />
+          </div>
+        ) : (
+          <div className="w-full py-6 flex items-center justify-center text-center">
+            <h2 className="text-3xl font-black tracking-tight text-primary-foreground">
+              {organization.name}
+            </h2>
+          </div>
+        )}
+
+        <div id="header-text" className="w-full mt-3 flex items-center gap-2">
+          <span className="flex-1 text-xs font-semibold tracking-wide uppercase text-primary-foreground flex items-center justify-center gap-2 bg-transparent px-4 py-2.5 rounded-full border border-primary-foreground/20 truncate whitespace-nowrap min-w-0">
+            <OrderingIcon weight="bold" className="h-4 w-4 shrink-0" />
+            <span className="truncate">{orderingBadgeText}</span>
+          </span>
+          <LanguageSwitcher
+            variant="ghost"
+            className="h-auto text-xs font-semibold tracking-wide uppercase text-primary-foreground flex items-center justify-center gap-1.5 bg-transparent px-3.5 py-2.5 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground/15 shrink-0"
+          />
         </div>
-      ) : (
-        <div className="w-full py-12 md:py-16 flex items-center justify-center flex-shrink-0 px-4">
-          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-center text-primary">
-            {organization.name}
-          </h2>
-        </div>
-      )}
-      
-      <div id="header-text" className={`flex flex-col items-center justify-center gap-2 ${organization.logoFileId ? 'pt-1 pb-5' : 'pb-6'}`}>
-        <span className="text-base font-medium text-primary-foreground text-center">
-          {type === "takeaway" ? t("titleToGo" as any) : `${t("titleToStay" as any)} ${tableNumber || ""}`}
-        </span>
       </div>
     </header>
   );
@@ -71,30 +90,35 @@ function GuestOrderSuccess({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center space-y-6">
-      <div className="h-24 w-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-        <CheckCircle className="h-12 w-12" />
-      </div>
-      <h1 className="text-3xl font-bold">{t("orderPlaced")}</h1>
-      <div>
-        <p className="text-muted-foreground mb-2">{t("yourOrderNumber")}</p>
-        <div className="text-5xl font-bold tracking-tighter tabular-nums">
-          {orderNumber}
+    <div className="flex flex-col min-h-screen bg-primary">
+      <header className="p-6 text-center text-primary-foreground shrink-0">
+        <h2 className="text-xl font-bold tracking-tight">zakkig</h2>
+      </header>
+      <div className="flex-1 bg-background text-foreground rounded-t-[2rem] md:rounded-[2rem] shadow-2xl flex flex-col items-center justify-center p-6 text-center space-y-6 md:my-4 md:max-w-md md:mx-auto w-full border-t md:border border-primary-foreground/10">
+        <div className="h-24 w-24 bg-emerald-500/15 text-emerald-600 rounded-full flex items-center justify-center mb-2">
+          <CheckCircle className="h-12 w-12" />
         </div>
+        <h1 className="text-3xl font-bold">{t("orderPlaced")}</h1>
+        <div>
+          <p className="text-muted-foreground mb-2">{t("yourOrderNumber")}</p>
+          <div className="text-6xl font-black tracking-wider text-primary tabular-nums">
+            {orderNumber}
+          </div>
+        </div>
+        <div className="bg-muted/50 p-4 rounded-xl w-full max-w-xs mt-4 border">
+          <p className="font-medium text-sm">{t("waitAtTable")}</p>
+        </div>
+        <Button
+          variant="outline"
+          className="mt-6 font-semibold"
+          onClick={() => {
+            setDineInSuccess(null);
+            useCartStore.getState().clearCart();
+          }}
+        >
+          {t("orderAgain" as any) || "Neue Bestellung"}
+        </Button>
       </div>
-      <div className="bg-muted p-4 rounded-lg w-full max-w-sm mt-8">
-        <p className="font-medium">{t("waitAtTable")}</p>
-      </div>
-      <Button
-        variant="outline"
-        className="mt-8"
-        onClick={() => {
-          setDineInSuccess(null);
-          useCartStore.getState().clearCart();
-        }}
-      >
-        Neue Bestellung
-      </Button>
     </div>
   );
 }
@@ -102,9 +126,11 @@ function GuestOrderSuccess({
 function GuestMenu({
   categories,
   items,
+  isSticky,
 }: {
   categories: MenuCategory[];
   items: MenuItem[];
+  isSticky: boolean;
 }) {
   const { t } = useTranslation();
   const { items: cartItems, addItem, updateQuantity } = useCartStore();
@@ -131,10 +157,8 @@ function GuestMenu({
         const el = document.getElementById(category.$id);
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 150) {
+          if (rect.top <= 130) {
             currentActiveId = category.$id;
-          } else {
-            break;
           }
         }
       }
@@ -184,7 +208,6 @@ function GuestMenu({
   };
 
   const handleCustomizationAdd = (item: MenuItem, selections: any[], totalPrice: number) => {
-    // Generate a unique ID for this configuration
     const confString = selections.map((s: any) => `${s.stepName}:${s.optionName}`).join('|');
     const hash = btoa(encodeURIComponent(confString)).slice(0, 10);
     const cartItemId = `${item.$id}-${hash}`;
@@ -196,7 +219,10 @@ function GuestMenu({
       <div 
         id="category-nav"
         ref={categoryNavRef}
-        className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b -mx-4 md:-mx-6 px-4 md:px-6 py-3 mb-6 shadow-sm overflow-x-auto no-scrollbar scroll-smooth"
+        className={cn(
+          "sticky top-0 z-30 bg-background border-b border-border px-4 md:px-6 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-150",
+          isSticky ? "rounded-none pt-3.5 pb-3.5" : "rounded-t-[2.5rem] pt-7 pb-4"
+        )}
       >
         <div className="flex gap-2 min-w-max">
           {categories.map((c) => (
@@ -217,13 +243,13 @@ function GuestMenu({
         </div>
       </div>
       
-      <div className="space-y-10">
+      <div className="p-4 md:p-6 pb-28 md:pb-32 space-y-10">
         {categories.map((category) => {
           const categoryItems = items.filter((i) => i.categoryId === category.$id);
           if (categoryItems.length === 0) return null;
 
           return (
-            <div key={category.$id} id={category.$id} className="space-y-4 scroll-m-40">
+            <div key={category.$id} id={category.$id} className="space-y-4 scroll-m-24">
               <h2 className="text-2xl font-bold">{category.name}</h2>
               <div className="space-y-4">
                 {categoryItems.map((item) => {
@@ -231,7 +257,10 @@ function GuestMenu({
                   const totalQuantity = itemCartItems.reduce((acc, curr) => acc + curr.quantity, 0);
 
                   return (
-                    <Card key={item.$id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow p-0 gap-0">
+                    <Card
+                      key={item.$id}
+                      className="overflow-hidden shadow-sm hover:shadow-md transition-shadow p-0 gap-0"
+                    >
                       {item.imageId && (
                         <div className="relative w-full h-48 bg-muted">
                           <Image
@@ -243,26 +272,39 @@ function GuestMenu({
                           />
                         </div>
                       )}
-                      <div className="flex">
-                        <div className="flex-1 p-4 flex flex-col justify-between">
-                          <div>
-                            <h3 className="font-semibold text-lg leading-tight">{item.name}</h3>
-                            {item.description && (
-                              <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
-                                {item.description}
-                              </p>
+                      <div className="p-4 flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg leading-tight">
+                            {item.name}
+                          </h3>
+                          {item.description && (
+                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="font-bold">
+                              {formatPrice(item.price)}
+                            </span>
+                          </div>
+
+                          <Button
+                            size="sm"
+                            className="rounded-full px-4"
+                            onClick={() => handleAddClick(item)}
+                          >
+                            <Plus weight="bold" className="mr-1" /> {t("addToCart")}
+                            {totalQuantity > 0 && (
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm rounded-full"
+                              >
+                                {totalQuantity}
+                              </Badge>
                             )}
-                          </div>
-                          <div className="mt-4 flex items-center justify-between">
-                            <div className="flex flex-col">
-                              <span className="font-bold">{formatPrice(item.price)}</span>
-                            </div>
-                            
-                            <Button size="sm" className="rounded-full px-4" onClick={() => handleAddClick(item)}>
-                              <Plus weight="bold" className="mr-1" /> {t("addToCart")}
-                              {totalQuantity > 0 && <Badge variant="secondary" className="ml-2 px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm rounded-full">{totalQuantity}</Badge>}
-                            </Button>
-                          </div>
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -311,70 +353,67 @@ function GuestCart({
           </Button>
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="space-y-4">
+        <div className="space-y-4">
+          <div className="divide-y divide-border">
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex justify-between items-center bg-background p-4 rounded-lg shadow-sm border"
+                className="py-4 flex items-center justify-between gap-4"
               >
-                <div className="flex-1">
-                  <div className="font-medium">{item.name}</div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm truncate">{item.name}</h3>
                   {item.customizations && item.customizations.length > 0 && (
-                    <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                      {item.customizations.map((c, i) => (
-                        <li key={i}>+ {c.optionName}</li>
-                      ))}
-                    </ul>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {item.customizations
+                        .map((c) => `${c.stepName}: ${c.optionName}`)
+                        .join(", ")}
+                    </p>
                   )}
-                  <div className="text-muted-foreground text-sm mt-1">
-                    {formatPrice(item.price)}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">
+                  <p className="text-sm font-bold mt-1 text-primary">
                     {formatPrice(item.price * item.quantity)}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-full border shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 rounded-full"
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </Button>
+                  <span className="text-xs font-bold w-4 text-center">
+                    {item.quantity}
                   </span>
-                  <div className="flex items-center gap-3 bg-muted rounded-full p-1">
-                    <button
-                      type="button"
-                      aria-label={t("removeFromCart")}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-background shadow-sm text-foreground"
-                      onClick={() =>
-                        updateQuantity(item.id, item.quantity - 1)
-                      }
-                    >
-                      <Minus weight="bold" />
-                    </button>
-                    <span className="font-medium w-4 text-center">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label={t("addToCart")}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
-                      onClick={() =>
-                        updateQuantity(item.id, item.quantity + 1)
-                      }
-                    >
-                      <Plus weight="bold" />
-                    </button>
-                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 rounded-full"
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
 
-          <Separator />
+          <Separator className="my-6" />
 
-          <div className="flex justify-between items-center text-xl font-bold">
-            <span>{t("orderTotal")}</span>
-            <span>{formatPrice(total())}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between text-base font-bold">
+              <span>{t("total")}</span>
+              <span>{formatPrice(total())}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("taxNote")}
+            </p>
           </div>
 
           <Button
-            className="w-full text-lg py-6"
             size="lg"
+            className="w-full mt-6 rounded-full font-bold h-12 text-base shadow-md"
             onClick={() => setCheckoutOpen(true)}
           >
             {t("checkout")}
@@ -396,18 +435,25 @@ function GuestBottomNav({
   const { itemCount } = useCartStore();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex items-stretch justify-between gap-3">
-      {/* Left side: Main Nav */}
-      <div className="flex-1 bg-primary text-primary-foreground/70 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t border-x border-primary-foreground/10 pb-safe pb-2 pt-2 px-2 flex pointer-events-auto">
+    <div className="fixed bottom-4 left-4 right-4 z-50 pointer-events-none flex items-center justify-center">
+      <div className="bg-primary text-primary-foreground rounded-full border border-primary-foreground/20 p-1.5 flex items-center gap-1.5 pointer-events-auto max-w-sm w-full shadow-lg">
+        {/* Menu Tab */}
         <button
+          id="tab-menu"
           type="button"
-          className={`flex-1 flex flex-col items-center justify-center py-2 gap-1.5 transition-colors ${activeTab === "menu" ? "text-primary-foreground" : "hover:text-primary-foreground/90"}`}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-full transition-all text-xs font-semibold tracking-wide uppercase",
+            activeTab === "menu"
+              ? "bg-primary-foreground text-primary shadow-sm"
+              : "text-primary-foreground hover:bg-primary-foreground/15",
+          )}
           onClick={() => {
             setActiveTab("menu");
             setTimeout(() => {
               const el = document.getElementById("header-text");
               if (el) {
-                const y = el.getBoundingClientRect().top + window.scrollY - 10;
+                const y =
+                  el.getBoundingClientRect().top + window.scrollY - 10;
                 window.scrollTo({ top: y, behavior: "smooth" });
               }
             }, 50);
@@ -415,33 +461,41 @@ function GuestBottomNav({
         >
           <ForkKnife
             weight={activeTab === "menu" ? "fill" : "regular"}
-            className="h-5 w-5"
+            className="h-4 w-4 shrink-0"
           />
-          <span className="text-[11px] font-semibold tracking-wide uppercase">{t("menuTab")}</span>
+          <span>{t("menuTab")}</span>
         </button>
+
+        {/* Cart Tab */}
         <button
+          id="tab-cart"
           type="button"
-          className={`flex-1 flex flex-col items-center justify-center py-2 gap-1.5 relative transition-colors ${activeTab === "cart" ? "text-primary-foreground" : "hover:text-primary-foreground/90"}`}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-full transition-all text-xs font-semibold tracking-wide uppercase relative",
+            activeTab === "cart"
+              ? "bg-primary-foreground text-primary shadow-sm"
+              : "text-primary-foreground hover:bg-primary-foreground/15",
+          )}
           onClick={() => setActiveTab("cart")}
         >
           <ShoppingCart
             weight={activeTab === "cart" ? "fill" : "regular"}
-            className="h-5 w-5"
+            className="h-4 w-4 shrink-0"
           />
-          <span className="text-[11px] font-semibold tracking-wide uppercase">{t("cartTab")}</span>
+          <span>{t("cartTab")}</span>
           {itemCount() > 0 && (
             <Badge
-              className="absolute top-1 right-[20%] sm:right-[30%] px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm"
+              className={cn(
+                "px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center border-none font-bold text-xs shadow-sm",
+                activeTab === "cart"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary-foreground text-primary",
+              )}
             >
               {itemCount()}
             </Badge>
           )}
         </button>
-      </div>
-      
-      {/* Right side: Language Switcher */}
-      <div className="bg-primary text-primary-foreground/70 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t border-x border-primary-foreground/10 pb-safe pb-2 pt-2 px-2 flex pointer-events-auto items-center justify-center">
-        <LanguageSwitcher className="h-10 px-3 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10" variant="ghost" />
       </div>
     </div>
   );
@@ -464,6 +518,20 @@ export function GuestFrontend({
   const [dineInSuccess, setDineInSuccess] = useState<{
     orderNumber: string;
   } | null>(null);
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const headerEl = document.getElementById("header-text");
+      if (headerEl) {
+        const rect = headerEl.getBoundingClientRect();
+        setIsSticky(rect.bottom <= 0);
+      }
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   if (orderId && type === "takeaway") {
     return (
@@ -485,23 +553,31 @@ export function GuestFrontend({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-muted/10 pb-20">
+    <div className="flex flex-col min-h-screen bg-primary">
       <GuestHeader
         organization={organization}
         type={type}
         tableNumber={tableNumber}
       />
 
-      <main className="flex-1 p-4 md:p-6 max-w-2xl mx-auto w-full">
-        {activeTab === "menu" ? (
-          <GuestMenu categories={categories} items={items} />
-        ) : (
-          <GuestCart
-            setActiveTab={setActiveTab}
-            setCheckoutOpen={setCheckoutOpen}
-          />
+      {/* Main Section as rounded white Card inside dark canvas */}
+      <div
+        className={cn(
+          "flex-1 bg-background text-foreground shadow-2xl flex flex-col md:max-w-2xl md:mx-auto w-full transition-all duration-150",
+          isSticky ? "rounded-none" : "rounded-t-[2.5rem]"
         )}
-      </main>
+      >
+        {activeTab === "menu" ? (
+          <GuestMenu categories={categories} items={items} isSticky={isSticky} />
+        ) : (
+          <main className="flex-1 px-4 md:px-6 pt-7 md:pt-8 pb-28 md:pb-32">
+            <GuestCart
+              setActiveTab={setActiveTab}
+              setCheckoutOpen={setCheckoutOpen}
+            />
+          </main>
+        )}
+      </div>
 
       <GuestBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 

@@ -324,6 +324,13 @@ export const translations = {
     stripeConnected: "Stripe verbunden",
     stripeNotConnected: "Stripe nicht verbunden",
     stripeOnboardingIncomplete: "Onboarding unvollständig",
+    stripeDescription:
+      "Verbinde dein Bankkonto (IBAN) über Stripe Connect, um Online-Zahlungen von Gästen zu akzeptieren und automatische Auszahlungen zu erhalten.",
+    stripeConnectedDesc:
+      "Dein Bankkonto ist erfolgreich über Stripe verbunden. Auszahlungen erfolgen automatisch auf dein hinterlegtes Konto.",
+    stripeAccountIdLabel: "Stripe-Konto-ID:",
+    connectStripeWithIban: "Mit Stripe verbinden & IBAN hinterlegen",
+    testOnboardingHelper: "🧪 Test-Account mit Test-IBAN aktivieren",
     continueOnboarding: "Onboarding fortsetzen",
     openStripeDashboard: "Stripe Dashboard öffnen",
     connectStripe: "Stripe verbinden",
@@ -393,9 +400,15 @@ export const translations = {
     waitAtTable:
       "Bitte warte an deinem Tisch. Die Bestellung wird dir gebracht.",
     orderStatus: "Bestellstatus",
+    orderReadyForPickup: "Deine Bestellung ist abholbereit!",
+    orderReadyDesc: "Bitte zeige deine Bestellnummer an der Ausgabe vor.",
+    orderAgain: "Neue Bestellung aufgeben",
+    stripeConnectedSuccessfully: "Stripe erfolgreich verbunden!",
     trackingExpired: "Dieser Tracking-Link ist abgelaufen.",
     quantity: "Menge",
     priceWithTax: "(inkl. MwSt.)",
+    taxNote: "inkl. MwSt.",
+    taxIncluded: "inkl. MwSt.",
 
     verifyLogin: "Anmeldung bestätigen",
     verifyLoginDesc:
@@ -791,6 +804,13 @@ export const translations = {
     stripeConnected: "Stripe connected",
     stripeNotConnected: "Stripe not connected",
     stripeOnboardingIncomplete: "Onboarding incomplete",
+    stripeDescription:
+      "Connect your bank account (IBAN) via Stripe Connect to accept online payments from guests and receive automatic payouts.",
+    stripeConnectedDesc:
+      "Your bank account is successfully connected via Stripe. Payouts are transferred automatically to your registered account.",
+    stripeAccountIdLabel: "Stripe Account ID:",
+    connectStripeWithIban: "Connect Stripe & add IBAN",
+    testOnboardingHelper: "🧪 Activate Test Account with Test IBAN",
     continueOnboarding: "Continue onboarding",
     openStripeDashboard: "Open Stripe Dashboard",
     connectStripe: "Connect Stripe",
@@ -854,9 +874,15 @@ export const translations = {
     waitAtTable:
       "Please wait at your table. Your order will be brought to you.",
     orderStatus: "Order Status",
+    orderReadyForPickup: "Your order is ready for pickup!",
+    orderReadyDesc: "Please present your order number at the counter.",
+    orderAgain: "Place a new order",
+    stripeConnectedSuccessfully: "Stripe connected successfully!",
     trackingExpired: "This tracking link has expired.",
     quantity: "Quantity",
     priceWithTax: "(incl. VAT)",
+    taxNote: "incl. VAT",
+    taxIncluded: "incl. VAT",
 
     verifyLogin: "Verify Login",
     verifyLoginDesc:

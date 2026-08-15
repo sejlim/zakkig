@@ -88,9 +88,10 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
 - **Layout:** Bottom-Navigation mit zwei Tabs (links: Menü, rechts: Warenkorb).
 - **Warenkorb (Client State):** Wird lokal via `Zustand` verwaltet. Mengenänderungen sind hier möglich. Bei einem Page-Reload wird der Warenkorb resettet.
 - **Checkout:** Abfrage der E-Mail-Adresse (Pflicht für digitalen Beleg), Auswahl der Zahlungsmethode (Apple Pay, Google Pay, Karte) und sofortige Bezahlung. Der Bon wird per E-Mail gesendet.
+- **Bestellnummern (Rolling 001 - 999):** Die für Gäste, Gastronomen und Küche sichtbare Bestellnummer rotiert fortlaufend im dreistelligen Format von `001` bis `999` und beginnt danach automatisch wieder bei `001`. Intern wird jede Bestellung zusätzlich durch eine eindeutige Appwrite-Dokumenten-ID sowie die Stripe-Payment-ID identifiziert.
 - **Nach der Bestellung:**
   - **To-Stay:** Anzeige der Bestellnummer auf dem Screen. Gast wartet am Tisch. (Page-Reload resettet den State für eine potenzielle neue Bestellung).
-  - **To-Go:** Automatische Weiterleitung auf den Order-Tracker. Der Link bleibt 10 Minuten nach Bestellabschluss (Abholbereit) aktiv, danach wird er ungültig.
+  - **To-Go:** Automatische Weiterleitung auf den Order-Tracker mit Live-Status und Anzeige der 3-stelligen Abholnummer. Der Link bleibt 10 Minuten nach Bestellabschluss (Abholbereit) aktiv, danach wird er ungültig.
 
 ---
 

@@ -7,7 +7,16 @@ import { GuestFrontend } from "@/components/guest/guest-frontend";
 import { Storefront } from "@phosphor-icons/react/dist/ssr";
 import { LocalizedText } from "@/components/ui/localized-text";
 
-export const metadata = { title: "Bestellen | Vor Ort" };
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ table?: string }>;
+}) {
+  const { table } = await searchParams;
+  return {
+    title: table ? `Bestellen an Tisch ${table}` : "Bestellen an Tisch",
+  };
+}
 
 export default async function ToStayPage({
   params,

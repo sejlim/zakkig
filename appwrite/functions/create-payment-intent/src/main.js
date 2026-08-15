@@ -47,14 +47,18 @@ export default async ({ req, res, log, error }) => {
 
     // Platform margin: 1% of total
     const platformMargin = Math.round(total * 0.01);
+    const transferAmount = Math.round(total - platformMargin);
 
-    log(`4. Preparing PaymentIntent options with platform margin: ${platformMargin}`);
-    // 4. Prepare PaymentIntent options
+    log(`4. Preparing PaymentIntent options with platform margin: ${platformMargin}, transfer: ${transferAmount}`);
+    // 4. Prepare PaymentIntent options for Destination Charge
     const paymentIntentParams = {
       amount: Math.round(total), // total in cents
       currency: currency.toLowerCase(),
       automatic_payment_methods: { enabled: true },
-      application_fee_amount: platformMargin,
+      transfer_data: {
+        destination: stripeAccountId,
+        amount: transferAmount
+      },
       metadata: {
         organizationId,
         tableNumber: tableNumber || '',
@@ -66,11 +70,8 @@ export default async ({ req, res, log, error }) => {
       }
     };
 
-    // Use Direct Charge via Stripe Connect account
-    const requestOptions = { stripeAccount: stripeAccountId };
-
-    log(`5. Calling Stripe API with options: ${JSON.stringify(requestOptions)}`);
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams, requestOptions);
+    log(`5. Calling Stripe API for Destination Charge to account: ${stripeAccountId}`);
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
     log(`6. PaymentIntent created: ${paymentIntent.id}`);
 

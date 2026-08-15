@@ -49,10 +49,7 @@ export function CartSheet({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [stripePromise] = useState(() => {
-    return loadStripe(
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-      organization.stripeAccountId ? { stripeAccount: organization.stripeAccountId } : undefined
-    );
+    return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
   });
 
   async function onContinueToPayment(formData: FormData) {

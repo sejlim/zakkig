@@ -8,7 +8,16 @@ import { GuestFrontend } from "@/components/guest/guest-frontend";
 import { Storefront } from "@phosphor-icons/react/dist/ssr";
 import { LocalizedText } from "@/components/ui/localized-text";
 
-export const metadata = { title: "Bestellen | To-Go" };
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ order?: string }>;
+}) {
+  const { order } = await searchParams;
+  return {
+    title: order ? "Bestell-Status" : "Bestellen zum Abholen",
+  };
+}
 
 export default async function ToGoPage({
   params,

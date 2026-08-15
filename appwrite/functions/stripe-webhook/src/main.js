@@ -1,4 +1,4 @@
-import { Client, Databases, ID } from 'node-appwrite';
+import { Client, Databases, ID, Query } from 'node-appwrite';
 import Stripe from 'stripe';
 
 export default async ({ req, res, log, error }) => {
@@ -14,27 +14,23 @@ export default async ({ req, res, log, error }) => {
     return res.json({ error: 'Server configuration error' }, 500);
   }
 
-  const signature = req.headers['stripe-signature'];
-  if (!signature) {
-    error('Missing stripe-signature header.');
-    return res.json({ error: 'Missing stripe-signature header' }, 400);
-  }
-
   const stripe = new Stripe(stripeSecretKey);
-  let event;
 
-  // 1. Verify Webhook Signature
+  let event;
   try {
-    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-    event = stripe.webhooks.constructEvent(rawBody, signature, stripeWebhookSecret);
+    const signature = req.headers['stripe-signature'];
+    event = stripe.webhooks.constructEvent(
+      req.bodyRaw || req.body,
+      signature,
+      stripeWebhookSecret
+    );
   } catch (err) {
     error(`Webhook signature verification failed: ${err.message}`);
     return res.json({ error: `Webhook Error: ${err.message}` }, 400);
   }
 
-  log(`Webhook received event type: ${event.type}`);
+  log(`Received event: ${event.type}`);
 
-  // 2. Handle payment_intent.succeeded
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object;
     const metadata = paymentIntent.metadata || {};
@@ -53,7 +49,29 @@ export default async ({ req, res, log, error }) => {
       const email = metadata.email;
       const total = parseInt(metadata.total || String(paymentIntent.amount), 10);
       const currency = metadata.currency || paymentIntent.currency.toUpperCase();
-      const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+
+      // Generate rolling 3-digit order number (001-999)
+      let nextNum = 1;
+      try {
+        const lastOrders = await databases.listDocuments(
+          databaseId,
+          'orders',
+          [
+            Query.equal('organizationId', organizationId),
+            Query.orderDesc('$createdAt'),
+            Query.limit(1)
+          ]
+        );
+        if (lastOrders.documents.length > 0) {
+          const lastNum = parseInt(lastOrders.documents[0].orderNumber, 10);
+          if (!isNaN(lastNum) && lastNum >= 1) {
+            nextNum = (lastNum % 999) + 1;
+          }
+        }
+      } catch (e) {
+        log(`Failed to fetch last order number, using 001: ${e.message}`);
+      }
+      const orderNumber = String(nextNum).padStart(3, '0');
 
       const zakkigFee = Math.round(total * 0.01);
 

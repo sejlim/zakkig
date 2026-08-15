@@ -10,7 +10,7 @@ import { LocalizedText } from "@/components/ui/localized-text";
 
 import { SessionPoller } from "@/components/session-poller";
 
-export const metadata = { title: "Live-Bestellungen" };
+export const metadata = { title: "Kitchen Board" };
 
 export default async function KitchenBoardPage({
   params,
@@ -19,7 +19,7 @@ export default async function KitchenBoardPage({
   params: Promise<{ organizationId: string }>;
   searchParams: Promise<{ token?: string }>;
 }) {
-  const [{ organizationId }] = await Promise.all([params, searchParams]);
+  const [{ organizationId }, { token }] = await Promise.all([params, searchParams]);
   const cookieStore = await cookies();
   const cookieName = `order_session_${organizationId}`;
   const cookieToken = cookieStore.get(cookieName)?.value;
@@ -39,7 +39,7 @@ export default async function KitchenBoardPage({
   }
 
   // Verification
-  const tokenToVerify = cookieToken;
+  const tokenToVerify = token || cookieToken;
 
   if (!tokenToVerify) {
     return (

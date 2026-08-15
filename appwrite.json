@@ -365,7 +365,10 @@
         },
         {
             "$id": "orders",
-            "$permissions": [],
+            "$permissions": [
+                "read(\"any\")",
+                "update(\"any\")"
+            ],
             "databaseId": "webapp",
             "name": "Orders",
             "enabled": true,
