@@ -102,8 +102,22 @@ export async function createStripeDashboardLinkAction(organizationId: string) {
     const org = await getOrganization(organizationId);
     if (!org || !org.stripeAccountId) throw new Error("No Stripe account connected");
 
-    const loginLink = await stripe.accounts.createLoginLink(org.stripeAccountId);
-    return { url: loginLink.url };
+    const headerList = await headers();
+    const origin = headerList.get("origin") || "http://localhost:3001";
+
+    try {
+      const loginLink = await stripe.accounts.createLoginLink(org.stripeAccountId);
+      return { url: loginLink.url };
+    } catch (loginErr: any) {
+      console.warn("createLoginLink threw, fallback to account link:", loginErr?.message);
+      const accountLink = await stripe.accountLinks.create({
+        account: org.stripeAccountId,
+        refresh_url: `${origin}/dashboard/${organizationId}/settings`,
+        return_url: `${origin}/dashboard/${organizationId}/settings`,
+        type: "account_onboarding",
+      });
+      return { url: accountLink.url };
+    }
   } catch (error: any) {
     console.error("createStripeDashboardLinkAction error:", error);
     return { error: error.message };

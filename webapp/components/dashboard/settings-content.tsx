@@ -325,21 +325,23 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
           </Card>
         {/* Stripe Settings */}
         <Card className="flex flex-col h-full">
-            <CardHeader className="flex-col items-start pb-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <h3 className="text-lg font-semibold">{t("stripeSettings")}</h3>
-              <p className="text-sm text-muted-foreground">Stripe Connect</p>
+              {organization.stripeOnboardingComplete ? (
+                <Badge variant="default" className="bg-primary text-primary-foreground font-semibold px-3 py-1 rounded-full text-xs">
+                  {t("stripeConnected")}
+                </Badge>
+              ) : organization.stripeAccountId ? (
+                <Badge variant="outline" className="font-semibold px-3 py-1 rounded-full text-foreground border-border text-xs">
+                  {t("stripeOnboardingIncomplete" as any)}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="font-semibold px-3 py-1 rounded-full text-xs">
+                  {t("stripeNotConnected")}
+                </Badge>
+              )}
             </CardHeader>
             <CardContent className="flex flex-col gap-4 flex-1">
-              <div className="flex items-center gap-2">
-                {organization.stripeOnboardingComplete ? (
-                  <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 border-emerald-500/20">{t("stripeConnected")}</Badge>
-                ) : organization.stripeAccountId ? (
-                  <Badge variant="destructive">{t("stripeOnboardingIncomplete" as any)}</Badge>
-                ) : (
-                  <Badge variant="secondary">{t("stripeNotConnected")}</Badge>
-                )}
-              </div>
-
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {organization.stripeOnboardingComplete
                   ? t("stripeConnectedDesc" as any)
@@ -355,33 +357,47 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 </div>
               )}
 
-              <div className="mt-auto pt-4 flex flex-col gap-2">
+              <div className="mt-auto pt-2 flex flex-col gap-2">
                 <Button
-                  variant={organization.stripeOnboardingComplete ? "outline" : "default"}
+                  variant="outline"
                   disabled={isStripeLoading}
                   onClick={async () => {
+                    const newTab = window.open("about:blank", "_blank");
                     setIsStripeLoading(true);
                     try {
                       if (organization.stripeOnboardingComplete) {
                         const res = await createStripeDashboardLinkAction(organization.$id);
                         if (res.url) {
-                          window.open(res.url, "_blank");
+                          if (newTab) {
+                            newTab.location.href = res.url;
+                          } else {
+                            window.open(res.url, "_blank");
+                          }
                         } else {
+                          if (newTab) newTab.close();
                           toast.error(res.error || t("error"));
                         }
                       } else {
                         const res = await connectStripeAction(organization.$id);
                         if (res.url) {
-                          window.location.href = res.url;
+                          if (newTab) {
+                            newTab.location.href = res.url;
+                          } else {
+                            window.open(res.url, "_blank");
+                          }
                         } else {
+                          if (newTab) newTab.close();
                           toast.error(res.error || t("error"));
                         }
                       }
+                    } catch (err: any) {
+                      if (newTab) newTab.close();
+                      toast.error(err?.message || t("error"));
                     } finally {
                       setIsStripeLoading(false);
                     }
                   }}
-                  className="w-full font-semibold h-11"
+                  className="w-full font-semibold"
                 >
                   {isStripeLoading ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
                   {organization.stripeOnboardingComplete
