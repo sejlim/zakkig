@@ -4,10 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "dotenv -e ../.env -- next dev --port 3001",
-    "build": "dotenv -e ../.env -- next build",
-    "start": "dotenv -e ../.env -- next start --port 3001",
-    "lint": "dotenv -e ../.env -- next lint",
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit"
   },

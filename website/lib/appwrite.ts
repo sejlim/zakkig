@@ -18,10 +18,10 @@ const client = new Client()
 
 export const db = new Databases(client);
 export const WEBSITE_DB_ID = process.env
-  .NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBSITE as string;
+  .NEXT_PUBLIC_APPWRITE_DATABASE_ID as string;
 
 if (!WEBSITE_DB_ID) {
   throw new Error(
-    "NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBSITE environment variable is missing",
+    "NEXT_PUBLIC_APPWRITE_DATABASE_ID environment variable is missing",
   );
 }

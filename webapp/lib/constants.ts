@@ -9,7 +9,7 @@ export const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY as string;
 
 // Database
 export const DATABASE_ID = process.env
-  .NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP as string;
+  .NEXT_PUBLIC_APPWRITE_DATABASE_ID as string;
 
 // Collections
 export const COLLECTIONS = {

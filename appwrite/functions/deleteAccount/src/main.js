@@ -11,7 +11,7 @@ export default async ({ req, res, log, error }) => {
   const endpoint = process.env.APPWRITE_FUNCTION_ENDPOINT || process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
   const projectId = process.env.APPWRITE_FUNCTION_PROJECT_ID || process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
   const apiKey = process.env.APPWRITE_API_KEY || req.headers['x-appwrite-key'];
-  const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP || process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBSITE || process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID;
+  const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
   if (!endpoint) throw new Error("Missing APPWRITE_FUNCTION_ENDPOINT or NEXT_PUBLIC_APPWRITE_ENDPOINT");

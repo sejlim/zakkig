@@ -257,12 +257,14 @@ Die Marketingseite wird als SEO-optimierter One-Pager über **Appwrite Sites** g
 
 Dieser Abschnitt richtet sich an Entwickler und enthält technische Details zur Initialisierung, Architektur und zum Deployment der Appwrite-basierten Infrastruktur.
 
-### 7.1 Umgebungsvariablen (Zentrale Architektur)
+### 7.1 Umgebungsvariablen & Ports
 
-Das Projekt nutzt bewusst **nur eine einzige, zentrale `.env` Datei** im Projekt-Root.
-- Es gibt **keine Symlinks** und **keine verschachtelten `.env`-Dateien** in den Unterordnern.
-- Die Unterprojekte (`webapp` und `website`) nutzen das NPM-Paket `dotenv-cli`. In der jeweiligen `package.json` ist jeder Befehl (z. B. `dev`, `build`, `lint`) so konfiguriert, dass er die Variablen aus dem Root-Ordner automatisch injiziert (z. B. `dotenv -e ../.env -- next dev`).
-- **Datenbank-Routing:** Die Datenbank-IDs sind explizit getrennt (`NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP` und `NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBSITE`), sodass jedes Projekt auf seinen eigenen Datenbank-Scope zugreift.
+Jedes Teilprojekt besitzt eine eigene `.env` und `.env.example` Datei im jeweiligen Verzeichnis (`webapp/` und `website/`).
+- **Webapp (`webapp/.env`):** Enthält Konfigurationen für Appwrite (inkl. `NEXT_PUBLIC_APPWRITE_DATABASE_ID="webapp"`), Stripe Keys, SMTP Provider IDs und URLs.
+- **Website (`website/.env`):** Enthält Konfigurationen für Appwrite (inkl. `NEXT_PUBLIC_APPWRITE_DATABASE_ID="website"`) und URLs.
+- **Port-Management:**
+  - Im **Development-Modus** läuft die Marketingseite auf Port 3000 (`next dev --port 3000`) und die Webapp auf Port 3001 (`next dev --port 3001`).
+  - Im **Production-Modus** starten beide Anwendungen über den Standard-Befehl `next start` (Standard-Port 3000).
 
 ### 7.2 Datenbank-Schema (Infrastructure as Code)
 

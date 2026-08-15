@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { getOrganization } from "@/lib/appwrite/database";
 import { createAdminClient } from "@/lib/appwrite/server";
+import { DATABASE_ID } from "@/lib/constants";
 import { revalidatePath } from "next/cache";
 import Stripe from "stripe";
 
@@ -35,7 +36,7 @@ export async function connectStripeAction(organizationId: string) {
       // Save to database
       const { tablesDB } = createAdminClient();
       await tablesDB.updateDocument(
-        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP!,
+        DATABASE_ID,
         "organizations",
         organizationId,
         { stripeAccountId: accountId }
@@ -73,7 +74,7 @@ export async function getStripeAccountStatusAction(organizationId: string) {
     if (isComplete !== org.stripeOnboardingComplete) {
       const { tablesDB } = createAdminClient();
       await tablesDB.updateDocument(
-        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP!,
+        DATABASE_ID,
         "organizations",
         organizationId,
         { stripeOnboardingComplete: isComplete }

@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/appwrite/server";
+import { DATABASE_ID } from "@/lib/constants";
 import { Functions, ExecutionMethod, Query } from "node-appwrite";
 
 interface CreatePaymentIntentParams {
@@ -19,7 +20,7 @@ export async function createPaymentIntentAction(params: CreatePaymentIntentParam
 
     // Fetch the organization here to avoid Appwrite Cloud function loopback fetch issues
     const org = await databases.getDocument(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP!,
+      DATABASE_ID,
       'organizations',
       params.organizationId
     );
@@ -61,7 +62,7 @@ export async function getOrderByPaymentIntentAction(paymentIntentId: string) {
   try {
     const { tablesDB: databases } = await createAdminClient();
     const { documents } = await databases.listDocuments(
-      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID_WEBAPP!,
+      DATABASE_ID,
       "orders",
       [
         Query.equal("stripePaymentId", paymentIntentId)
