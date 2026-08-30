@@ -69,7 +69,7 @@ export function MainPage() {
                     </span>
                   ))}
               </h2>
-              <p className="text-base sm:text-lg md:text-xl text-zinc-600 font-light leading-relaxed max-w-[36ch]">
+              <p className="text-base sm:text-lg md:text-xl text-zinc-600 font-light leading-relaxed max-w-[52ch]">
                 {t("painText")}
               </p>
             </div>
@@ -81,13 +81,13 @@ export function MainPage() {
       <section className="bg-black text-white py-24 md:py-36">
         <div className="max-w-7xl mx-auto px-6 md:px-10">
           {/* Headline & Intro Text */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 mb-24 md:mb-32">
-            <div className="lg:col-span-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-24 mb-24 md:mb-32">
+            <div>
               <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tighter leading-tight mb-6">
                 {t("solutionTitle")}
               </h2>
             </div>
-            <div className="lg:col-span-6 flex flex-col gap-6">
+            <div className="flex flex-col gap-6">
               <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light leading-relaxed">
                 {t("solutionIntro")}
               </p>
@@ -132,8 +132,8 @@ export function MainPage() {
 
           {/* 3.2 In 3 einfachen Schritten startklar */}
           <div className="mb-8 md:mb-12">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 lg:gap-12">
-              <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
+              <div className="lg:col-span-7 xl:col-span-8">
                 <h3 className="mb-12 text-2xl font-semibold tracking-tight md:text-4xl">
                   {t("stepsTitle")}
                 </h3>
@@ -152,7 +152,7 @@ export function MainPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex justify-center lg:justify-start lg:pl-1">
+              <div className="lg:col-span-5 xl:col-span-4 flex justify-center lg:justify-end">
                 <QrCodeShowcase />
               </div>
             </div>
