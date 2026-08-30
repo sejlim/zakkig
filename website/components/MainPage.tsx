@@ -188,8 +188,8 @@ export function MainPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left side: Photo Placeholder & MARS Logo */}
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
-              <div className="w-full max-w-sm flex flex-col items-center gap-6">
-                <div className="aspect-[3/4] w-full bg-zinc-100 flex flex-col items-center justify-center text-zinc-400 font-light text-sm rounded-[2rem]">
+              <div className="w-full max-w-md lg:max-w-none flex flex-col items-center gap-6">
+                <div className="aspect-[3/4] w-full bg-zinc-100 flex flex-col items-center justify-center text-zinc-400 font-light text-sm rounded-[2rem] min-h-[460px] sm:min-h-[540px] lg:min-h-[580px]">
                   <span>{t("portraitPlaceholderText")}</span>
                 </div>
                 {/* Trust Badge - MARS Logo */}
