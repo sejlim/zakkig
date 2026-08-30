@@ -4,10 +4,10 @@ export const translations = {
   de: {
     metaTitle: "zakkig: Lass deine Kunden selbst bestellen",
     metaDescription:
-      "Bestellung und Bezahlung per QR-Code direkt am Tisch oder zum Mitnehmen. Dein Personal gewinnt Zeit für das Wesentliche.",
+      "Bestellung und Bezahlung per QR-Code zum Abholen oder direkt am Tisch. Dein Personal gewinnt Zeit für das Wesentliche.",
     heroTitle: "Lass deine Kunden selbst bestellen",
     heroSubline:
-      "Bestellung und Bezahlung per QR-Code direkt am Tisch oder zum Mitnehmen. Dein Personal gewinnt Zeit für das\u00A0Wesentliche.",
+      "Bestellung und Bezahlung per QR-Code zum Abholen oder direkt am Tisch. Dein Personal gewinnt Zeit für das\u00A0Wesentliche.",
     registerCta: "Jetzt kostenlos registrieren",
     registerUrl: "https://app.zakkig.de/sign-up",
     painTitle: "Wartezeiten kosten dich Geld",
@@ -78,10 +78,10 @@ export const translations = {
   en: {
     metaTitle: "zakkig: Let your customers order themselves",
     metaDescription:
-      "Ordering and payment via QR code at the table or for takeout. Your staff wins time for what matters.",
+      "Ordering and payment via QR code for pickup or directly at the table. Your staff wins time for what matters.",
     heroTitle: "Let your customers order themselves",
     heroSubline:
-      "Ordering and payment via QR code at the table or for takeout. Your staff wins time for what matters.",
+      "Ordering and payment via QR code for pickup or directly at the table. Your staff wins time for what matters.",
     registerCta: "Register for free",
     registerUrl: "https://app.zakkig.de/sign-up",
     painTitle: "Waiting times cost you money",
