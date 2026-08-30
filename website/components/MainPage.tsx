@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useTranslation } from "../lib/i18n";
-import { WaitlistForm } from "./WaitlistForm";
+import { RegisterCta } from "./RegisterCta";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { QrCodeShowcase } from "./QrCodeShowcase";
 
 export function MainPage() {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ export function MainPage() {
           <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light max-w-[54ch] leading-relaxed mb-12">
             {t("heroSubline")}
           </p>
-          <WaitlistForm />
+          <RegisterCta />
         </div>
       </section>
 
@@ -44,14 +45,17 @@ export function MainPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left side: Waiting Line Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-start">
-              <Image
-                src="/waiting_line.png"
-                alt={t("waitingLineImageAlt")}
-                width={400}
-                height={533}
-                className="aspect-[3/4] w-full max-w-sm object-cover rounded-[2rem]"
-              />
+            <div className="lg:col-span-5 flex justify-center lg:justify-start self-stretch">
+              <div className="relative w-full aspect-[3/4] lg:aspect-auto lg:h-full max-w-md lg:max-w-none rounded-[2rem] overflow-hidden min-h-[460px] sm:min-h-[540px] lg:min-h-[580px]">
+                <Image
+                  src="/waiting_line.png"
+                  alt={t("waitingLineImageAlt")}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-cover object-center"
+                  priority
+                />
+              </div>
             </div>
 
             {/* Right side: text starts at column 7 */}
@@ -83,15 +87,13 @@ export function MainPage() {
                 {t("solutionTitle")}
               </h2>
             </div>
-            <div className="lg:col-span-6 flex flex-col justify-between">
-              <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light leading-relaxed mb-6">
+            <div className="lg:col-span-6 flex flex-col gap-6">
+              <p className="text-base sm:text-lg md:text-xl text-zinc-400 font-light leading-relaxed">
                 {t("solutionIntro")}
               </p>
-              <div className="pt-6">
-                <p className="text-base sm:text-lg md:text-xl text-zinc-500 font-light leading-relaxed">
-                  {t("solutionPrereq")}
-                </p>
-              </div>
+              <p className="text-base sm:text-lg md:text-xl text-zinc-500 font-light leading-relaxed">
+                {t("solutionPrereq")}
+              </p>
             </div>
           </div>
 
@@ -129,34 +131,29 @@ export function MainPage() {
           </div>
 
           {/* 3.2 In 3 einfachen Schritten startklar */}
-          <div className="mb-24 md:mb-32">
-            <h3 className="text-2xl md:text-4xl font-semibold tracking-tight mb-12 pb-4">
-              {t("stepsTitle")}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              <div className="flex flex-col">
-                <h4 className="text-xl font-medium mb-3 text-white">
-                  {t("step1Title")}
-                </h4>
-                <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t("step1Text")}
-                </p>
+          <div className="mb-8 md:mb-12">
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 lg:gap-12">
+              <div className="lg:col-span-2">
+                <h3 className="mb-12 text-2xl font-semibold tracking-tight md:text-4xl">
+                  {t("stepsTitle")}
+                </h3>
+                <div className="flex flex-col gap-10">
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-xl font-medium text-white">{t("step1Title")}</h4>
+                    <p className="max-w-[40ch] text-sm font-light leading-relaxed text-zinc-400 sm:text-base">{t("step1Text")}</p>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-xl font-medium text-white">{t("step2Title")}</h4>
+                    <p className="max-w-[40ch] text-sm font-light leading-relaxed text-zinc-400 sm:text-base">{t("step2Text")}</p>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-xl font-medium text-white">{t("step3Title")}</h4>
+                    <p className="max-w-[40ch] text-sm font-light leading-relaxed text-zinc-400 sm:text-base">{t("step3Text")}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <h4 className="text-xl font-medium mb-3 text-white">
-                  {t("step2Title")}
-                </h4>
-                <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t("step2Text")}
-                </p>
-              </div>
-              <div className="flex flex-col">
-                <h4 className="text-xl font-medium mb-3 text-white">
-                  {t("step3Title")}
-                </h4>
-                <p className="text-zinc-400 font-light text-sm sm:text-base leading-relaxed">
-                  {t("step3Text")}
-                </p>
+              <div className="flex justify-center lg:justify-start lg:pl-1">
+                <QrCodeShowcase />
               </div>
             </div>
           </div>
@@ -241,7 +238,7 @@ export function MainPage() {
                     </span>
                   ))}
               </h2>
-              <p className="text-zinc-400 font-light leading-relaxed max-w-[36ch] text-base sm:text-lg md:text-xl">
+              <p className="max-w-[58ch] text-base font-light leading-relaxed text-zinc-400 sm:text-lg md:text-xl">
                 {t("footerText")
                   .split("\n")
                   .map((line) => (
@@ -252,7 +249,7 @@ export function MainPage() {
               </p>
             </div>
 
-            <WaitlistForm />
+            <RegisterCta />
 
             <div className="pt-4 flex flex-col gap-2 items-end text-right">
               <p className="text-zinc-500 font-light text-base sm:text-lg md:text-xl">

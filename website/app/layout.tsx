@@ -28,7 +28,6 @@ export const metadata: Metadata = {
   },
 };
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
 const poppins = Poppins({
@@ -59,7 +58,6 @@ export default function RootLayout({
       )}
     >
       <body>
-        <Toaster position="top-center" />
         <Header />
         {children}
       </body>

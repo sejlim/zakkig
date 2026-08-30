@@ -38,6 +38,8 @@ export function Header() {
           src="/full.svg"
           alt="zakkig Logo"
           className="h-9 md:h-10 w-auto block"
+          loading="eager"
+          fetchPriority="high"
           style={{ filter: "brightness(0) invert(1)" }}
         />
       </Link>
