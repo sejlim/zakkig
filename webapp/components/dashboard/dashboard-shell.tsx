@@ -22,15 +22,16 @@ import { useTranslation } from "@/lib/i18n";
 import { useLanguageStore } from "@/store/language-store";
 import { useSidebarStore } from "@/store/sidebar-store";
 import type { Organization } from "@/lib/types";
-import type { Models } from "node-appwrite";
 import Image from "next/image";
-import { getImagePreviewUrl } from "@/lib/appwrite/client";
-import { verifySessionAction } from "@/actions/auth-actions";
+import { getImagePreviewUrl } from "@/lib/convex/client";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { signOutAction } from "@/actions/auth-actions";
 
 interface DashboardShellProps {
   organization: Organization | null;
-  user: Models.User<Models.Preferences>;
+  user: { name?: string; email?: string; [key: string]: any };
   children: React.ReactNode;
 }
 
@@ -46,23 +47,14 @@ export function DashboardShell({
   const { isExpanded, toggleSidebar } = useSidebarStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  useEffect(() => {
-    // Fallback polling for session validation (checks every 15 minutes)
-    const interval = setInterval(async () => {
-      try {
-        const { isValid } = await verifySessionAction();
-        if (!isValid) {
-          window.location.href = "/sign-in";
-        }
-      } catch (e) {
-        // ignore network errors
-      }
-    }, 15 * 60 * 1000); // 15 minutes
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+  const liveOrders = useQuery(
+    api.orders.getOrders,
+    organization?.$id
+      ? { organizationId: organization.$id as Id<"organizations"> }
+      : "skip"
+  );
+  const activeOrdersCount =
+    liveOrders?.filter((o: any) => o.status === "in_progress").length ?? 0;
 
   const zakkigUrl = t("homepageUrl");
 
@@ -194,7 +186,28 @@ export function DashboardShell({
                       weight={isActive ? "fill" : "regular"}
                       className="h-5 w-5 shrink-0"
                     />
-                    {isExpanded && <span className="ml-1">{item.label}</span>}
+                    {isExpanded ? (
+                      <>
+                        <span className="ml-1 flex-1 text-left">{item.label}</span>
+                        {item.href.includes("live-orders") && activeOrdersCount > 0 && (
+                          <span
+                            className={cn(
+                              "text-[11px] font-black px-2 py-0.5 rounded-full shrink-0 tabular-nums",
+                              isActive
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-primary-foreground text-primary"
+                            )}
+                          >
+                            {activeOrdersCount}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      item.href.includes("live-orders") &&
+                      activeOrdersCount > 0 && (
+                        <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-foreground" />
+                      )
+                    )}
                   </Button>
                 );
               })}
@@ -208,42 +221,70 @@ export function DashboardShell({
             isExpanded ? "p-4" : "p-3 py-4",
           )}
         >
-          <Link
-            href={`/dashboard/${organization?.$id || "default"}/settings`}
-            className={cn(
-              "flex items-center gap-3 transition-opacity hover:opacity-80 cursor-pointer",
-              !isExpanded && "justify-center",
-            )}
-          >
-            <Avatar className="h-10 w-10 shrink-0">
-              <AvatarImage
-                src={
-                  organization?.logoFileId
-                    ? getImagePreviewUrl(organization.logoFileId)
-                    : undefined
-                }
-                alt={organization?.name ?? "Z"}
-              />
-              <AvatarFallback className="bg-secondary text-primary font-semibold">
-                {organization?.name?.charAt(0) ?? "Z"}
-              </AvatarFallback>
-            </Avatar>
-            {isExpanded && (
-              <div className="flex flex-col flex-1 overflow-hidden">
-                <span className="truncate font-semibold text-sm">
+          {isExpanded ? (
+            <Link
+              href={`/dashboard/${organization?.$id || "default"}/settings`}
+              className="flex flex-col gap-2 transition-all hover:opacity-95 cursor-pointer group"
+            >
+              {/* Mini Lieferando-style Banner Card with bottom-left logo */}
+              <div className="relative w-full aspect-[2.3/1] rounded-[16px] overflow-hidden bg-neutral-800 border border-neutral-700/60 shadow-sm">
+                {organization?.bannerFileId ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={getImagePreviewUrl(organization.bannerFileId)}
+                    alt={organization?.name ?? "Banner"}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-neutral-800" />
+                )}
+
+                {/* Bottom-left logo box */}
+                <div className="absolute bottom-2 left-2 z-10 w-10 h-10 rounded-[8px] bg-neutral-700 flex items-center justify-center overflow-hidden border border-neutral-600 shrink-0">
+                  {organization?.logoFileId ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={getImagePreviewUrl(organization.logoFileId)}
+                      alt={organization?.name ?? "Logo"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-700" />
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col flex-1 overflow-hidden px-0.5">
+                <span className="truncate font-semibold text-sm leading-tight text-primary-foreground">
                   {organization?.name ?? "Zakkig"}
                 </span>
-                <span className="text-xs text-primary-foreground/70 truncate italic">
-                  {user?.name || user?.email || t("userFallback")}
-                </span>
                 {organization?.address && (
-                  <span className="text-xs text-primary-foreground/70 whitespace-pre-wrap leading-tight">
+                  <span className="text-xs text-primary-foreground/70 whitespace-pre-wrap leading-tight mt-1">
                     {organization.address}
                   </span>
                 )}
               </div>
-            )}
-          </Link>
+            </Link>
+          ) : (
+            <Link
+              href={`/dashboard/${organization?.$id || "default"}/settings`}
+              className="flex items-center justify-center transition-all hover:opacity-90 cursor-pointer"
+              title={organization?.name ?? "Settings"}
+            >
+              <div className="w-10 h-10 rounded-[10px] bg-neutral-800 flex items-center justify-center overflow-hidden border border-neutral-700 shrink-0">
+                {organization?.logoFileId ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={getImagePreviewUrl(organization.logoFileId)}
+                    alt={organization?.name ?? "Logo"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-neutral-700" />
+                )}
+              </div>
+            </Link>
+          )}
 
           <div
             className={cn(
@@ -309,7 +350,7 @@ export function DashboardShell({
             <CaretRight weight="bold" className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 lg:pt-4 print:overflow-visible print:p-0 print:block">
+        <main className="flex-1 overflow-y-auto p-6 pt-[22px] lg:pt-[22px] print:overflow-visible print:p-0 print:block">
           {children}
         </main>
       </div>

@@ -3,23 +3,19 @@
 import { redirect } from "next/navigation";
 import { isDisposableEmail } from "@/lib/disposable-domains";
 import {
-  verifyCredentials,
-  signUp,
-  signOut,
-  sendEmailOtp,
-  verifyOtp,
-  resetPassword,
-  confirmPasswordReset,
-} from "@/lib/appwrite/auth";
-import {
   createOrganization,
   getOrganizationByOwner,
   createAvailabilitySession,
   createOrderSession,
-} from "@/lib/appwrite/database";
-import { getUser, createAdminClient } from "@/lib/appwrite/server";
+  getOrderSessions,
+  getAvailabilitySessions,
+} from "@/lib/convex/database";
+import { getUser } from "@/lib/convex/auth";
+import { convexServer } from "@/lib/convex/server";
+import { api } from "@/convex/_generated/api";
 import { cookies } from "next/headers";
-import { Query } from "node-appwrite";
+import { SESSION_COOKIE_NAME } from "@/lib/constants";
+
 export interface AuthActionState {
   error?: string;
   success?: boolean;
@@ -31,7 +27,13 @@ export interface AuthActionState {
 
 export async function resendOtpAction(userId: string, email: string) {
   try {
-    await sendEmailOtp(userId, email);
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
+    await convexServer.action(api.customAuth.resendOtp, {
+      userId,
+      email,
+      locale,
+    });
     return { success: true };
   } catch (error) {
     return { error: "authError" };
@@ -42,9 +44,10 @@ export async function checkEmailExistsAction(
   email: string,
 ): Promise<{ exists: boolean }> {
   try {
-    const { users } = createAdminClient();
-    const response = await users.list([Query.equal("email", [email])]);
-    return { exists: response.total > 0 };
+    const exists = await convexServer.query(api.authQueries.checkEmailExists, {
+      email,
+    });
+    return { exists };
   } catch (error) {
     console.error("Failed to check email:", error);
     return { exists: false };
@@ -63,9 +66,20 @@ export async function signInAction(
   }
 
   try {
-    const userId = await verifyCredentials(email, password);
-    await sendEmailOtp(userId, email);
-    return { requiresOtp: true, userId, email };
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
+
+    const res = await convexServer.action(api.customAuth.signInWithPassword, {
+      email,
+      password,
+      locale,
+    });
+
+    if (!res.success || !res.userId) {
+      return { error: res.error || "authError" };
+    }
+
+    return { requiresOtp: true, userId: res.userId, email };
   } catch (error: any) {
     return { error: "authError" };
   }
@@ -104,18 +118,27 @@ export async function signUpAction(
   }
 
   try {
-    const user = await signUp(email, password, name);
-    await sendEmailOtp(user.$id, email);
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
+
+    const res = await convexServer.action(api.customAuth.signUpWithPassword, {
+      email,
+      password,
+      name,
+      locale,
+    });
+
+    if (!res.success || !res.userId) {
+      return { error: res.error || "signUpFailed" };
+    }
+
     return {
       requiresOtp: true,
-      userId: user.$id,
+      userId: res.userId,
       email,
       pendingOrgData: { restaurantName, name },
     };
   } catch (error: any) {
-    if (error?.code === 409) {
-      return { error: "authErrorUserExists" };
-    }
     return { error: "signUpFailed" };
   }
 }
@@ -130,11 +153,23 @@ export async function verifyOtpAction(
   }
 
   try {
-    await verifyOtp(userId, otp);
+    const res = await convexServer.action(api.customAuth.verifyOtp, {
+      userId,
+      otp,
+    });
 
-    // Mark user as email verified since they successfully verified OTP
-    const { users } = createAdminClient();
-    await users.updateEmailVerification(userId, true);
+    if (!res.success || !res.sessionToken) {
+      return { error: res.error || "invalidOtp" };
+    }
+
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE_NAME, res.sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+    });
   } catch (error) {
     return { error: "invalidOtp" };
   }
@@ -146,13 +181,12 @@ export async function verifyOtpAction(
         name: pendingOrgData.restaurantName || pendingOrgData.name,
         ownerId: userId,
       });
-      orgId = org.$id;
-      
-      // Initialize default sessions to avoid SSR race conditions later
+      orgId = org.$id || org._id;
+
       try {
         await Promise.all([
           createAvailabilitySession(orgId, userId),
-          createOrderSession(orgId, userId)
+          createOrderSession(orgId, userId),
         ]);
       } catch (e) {
         console.error("Failed to create initial sessions", e);
@@ -160,7 +194,7 @@ export async function verifyOtpAction(
     } else {
       const org = await getOrganizationByOwner(userId);
       if (org) {
-        orgId = org.$id;
+        orgId = org.$id || org._id;
       }
     }
   } catch (error) {
@@ -176,12 +210,11 @@ export async function verifyOtpAction(
 }
 
 export async function signOutAction(): Promise<void> {
-  const user = await getUser();
-  if (user) {
-    await signOut();
-  }
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
   redirect("/sign-in");
 }
+
 export async function resetPasswordAction(
   _prevState: AuthActionState,
   formData: FormData,
@@ -192,18 +225,23 @@ export async function resetPasswordAction(
     return { error: "missingFields" };
   }
 
-  // Check if email exists
   const check = await checkEmailExistsAction(email);
   if (!check.exists) {
     return { error: "emailNotFound" };
   }
 
   try {
-    await resetPassword(email);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
+
+    await convexServer.action(api.customAuth.requestPasswordReset, {
+      email,
+      appUrl,
+      locale,
+    });
     return { success: true };
   } catch (error) {
-    // Return success to avoid email enumeration if something else goes wrong
-    // (though we already checked existence, it's safer for generic errors)
     return { success: true };
   }
 }
@@ -236,7 +274,16 @@ export async function confirmPasswordResetAction(
   }
 
   try {
-    await confirmPasswordReset(userId, secret, password);
+    const res = await convexServer.action(api.customAuth.confirmPasswordReset, {
+      userId,
+      secret,
+      newPassword: password,
+    });
+
+    if (!res.success) {
+      return { error: res.error || "resetFailed" };
+    }
+
     return { success: true };
   } catch (error) {
     return { error: "resetFailed" };
@@ -248,19 +295,23 @@ export async function verifySessionAction() {
   return { isValid: !!user };
 }
 
-export async function verifyTerminalSessionAction(organizationId: string, type: "orders" | "availability") {
+export async function verifyTerminalSessionAction(
+  organizationId: string,
+  type: "orders" | "availability",
+) {
   const cookieStore = await cookies();
-  const cookieName = type === "orders" ? `order_session_${organizationId}` : `availability_session_${organizationId}`;
+  const cookieName =
+    type === "orders"
+      ? `order_session_${organizationId}`
+      : `availability_session_${organizationId}`;
   const token = cookieStore.get(cookieName)?.value;
   if (!token) return { isValid: false };
 
   try {
     if (type === "orders") {
-      const { getOrderSessions } = await import("@/lib/appwrite/database");
       const sessions = await getOrderSessions(organizationId);
       return { isValid: sessions.some((s) => s.token === token) };
     } else {
-      const { getAvailabilitySessions } = await import("@/lib/appwrite/database");
       const sessions = await getAvailabilitySessions(organizationId);
       return { isValid: sessions.some((s) => s.token === token) };
     }

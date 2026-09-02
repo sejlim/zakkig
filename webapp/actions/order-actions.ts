@@ -8,9 +8,9 @@ import {
   createOrderSession,
   deleteOrderSession,
   getOrderSessions,
-} from "@/lib/appwrite/database";
+} from "@/lib/convex/database";
 import { createPaymentPlaceholder } from "@/lib/stripe/placeholder";
-import { getUser } from "@/lib/appwrite/server";
+import { getUser } from "@/lib/convex/auth";
 import type { OrderItem } from "@/lib/types";
 
 export interface OrderActionState {
@@ -48,7 +48,6 @@ export async function placeOrderAction(
   }
 
   try {
-    // Simulate payment (Stripe placeholder)
     const payment = await createPaymentPlaceholder(total, email, "");
     if (!payment.success) {
       return { error: "Zahlung fehlgeschlagen." };
@@ -89,7 +88,7 @@ export async function placeOrderAction(
 // @react-doctor-ignore server-auth-actions - Secured via kitchen session token in the UI or by being restricted to specific clients
 export async function updateOrderStatusAction(
   orderId: string,
-  status: string,
+  status: "in_progress" | "completed" | "cancelled",
   organizationId: string,
 ) {
   try {
@@ -133,8 +132,8 @@ export async function exportOrdersCSVAction(organizationId: string) {
       const netto = brutto - zakkigFee - stripeFee;
 
       return [
-        new Date(order.$createdAt).toLocaleDateString("de-DE"),
-        order.$id,
+        new Date(order.$createdAt || order._creationTime).toLocaleDateString("de-DE"),
+        order.$id || order._id,
         order.orderNumber,
         order.type === "dine-in" ? "Vor Ort" : "Zum Mitnehmen",
         brutto.toFixed(2).replace(".", ","),
@@ -150,45 +149,6 @@ export async function exportOrdersCSVAction(organizationId: string) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "CSV-Export fehlgeschlagen.";
-    return { error: message };
-  }
-}
-
-// ─── Kitchen Sessions ───────────────────────────────────────────
-
-async function createOrderSessionAction(organizationId: string) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
-  try {
-    const session = await createOrderSession(organizationId, user.$id);
-    revalidatePath(`/dashboard/${organizationId}/overview`);
-    return { success: true, session: structuredClone(session) };
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Session konnte nicht erstellt werden.";
-    return { error: message };
-  }
-}
-
-async function deleteOrderSessionAction(
-  sessionId: string,
-  organizationId: string,
-) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
-  try {
-    await deleteOrderSession(sessionId);
-    revalidatePath(`/dashboard/${organizationId}/overview`);
-    return { success: true };
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Session konnte nicht gelöscht werden.";
     return { error: message };
   }
 }

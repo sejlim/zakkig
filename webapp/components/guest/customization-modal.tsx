@@ -67,6 +67,12 @@ export function CustomizationModal({
 
   if (!item) return null;
 
+  const getOptionPrice = (opt: any): number => {
+    if (typeof opt.extraPrice === "number") return opt.extraPrice;
+    if (typeof opt.price === "number") return opt.price;
+    return 0;
+  };
+
   const calculateTotal = () => {
     let total = item.price;
     steps.forEach((step) => {
@@ -76,12 +82,12 @@ export function CustomizationModal({
       );
       
       const sortedOptions = [...selectedOptions].sort(
-        (a, b) => (a.extraPrice || 0) - (b.extraPrice || 0)
+        (a, b) => getOptionPrice(a) - getOptionPrice(b)
       );
       
       const payableOptions = sortedOptions.slice(step.includedCount || 0);
       payableOptions.forEach((opt) => {
-        total += opt.extraPrice || 0;
+        total += getOptionPrice(opt);
       });
     });
     return total;
@@ -100,16 +106,17 @@ export function CustomizationModal({
       } else {
         if (step.maxSelections === 1) {
           return { ...prev, [stepName]: [optionName] };
-        } else if (current.length < step.maxSelections) {
-          return { ...prev, [stepName]: [...current, optionName] };
         }
-        return prev;
+        if (current.length >= step.maxSelections) {
+          return prev;
+        }
+        return { ...prev, [stepName]: [...current, optionName] };
       }
     });
   };
 
   const handleAdd = () => {
-    const finalSelections: any[] = [];
+    const finalSelections: { stepName: string; optionName: string; extraPrice: number }[] = [];
     steps.forEach((step) => {
       const selectedOptionNames = selections[step.name] || [];
       const selectedOptions = step.options.filter((o) =>
@@ -117,14 +124,14 @@ export function CustomizationModal({
       );
       
       const sortedOptions = [...selectedOptions].sort(
-        (a, b) => (a.extraPrice || 0) - (b.extraPrice || 0)
+        (a, b) => getOptionPrice(a) - getOptionPrice(b)
       );
       
       sortedOptions.forEach((opt, index) => {
         finalSelections.push({
           stepName: step.name,
           optionName: opt.name,
-          extraPrice: index < (step.includedCount || 0) ? 0 : opt.extraPrice || 0,
+          extraPrice: index < (step.includedCount || 0) ? 0 : getOptionPrice(opt),
         });
       });
     });
@@ -196,9 +203,9 @@ export function CustomizationModal({
                           </div>
                           <span className="font-medium text-left">{option.name}</span>
                         </div>
-                        {option.extraPrice > 0 && (
+                        {getOptionPrice(option) > 0 && (
                           <span className="text-sm text-muted-foreground pl-3">
-                            +{formatPrice(option.extraPrice)}
+                            +{formatPrice(getOptionPrice(option))}
                           </span>
                         )}
                       </button>

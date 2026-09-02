@@ -60,6 +60,11 @@ export function CartSheet({
       return;
     }
 
+    if (email.length > 100) {
+      toast.error(t("emailTooLong"));
+      return;
+    }
+
     startTransition(async () => {
       const result = await createPaymentIntentAction({
         organizationId: organization.$id,
@@ -116,6 +121,7 @@ export function CartSheet({
                   name="email"
                   type="email"
                   placeholder="name@beispiel.de"
+                  maxLength={100}
                   required
                 />
               </div>
@@ -137,7 +143,7 @@ export function CartSheet({
                 {isPending && (
                   <CircleNotch className="mr-2 h-5 w-5 animate-spin" />
                 )}
-                {isPending ? t("loading") : t("checkout")}
+                {isPending ? t("loading") : t("continueToPayment")}
               </Button>
 
               <p className="text-center text-muted-foreground text-xs leading-relaxed mt-2">

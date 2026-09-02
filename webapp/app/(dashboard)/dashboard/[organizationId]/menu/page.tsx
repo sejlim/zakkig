@@ -1,4 +1,4 @@
-import { getMenuCategories, getMenuItems } from "@/lib/appwrite/database";
+import { getMenuCategories, getMenuItems } from "@/lib/convex/database";
 import { MenuContent } from "@/components/dashboard/menu-content";
 
 export const metadata = { title: "Menü" };

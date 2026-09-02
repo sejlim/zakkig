@@ -3,13 +3,11 @@ import {
   getMenuItems,
   getOrganization,
   getAvailabilitySessions,
-} from "@/lib/appwrite/database";
+} from "@/lib/convex/database";
+import { getUser } from "@/lib/convex/auth";
 import { AvailabilityContent } from "@/components/availability/availability-content";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { LocalizedText } from "@/components/ui/localized-text";
-
-import { SessionPoller } from "@/components/session-poller";
 
 export const metadata = { title: "Verfügbarkeit" };
 
@@ -20,16 +18,17 @@ export default async function AvailabilityPage({
   params: Promise<{ organizationId: string }>;
   searchParams: Promise<{ token?: string }>;
 }) {
-  const [{ organizationId }] = await Promise.all([params, searchParams]);
+  const [{ organizationId }, { token }] = await Promise.all([params, searchParams]);
   const cookieStore = await cookies();
   const cookieName = `availability_session_${organizationId}`;
   const cookieToken = cookieStore.get(cookieName)?.value;
 
-  const [organization, sessions, categories, items] = await Promise.all([
+  const [organization, sessions, categories, items, user] = await Promise.all([
     getOrganization(organizationId),
     getAvailabilitySessions(organizationId),
     getMenuCategories(organizationId),
     getMenuItems(organizationId),
+    getUser(),
   ]);
 
   if (!organization) {
@@ -40,22 +39,24 @@ export default async function AvailabilityPage({
     );
   }
 
-  // Verification
-  const tokenToVerify = cookieToken;
+  // Allow if owner is logged in
+  const isOwner = Boolean(user && user._id === organization.ownerId);
 
-  if (!tokenToVerify) {
-    return (
-      <LocalizedText
-        tKey="noToken"
-        className="p-8 text-center text-destructive font-bold"
-        as="div"
-      />
-    );
-  }
-
-  const isValidSession = sessions.some((s) => s.token === tokenToVerify);
+  // Verification via query token or session cookie
+  const tokenToVerify = token || cookieToken;
+  const isValidSession = isOwner || Boolean(tokenToVerify && sessions.some((s) => s.token === tokenToVerify));
 
   if (!isValidSession) {
+    if (!tokenToVerify && !isOwner) {
+      return (
+        <LocalizedText
+          tKey="noToken"
+          className="p-8 text-center text-destructive font-bold"
+          as="div"
+        />
+      );
+    }
+
     return (
       <LocalizedText
         tKey="invalidToken"
@@ -67,7 +68,6 @@ export default async function AvailabilityPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <SessionPoller organizationId={organizationId} type="availability" />
       <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
         <AvailabilityContent
           categories={structuredClone(categories)}

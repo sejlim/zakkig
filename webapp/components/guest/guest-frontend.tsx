@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Minus, ShoppingCart, ForkKnife, ShoppingBag, PicnicTable } from "@phosphor-icons/react";
+import { Plus, Minus, ShoppingCart, ForkKnife } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import { getImagePreviewUrl } from "@/lib/appwrite/client";
+import { getImagePreviewUrl } from "@/lib/convex/client";
 import { useCartStore } from "@/store/cart-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,37 +44,62 @@ function GuestHeader({
       ? t("titleToGo" as any)
       : `${t("titleToStay" as any)} ${tableNumber || ""}`;
 
-  const OrderingIcon = type === "takeaway" ? ShoppingBag : PicnicTable;
-
   return (
-    <header className="bg-primary text-primary-foreground relative z-20 flex flex-col items-center px-4 pt-5 pb-6 shrink-0">
-      <div className="max-w-sm w-full flex flex-col items-stretch">
-        {organization.logoFileId ? (
-          <div className="w-full relative rounded-2xl overflow-hidden bg-white shadow-sm flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+    <header className="bg-primary text-primary-foreground relative z-20 flex flex-col items-center px-4 pt-4 pb-6 shrink-0">
+      <div className="max-w-md w-full flex flex-col items-stretch">
+        {/* Lieferando-style Hero Banner Box with Bottom-Left Logo Box */}
+        <div className="relative w-full aspect-[2.3/1] rounded-[22px] sm:rounded-[26px] overflow-hidden bg-neutral-800 border border-neutral-700/60 shadow-sm">
+          {organization.bannerFileId ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={getImagePreviewUrl(organization.logoFileId)}
+              src={getImagePreviewUrl(organization.bannerFileId)}
               alt={organization.name}
-              className="w-full h-auto object-contain rounded-2xl p-2.5 max-h-[360px]"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-800" />
+          )}
+
+          {/* Bottom-Left Logo Box */}
+          <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-10 w-16 h-16 sm:w-20 sm:h-20 bg-neutral-700 rounded-[10px] sm:rounded-[12px] border border-neutral-600 flex items-center justify-center overflow-hidden shrink-0">
+            {organization.logoFileId ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={getImagePreviewUrl(organization.logoFileId)}
+                alt={organization.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-neutral-700" />
+            )}
+          </div>
+
+          {/* Bottom-Right Mode Tag */}
+          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
+            <span className="text-xs font-semibold tracking-wide uppercase bg-primary-foreground text-primary shadow-sm flex items-center justify-center px-3 py-2 rounded-full whitespace-nowrap">
+              <span>{orderingBadgeText}</span>
+            </span>
+          </div>
+
+          {/* Top-Right Language Switcher */}
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+            <LanguageSwitcher
+              variant="ghost"
+              className="h-auto text-xs font-semibold tracking-wide uppercase text-white flex items-center justify-center gap-1.5 bg-black px-3.5 py-2 rounded-full border border-white/15 hover:bg-neutral-900 shrink-0 shadow-sm"
             />
           </div>
-        ) : (
-          <div className="w-full py-6 flex items-center justify-center text-center">
-            <h2 className="text-3xl font-black tracking-tight text-primary-foreground">
-              {organization.name}
-            </h2>
-          </div>
-        )}
+        </div>
 
-        <div id="header-text" className="w-full mt-3 flex items-center gap-2">
-          <span className="flex-1 text-xs font-semibold tracking-wide uppercase text-primary-foreground flex items-center justify-center gap-2 bg-transparent px-4 py-2.5 rounded-full border border-primary-foreground/20 truncate whitespace-nowrap min-w-0">
-            <OrderingIcon weight="bold" className="h-4 w-4 shrink-0" />
-            <span className="truncate">{orderingBadgeText}</span>
-          </span>
-          <LanguageSwitcher
-            variant="ghost"
-            className="h-auto text-xs font-semibold tracking-wide uppercase text-primary-foreground flex items-center justify-center gap-1.5 bg-transparent px-3.5 py-2.5 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground/15 shrink-0"
-          />
+        {/* Restaurant Info */}
+        <div id="header-text" className="w-full mt-3.5 flex flex-col">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-primary-foreground leading-tight">
+            {organization.name}
+          </h1>
+          {organization.address && (
+            <p className="text-xs sm:text-sm text-primary-foreground/75 font-medium mt-1 whitespace-pre-wrap">
+              {organization.address}
+            </p>
+          )}
         </div>
       </div>
     </header>
@@ -95,7 +120,7 @@ function GuestOrderSuccess({
         <h2 className="text-xl font-bold tracking-tight">zakkig</h2>
       </header>
       <div className="flex-1 bg-background text-foreground rounded-t-[2rem] md:rounded-[2rem] shadow-2xl flex flex-col items-center justify-center p-6 text-center space-y-6 md:my-4 md:max-w-md md:mx-auto w-full border-t md:border border-primary-foreground/10">
-        <div className="h-24 w-24 bg-emerald-500/15 text-emerald-600 rounded-full flex items-center justify-center mb-2">
+        <div className="h-24 w-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
           <CheckCircle className="h-12 w-12" />
         </div>
         <h1 className="text-3xl font-bold">{t("orderPlaced")}</h1>
@@ -274,11 +299,11 @@ function GuestMenu({
                       )}
                       <div className="p-4 flex flex-col justify-between">
                         <div>
-                          <h3 className="font-semibold text-lg leading-tight">
+                          <h3 className="font-semibold text-lg leading-tight break-words">
                             {item.name}
                           </h3>
                           {item.description && (
-                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
+                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 break-words">
                               {item.description}
                             </p>
                           )}
@@ -363,7 +388,7 @@ function GuestCart({
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm truncate">{item.name}</h3>
                   {item.customizations && item.customizations.length > 0 && (
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs text-muted-foreground leading-relaxed break-words mt-0.5">
                       {item.customizations
                         .map((c) => `${c.stepName}: ${c.optionName}`)
                         .join(", ")}

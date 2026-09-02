@@ -16,13 +16,14 @@ import { CaretDown, CaretUp, SlidersHorizontal } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import { getImagePreviewUrl } from "@/lib/appwrite/client";
+import { getImagePreviewUrl } from "@/lib/convex/client";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import {
   toggleMenuItemAvailability,
   toggleCustomizationAvailabilityAction,
 } from "@/actions/menu-actions";
-import { RefreshButton } from "@/components/dashboard/refresh-button";
-import { subscribeToOrganization } from "@/lib/appwrite/realtime";
 import type { MenuCategory, MenuItem, CustomizationStep } from "@/lib/types";
 
 interface AvailabilityContentProps {
@@ -74,22 +75,16 @@ export function AvailabilityContent({
     return { leftCategories: left, rightCategories: right };
   }, [categories]);
 
-  useEffect(() => {
-    if (!organizationId) return;
-    const unsubscribeOrg = subscribeToOrganization(organizationId, (response) => {
-      const events = response.events || [];
-      const isDelete = events.some(
-        (e: string) => e.includes(".delete") || e.includes("delete"),
-      );
-      if (isDelete) {
-        router.push("/");
-      }
-    });
+  const org = useQuery(
+    api.organizations.get,
+    organizationId ? { id: organizationId as Id<"organizations"> } : "skip"
+  );
 
-    return () => {
-      unsubscribeOrg();
-    };
-  }, [organizationId]);
+  useEffect(() => {
+    if (organizationId && org === null) {
+      router.push("/");
+    }
+  }, [organizationId, org, router]);
 
   const handleToggleItem = useCallback(
     (itemId: string, available: boolean) => {
@@ -175,15 +170,12 @@ export function AvailabilityContent({
             {t("availability")}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
-          <RefreshButton />
-        </div>
       </div>
 
       {/* Categories Grid utilizing horizontal space */}
       <div className="flex flex-col gap-6 w-full">
         {categories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+          <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-xl">
             <p>{t("menuEmpty")}</p>
           </div>
         ) : isDesktop ? (
@@ -398,7 +390,14 @@ function ItemCardView({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col rounded-xl border bg-background p-3 gap-3">
+    <div
+      className={cn(
+        "flex flex-col rounded-xl border p-3 gap-3 transition-all duration-200",
+        item.available
+          ? "bg-background border-border shadow-xs"
+          : "bg-muted/40 border-dashed border-border/70 opacity-65"
+      )}
+    >
       {/* Main Content Area */}
       <div className="flex items-start justify-between gap-3 min-w-0">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -409,16 +408,31 @@ function ItemCardView({
                 alt={item.name}
                 fill
                 sizes="48px"
-                className="object-cover"
+                className={cn("object-cover", !item.available && "grayscale")}
               />
             </div>
           )}
 
           <div className="flex flex-col gap-1 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-base text-foreground break-words">
+              <span
+                className={cn(
+                  "font-semibold text-base break-words",
+                  item.available
+                    ? "text-foreground"
+                    : "text-muted-foreground line-through decoration-muted-foreground/50"
+                )}
+              >
                 {item.name}
               </span>
+              {!item.available && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] px-1.5 py-0 font-bold uppercase tracking-wider bg-muted text-muted-foreground border shrink-0"
+                >
+                  {t("itemSoldOut" as any)}
+                </Badge>
+              )}
               {steps.length > 0 && (
                 <Badge
                   variant="outline"
@@ -495,24 +509,40 @@ function ItemCardView({
                     </div>
 
                     {/* Options List */}
-                    <div className="pt-1 space-y-1">
+                    <div className="pt-1 space-y-1 pl-3 border-l-2 border-border/50 ml-1">
                       {(step.options || []).map((opt, oIdx) => {
                         const optId =
                           opt.id || (opt as any).$id || `opt-${oIdx}`;
+                        const optPrice =
+                          typeof opt.extraPrice === "number"
+                            ? opt.extraPrice
+                            : typeof (opt as any).price === "number"
+                            ? (opt as any).price
+                            : 0;
                         const optAvailable =
                           opt.available !== false && stepAvailable;
                         return (
                           <div
                             key={optId}
-                            className="flex items-center justify-between gap-2 text-xs py-1"
+                            className={cn(
+                              "flex items-center justify-between gap-2 text-xs py-1 transition-opacity",
+                              optAvailable ? "opacity-100" : "opacity-50"
+                            )}
                           >
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                              <span className="font-medium text-foreground truncate">
+                              <span
+                                className={cn(
+                                  "font-medium truncate",
+                                  optAvailable
+                                    ? "text-foreground"
+                                    : "text-muted-foreground line-through"
+                                )}
+                              >
                                 {opt.name}
                               </span>
-                              {opt.extraPrice > 0 && (
+                              {optPrice > 0 && (
                                 <span className="text-muted-foreground shrink-0 font-medium">
-                                  (+{formatPrice(opt.extraPrice)})
+                                  (+{formatPrice(optPrice)})
                                 </span>
                               )}
                             </div>

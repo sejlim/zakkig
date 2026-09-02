@@ -2,7 +2,7 @@ import {
   getOrganization,
   getMenuCategories,
   getAvailableMenuItems,
-} from "@/lib/appwrite/database";
+} from "@/lib/convex/database";
 import { GuestFrontend } from "@/components/guest/guest-frontend";
 import { Storefront } from "@phosphor-icons/react/dist/ssr";
 import { LocalizedText } from "@/components/ui/localized-text";

@@ -42,6 +42,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,7 +55,9 @@ export default function RootLayout({
       className={cn("light antialiased", "font-sans", poppins.variable)}
     >
       <body className="bg-background text-foreground">
-        {children}
+        <ConvexClientProvider>
+          {children}
+        </ConvexClientProvider>
         <Toaster position="top-center" />
       </body>
     </html>

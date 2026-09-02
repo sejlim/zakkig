@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getOrderByPaymentIntentAction } from "@/actions/checkout-actions";
+import { useQuery, useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { LocalizedText } from "@/components/ui/localized-text";
 import { SpinnerGap } from "@phosphor-icons/react";
 import { useCartStore } from "@/store/cart-store";
@@ -21,32 +22,50 @@ export function PaymentSuccessPoller({
   const router = useRouter();
   const clearCart = useCartStore((state) => state.clearCart);
   const { t } = useTranslation();
+  const [timedOut, setTimedOut] = useState(false);
+
+  // Reactive subscription to order created via webhook
+  const order = useQuery(api.orders.getOrderByPaymentIntent, {
+    stripePaymentId: paymentIntentId,
+  });
+
+  const verifyPayment = useAction(api.stripe.verifyPaymentAndCreateOrder);
+
+  // If webhook is delayed or in local development, verify directly with Stripe
+  useEffect(() => {
+    if (order === null) {
+      const timer = setTimeout(() => {
+        verifyPayment({ paymentIntentId }).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [order, paymentIntentId, verifyPayment]);
 
   useEffect(() => {
-    let attempts = 0;
-    const interval = setInterval(async () => {
-      attempts++;
-      const result = await getOrderByPaymentIntentAction(paymentIntentId);
-      
-      if (result.order) {
-        clearInterval(interval);
-        clearCart();
-        toast.success(t("orderPlaced" as any));
-        
-        if (type === "takeaway") {
-          router.replace(`/to-go/${organizationId}?order=${result.order.$id}`);
-        } else {
-          router.replace(`/to-stay/${organizationId}?table=${result.order.tableNumber}`);
-        }
-      } else if (attempts > 15) { // 30 seconds
-        clearInterval(interval);
+    if (order) {
+      clearCart();
+      toast.success(t("orderPlaced" as any));
+
+      if (type === "takeaway") {
+        router.replace(`/to-go/${organizationId}?order=${order._id}`);
+      } else {
+        router.replace(`/to-stay/${organizationId}?table=${order.tableNumber || ""}`);
+      }
+    }
+  }, [order, organizationId, type, router, clearCart, t]);
+
+  // Fallback safety timeout (45s) in case webhook fails completely
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!order) {
+        setTimedOut(true);
         toast.error(t("error"));
         router.replace(`/${type === "takeaway" ? "to-go" : "to-stay"}/${organizationId}`);
       }
-    }, 2000);
+    }, 45000);
 
-    return () => clearInterval(interval);
-  }, [paymentIntentId, organizationId, type, router, clearCart, t]);
+    return () => clearTimeout(timer);
+  }, [order, organizationId, type, router, t]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center space-y-4 p-6 bg-background">

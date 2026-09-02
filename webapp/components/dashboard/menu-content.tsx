@@ -61,12 +61,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { RefreshButton } from "./refresh-button";
 import { ItemWorkspace } from "./menu/item-workspace";
 
 import Image from "next/image";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import { getImagePreviewUrl } from "@/lib/appwrite/client";
+import { getImagePreviewUrl } from "@/lib/convex/client";
 import {
   createCategoryAction,
   updateCategoryAction,
@@ -395,6 +394,8 @@ export function MenuContent({
     const newSortOrder = categories.length;
 
     const tempCategory: MenuCategory = {
+      _id: tempId as any,
+      _creationTime: Date.now(),
       $id: tempId,
       organizationId,
       name: defaultName,
@@ -539,15 +540,11 @@ export function MenuContent({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("menu")}</h1>
         </div>
-
-        <div className="flex items-center gap-2">
-          <RefreshButton />
-        </div>
       </div>
 
       {/* Categories Cards View */}
       {categories.length === 0 ? (
-        <div className="border-2 border-dashed border-border rounded-xl p-12 text-center flex flex-col items-center justify-center gap-3">
+        <div className="border border-dashed border-border rounded-xl p-12 text-center flex flex-col items-center justify-center gap-3">
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-foreground">
               {t("noCategories")}
@@ -560,7 +557,7 @@ export function MenuContent({
             type="button"
             variant="ghost"
             onClick={openNewCategory}
-            className="border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer mt-2"
+            className="border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer mt-2"
           >
             <Plus className="h-4 w-4 shrink-0" weight="bold" />
             <span>{t("addCategory")}</span>
@@ -607,7 +604,7 @@ export function MenuContent({
                       type="button"
                       variant="ghost"
                       onClick={openNewCategory}
-                      className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
+                      className="w-full border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
                     >
                       <Plus className="h-4 w-4 shrink-0" weight="bold" />
                       <span>{t("addCategory")}</span>
@@ -640,7 +637,7 @@ export function MenuContent({
                       type="button"
                       variant="ghost"
                       onClick={openNewCategory}
-                      className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
+                      className="w-full border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
                     >
                       <Plus className="h-4 w-4 shrink-0" weight="bold" />
                       <span>{t("addCategory")}</span>
@@ -672,7 +669,7 @@ export function MenuContent({
                   type="button"
                   variant="ghost"
                   onClick={openNewCategory}
-                  className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
+                  className="w-full border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors cursor-pointer"
                 >
                   <Plus className="h-4 w-4 shrink-0" weight="bold" />
                   <span>{t("addCategory")}</span>
@@ -684,7 +681,7 @@ export function MenuContent({
           <DragOverlay
             dropAnimation={{
               duration: 150,
-              easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+              easing: "cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {activeItem ? (
@@ -880,6 +877,10 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
       setIsEditingName(false);
       return;
     }
+    if (trimmed.length > 100) {
+      toast.error(t("nameTooLong"));
+      return;
+    }
     setIsSavingName(true);
     const formData = new FormData();
     formData.append("categoryId", category.$id);
@@ -955,7 +956,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
                     }
                   }}
                   autoFocus
-                  maxLength={50}
+                  maxLength={100}
                   disabled={isSavingName}
                   className="h-8 text-lg font-semibold px-2 py-0"
                 />
@@ -1063,7 +1064,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
               type="button"
               variant="ghost"
               onClick={() => onNewItem(category.$id)}
-              className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
+              className="w-full border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
             >
               <Plus className="h-4 w-4 shrink-0" weight="bold" />
               <span>{t("addItem")}</span>
@@ -1171,7 +1172,7 @@ const ItemRowView = memo(function ItemRowView({
             )}
           </div>
           {item.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
               {item.description}
             </p>
           )}

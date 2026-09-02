@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/appwrite/server";
-import { getOrganizationByOwner } from "@/lib/appwrite/database";
+import { getUser } from "@/lib/convex/auth";
+import { getOrganizationByOwner } from "@/lib/convex/database";
 
 export default async function HomePage() {
   const user = await getUser();

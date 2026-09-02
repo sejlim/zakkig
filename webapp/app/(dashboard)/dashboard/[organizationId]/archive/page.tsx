@@ -1,4 +1,4 @@
-import { getOrders } from "@/lib/appwrite/database";
+import { getOrders } from "@/lib/convex/database";
 import { ArchiveContent } from "@/components/dashboard/archive-content";
 
 export const metadata = { title: "Archiv" };

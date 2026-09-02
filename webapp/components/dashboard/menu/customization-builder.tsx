@@ -221,7 +221,7 @@ export function CustomizationBuilder({
         type="button"
         variant="ghost"
         onClick={addStep}
-        className="w-full border-2 border-dashed border-primary-foreground/40 hover:border-primary-foreground font-semibold text-sm text-primary-foreground hover:text-primary-foreground bg-transparent hover:bg-primary-foreground/15 shrink-0 gap-2 transition-colors"
+        className="w-full border border-dashed border-primary-foreground/40 hover:border-primary-foreground font-semibold text-sm text-primary-foreground hover:text-primary-foreground bg-transparent hover:bg-primary-foreground/15 shrink-0 gap-2 transition-colors"
       >
         <Plus className="w-4 h-4 shrink-0" weight="bold" />
         <span>{t("addStep")}</span>
@@ -365,7 +365,7 @@ function SortableStepCard({
                     if (e.key === "Enter") finishEditingName();
                     if (e.key === "Escape") finishEditingName();
                   }}
-                  maxLength={50}
+                  maxLength={100}
                   className="h-8 text-sm font-medium bg-transparent border-primary-foreground/30 text-primary-foreground px-2 flex-1"
                   placeholder={t("stepName")}
                 />
@@ -627,7 +627,7 @@ function SortableStepCard({
             <Button
               type="button"
               variant="ghost"
-              className="w-full border-2 border-dashed border-primary-foreground/40 hover:border-primary-foreground font-semibold text-sm text-primary-foreground hover:text-primary-foreground bg-transparent hover:bg-primary-foreground/15 gap-2 transition-colors cursor-pointer"
+              className="w-full border border-dashed border-primary-foreground/40 hover:border-primary-foreground font-semibold text-sm text-primary-foreground hover:text-primary-foreground bg-transparent hover:bg-primary-foreground/15 gap-2 transition-colors cursor-pointer"
               onClick={onAddOption}
             >
               <Plus className="w-4 h-4 shrink-0" weight="bold" />
@@ -700,7 +700,7 @@ function OptionRow({
           }}
           onMouseDown={(e) => e.stopPropagation()}
           placeholder={t("optionName")}
-          maxLength={60}
+          maxLength={100}
           className="h-9 sm:h-8 text-sm bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 flex-1"
         />
       </div>

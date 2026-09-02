@@ -1,36 +1,51 @@
-// ─── Appwrite Document Base ─────────────────────────────────────
+// ─── Convex Document Base ────────────────────────────────────────
 
-export interface AppwriteDocument {
+export interface ConvexDocument {
+  _id: string;
+  _creationTime: number;
+  /** Compatibility alias for _id */
   $id: string;
-  $createdAt: string;
-  $updatedAt: string;
-  $permissions: string[];
-  $databaseId: string;
-  $collectionId: string;
+  /** Compatibility alias for _creationTime ISO string */
+  $createdAt?: string;
+  $updatedAt?: string;
+  $permissions?: string[];
+  $databaseId?: string;
+  $collectionId?: string;
 }
+
+// Keep AppwriteDocument as alias for smooth migration
+export type AppwriteDocument = ConvexDocument;
 
 // ─── Organizations ──────────────────────────────────────────────
 
-export interface Organization extends AppwriteDocument {
+export interface Organization extends ConvexDocument {
   name: string;
-  address: string;
-  logoFileId: string;
+  address?: string;
+  logoStorageId?: string;
+  logoFileId?: string; // compatibility
+  logoUrl?: string | null;
+  bannerStorageId?: string;
+  bannerFileId?: string; // compatibility
+  bannerUrl?: string | null;
   ownerId: string;
-  stripeAccountId: string;
-  stripeOnboardingComplete: boolean;
-  isToGoEnabled: boolean;
-  isToStayEnabled: boolean;
-  legalName: string;
-  taxId: string;
-  currency: string;
-  deletionRequested: boolean;
+  stripeAccountId?: string;
+  stripeOnboardingComplete?: boolean;
+  isToGoEnabled?: boolean;
+  isToStayEnabled?: boolean;
+  legalName?: string;
+  taxId?: string;
+  currency?: string;
+  deletionRequested?: boolean;
   tables?: string[];
 }
 
 export interface CreateOrganizationData {
   name: string;
   address?: string;
+  logoStorageId?: string;
   logoFileId?: string;
+  bannerStorageId?: string;
+  bannerFileId?: string;
   ownerId: string;
   legalName?: string;
   taxId?: string;
@@ -40,7 +55,7 @@ export interface CreateOrganizationData {
 
 // ─── Menu Categories ────────────────────────────────────────────
 
-export interface MenuCategory extends AppwriteDocument {
+export interface MenuCategory extends ConvexDocument {
   organizationId: string;
   name: string;
   sortOrder: number;
@@ -50,7 +65,7 @@ export interface CreateMenuCategoryData {
   organizationId: string;
   name: string;
   sortOrder?: number;
-  ownerId: string;
+  ownerId?: string;
 }
 
 // ─── Menu Items ─────────────────────────────────────────────────
@@ -76,13 +91,15 @@ export interface CustomizationStep {
   options: CustomizationOption[];
 }
 
-export interface MenuItem extends AppwriteDocument {
+export interface MenuItem extends ConvexDocument {
   organizationId: string;
   categoryId: string;
   name: string;
-  description: string;
+  description?: string;
   price: number; // in cents
-  imageId: string;
+  imageStorageId?: string;
+  imageId?: string; // compatibility
+  imageUrl?: string | null;
   available: boolean;
   sortOrder: number;
   taxRate: number;
@@ -95,10 +112,11 @@ export interface CreateMenuItemData {
   name: string;
   description?: string;
   price: number;
+  imageStorageId?: string;
   imageId?: string;
   available?: boolean;
   sortOrder?: number;
-  ownerId: string;
+  ownerId?: string;
   taxRate?: number;
   customizations?: string;
 }
@@ -112,16 +130,16 @@ export interface OrderItem {
   quantity: number;
 }
 
-export interface Order extends AppwriteDocument {
+export interface Order extends ConvexDocument {
   organizationId: string;
-  tableNumber: string;
+  tableNumber?: string;
   type: "dine-in" | "takeaway";
   items: string; // JSON serialized OrderItem[]
   total: number; // in cents
   status: "in_progress" | "completed" | "cancelled";
   email: string;
   orderNumber: string;
-  stripePaymentId: string;
+  stripePaymentId?: string;
   zakkigFee: number; // in cents
   stripeFee: number; // in cents
   netAmount: number; // in cents
@@ -144,18 +162,18 @@ export interface CreateOrderData {
 
 // ─── Order Sessions ───────────────────────────────────────────
 
-export interface OrderSession extends AppwriteDocument {
+export interface OrderSession extends ConvexDocument {
   organizationId: string;
   token: string;
-  expiresAt: string | null;
+  expiresAt?: string | null;
 }
 
 // ─── Availability Sessions ────────────────────────────────────
 
-export interface AvailabilitySession extends AppwriteDocument {
+export interface AvailabilitySession extends ConvexDocument {
   organizationId: string;
   token: string;
-  expiresAt: string | null;
+  expiresAt?: string | null;
 }
 
 // ─── Cart (Client State) ────────────────────────────────────────

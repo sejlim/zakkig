@@ -8,10 +8,9 @@ import { Textarea as TextArea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { WarningCircle, UploadSimple, X, SpinnerGap } from "@phosphor-icons/react";
-import { RefreshButton } from "./refresh-button";
+import { WarningCircle, UploadSimple, X, SpinnerGap, PencilSimple, Trash, Plus } from "@phosphor-icons/react";
 import { useTranslation } from "@/lib/i18n";
-import { getImagePreviewUrl } from "@/lib/appwrite/client";
+import { getImagePreviewUrl } from "@/lib/convex/client";
 import { cn } from "@/lib/utils";
 import {
   updateBusinessAction,
@@ -25,11 +24,10 @@ import {
   completeTestStripeOnboardingAction,
 } from "@/actions/stripe-actions";
 import type { Organization } from "@/lib/types";
-import type { Models } from "node-appwrite";
 
 interface SettingsContentProps {
   organization: Organization;
-  user: Models.User<Models.Preferences>;
+  user: { name?: string; email?: string; [key: string]: any };
 }
 
 export function SettingsContent({ organization, user }: SettingsContentProps) {
@@ -40,25 +38,38 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
     {},
   );
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const [logoPreview, setLogoPreview] = useState<string | null>(
     organization.logoFileId
       ? getImagePreviewUrl(organization.logoFileId)
       : null,
   );
+  const [bannerPreview, setBannerPreview] = useState<string | null>(
+    organization.bannerFileId
+      ? getImagePreviewUrl(organization.bannerFileId)
+      : null,
+  );
+
   const [removeLogo, setRemoveLogo] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [removeBanner, setRemoveBanner] = useState(false);
+  const [isDraggingBanner, setIsDraggingBanner] = useState(false);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
   const [isStripeLoading, setIsStripeLoading] = useState(false);
 
   useEffect(() => {
     return () => {
-      if (imagePreview && imagePreview.startsWith("blob:")) {
-        URL.revokeObjectURL(imagePreview);
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      if (bannerPreview && bannerPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(bannerPreview);
       }
     };
-  }, [imagePreview]);
+  }, [logoPreview, bannerPreview]);
 
   const [isEmailChanging, setIsEmailChanging] = useState(false);
 
@@ -69,41 +80,54 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessState]);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(t("imageTooLarge"));
-        return;
-      }
-      if (!file.type.startsWith("image/")) return;
+  const handleLogoFile = (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("imageTooLarge"));
+      return;
+    }
+    if (!file.type.startsWith("image/")) return;
 
-      setRemoveLogo(false);
-      const url = URL.createObjectURL(file);
-      
-      setImagePreview((prev) => {
-        if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-        return url;
-      });
+    setRemoveLogo(false);
+    const url = URL.createObjectURL(file);
+    setLogoPreview((prev) => {
+      if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return url;
+    });
 
-      // Update file input using DataTransfer
-      if (fileInputRef.current) {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInputRef.current.files = dataTransfer.files;
-      }
+    if (logoInputRef.current) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      logoInputRef.current.files = dataTransfer.files;
+    }
+  };
+
+  const handleBannerFile = (file: File) => {
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error(t("imageTooLarge"));
+      return;
+    }
+    if (!file.type.startsWith("image/")) return;
+
+    setRemoveBanner(false);
+    const url = URL.createObjectURL(file);
+    setBannerPreview((prev) => {
+      if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return url;
+    });
+
+    if (bannerInputRef.current) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      bannerInputRef.current.files = dataTransfer.files;
     }
   };
 
   return (
-    <div className="flex-1 space-y-4 pb-12">
+    <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between space-y-2 print:hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("settings")}</h1>
         </div>
-        <RefreshButton />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
@@ -126,13 +150,48 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 <input
                   type="hidden"
                   name="existingLogoId"
-                  value={organization.logoFileId}
+                  value={organization.logoFileId || ""}
                 />
                 <input
                   type="hidden"
                   name="removeLogo"
                   value={removeLogo ? "true" : "false"}
                 />
+                <input
+                  type="hidden"
+                  name="existingBannerId"
+                  value={organization.bannerFileId || ""}
+                />
+                <input
+                  type="hidden"
+                  name="removeBanner"
+                  value={removeBanner ? "true" : "false"}
+                />
+                <input
+                  ref={logoInputRef}
+                  id="business-logo"
+                  name="logo"
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleLogoFile(file);
+                  }}
+                />
+                <input
+                  ref={bannerInputRef}
+                  id="business-banner"
+                  name="banner"
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleBannerFile(file);
+                  }}
+                />
+
                 <div className="flex flex-col gap-2">
                   <label htmlFor="business-email" className="text-sm font-medium">
                     {t("email")}
@@ -181,129 +240,166 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                     maxLength={300}
                   />
                 </div>
+
+                {/* Unified Lieferando-style Banner & Logo Canvas */}
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="business-logo" className="text-sm font-medium">{t("logo")}</label>
-                  <div className="relative">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">{t("brandMedia")}</label>
+                    <span className="text-xs text-muted-foreground">{t("bannerRecommended")}</span>
+                  </div>
+
+                  <div className="relative w-full aspect-[2.3/1] rounded-[22px] sm:rounded-[26px] overflow-hidden border border-border bg-muted/40 group/banner transition-all">
+                    {/* Banner Area */}
                     <div
                       role="button"
                       tabIndex={0}
-                      className={cn(
-                        "relative rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden flex flex-col items-center justify-center min-h-[200px]",
-                        isDragging
-                          ? "border-primary-foreground bg-primary-foreground/10"
-                          : imagePreview
-                            ? "border-transparent"
-                            : "border-muted-foreground/30 hover:border-primary/50 bg-muted/10",
-                      )}
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => bannerInputRef.current?.click()}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          fileInputRef.current?.click();
+                          bannerInputRef.current?.click();
                         }
                       }}
                       onDragOver={(e) => {
                         e.preventDefault();
-                        setIsDragging(true);
+                        setIsDraggingBanner(true);
                       }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={handleDrop}
+                      onDragLeave={() => setIsDraggingBanner(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingBanner(false);
+                        const file = e.dataTransfer.files[0];
+                        if (file) handleBannerFile(file);
+                      }}
+                      className={cn(
+                        "w-full h-full cursor-pointer relative flex flex-col items-center justify-center transition-colors",
+                        isDraggingBanner && "bg-primary/10",
+                      )}
                     >
-                      {imagePreview ? (
-                        <div className="relative w-full h-full min-h-[200px]">
+                      {bannerPreview ? (
+                        <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={imagePreview}
-                            alt="Logo"
-                            className="absolute inset-0 w-full h-full object-contain p-4"
+                            src={bannerPreview}
+                            alt="Banner"
+                            className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 group">
-                            <span className="text-white font-medium text-sm bg-black/50 px-3 py-1.5 rounded-full z-10 transition-transform group-hover:scale-105">
-                              {t("changeImage")}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/banner:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <span className="text-white font-medium text-xs bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                              <PencilSimple className="w-3.5 h-3.5" />
+                              {t("changeBanner")}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (bannerPreview.startsWith("blob:")) URL.revokeObjectURL(bannerPreview);
+                                setBannerPreview(null);
+                                setRemoveBanner(true);
+                                if (bannerInputRef.current) bannerInputRef.current.value = "";
+                              }}
+                              className="p-1.5 rounded-full bg-black/60 backdrop-blur-sm hover:bg-destructive hover:text-white text-white transition-colors shadow-sm"
+                              title={t("removeBanner")}
+                            >
+                              <Trash className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-full h-full bg-muted/40" />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/banner:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white font-medium text-xs bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                              <UploadSimple className="w-3.5 h-3.5" />
+                              {t("uploadBanner")}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Bottom-Left Logo Box */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        logoInputRef.current?.click();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          logoInputRef.current?.click();
+                        }
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsDraggingLogo(true);
+                      }}
+                      onDragLeave={(e) => {
+                        e.stopPropagation();
+                        setIsDraggingLogo(false);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsDraggingLogo(false);
+                        const file = e.dataTransfer.files[0];
+                        if (file) handleLogoFile(file);
+                      }}
+                      className={cn(
+                        "absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-20 w-16 h-16 sm:w-20 sm:h-20 rounded-[10px] sm:rounded-[12px] bg-muted border transition-all cursor-pointer flex items-center justify-center overflow-hidden group/logo",
+                        (bannerPreview || logoPreview) ? "border-neutral-600" : "border-border",
+                        isDraggingLogo && "border-primary ring-2 ring-primary/20",
+                      )}
+                      title={logoPreview ? t("changeLogo") : t("uploadLogo")}
+                    >
+                      {logoPreview ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={logoPreview}
+                            alt="Logo"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/logo:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                            <span className="text-white bg-black/60 backdrop-blur-sm p-1.5 rounded-full flex items-center justify-center shadow-sm">
+                              <PencilSimple className="w-3.5 h-3.5" />
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (logoPreview.startsWith("blob:")) URL.revokeObjectURL(logoPreview);
+                                setLogoPreview(null);
+                                setRemoveLogo(true);
+                                if (logoInputRef.current) logoInputRef.current.value = "";
+                              }}
+                              className="p-1.5 rounded-full bg-black/60 backdrop-blur-sm hover:bg-destructive hover:text-white text-white transition-colors shadow-sm"
+                              title={t("removeLogo")}
+                            >
+                              <Trash className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/logo:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white bg-black/60 backdrop-blur-sm p-2 rounded-full flex items-center justify-center shadow-sm">
+                              <UploadSimple className="w-4 h-4" />
                             </span>
                           </div>
                         </div>
-                      ) : (
-                      <div className="flex flex-col items-center justify-center gap-2 p-6 text-center text-muted-foreground">
-                        {isDragging ? (
-                          <UploadSimple
-                            className="w-10 h-10 text-primary"
-                            weight="bold"
-                          />
-                        ) : (
-                          <UploadSimple className="w-10 h-10 text-muted-foreground/70" />
-                        )}
-                        <p className="text-sm font-medium text-foreground">
-                          {t("dragOrClick")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("maxFileSize")}
-                        </p>
-                      </div>
-                    )}
+                      )}
                     </div>
-                    {imagePreview && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setImagePreview((prev) => {
-                            if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-                            return null;
-                          });
-                          setRemoveLogo(true);
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = "";
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setImagePreview((prev) => {
-                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-                              return null;
-                            });
-                            setRemoveLogo(true);
-                            if (fileInputRef.current)
-                              fileInputRef.current.value = "";
-                          }
-                        }}
-                        className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 hover:bg-destructive/90 transition-colors shadow-sm z-10"
-                        title={t("removeImage")}
-                      >
-                        <X className="w-3.5 h-3.5" weight="bold" />
-                      </button>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      id="business-logo"
-                      name="logo"
-                      type="file"
-                      accept="image/png, image/jpeg, image/webp"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.size > 5 * 1024 * 1024) {
-                            toast.error(t("imageTooLarge"));
-                            e.target.value = "";
-                            return;
-                          }
-                          setRemoveLogo(false);
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setImagePreview((prev) => {
-                              if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-                              return ev.target?.result as string;
-                            });
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
                   </div>
+
+                  {/* Helper Subtext */}
+                  <span className="text-xs text-muted-foreground px-1 mt-0.5">
+                    {t("brandMediaDesc")}
+                  </span>
                 </div>
                 {businessState.error && (
                   <p className="text-sm text-destructive font-medium">
@@ -436,7 +532,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
           </Card>
 
         {/* Danger Zone */}
-        <Card className="col-span-1 xl:col-span-2 flex flex-col h-full border-destructive/50 border">
+        <Card className="col-span-1 xl:col-span-2 flex flex-col border-destructive/50 border">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold text-destructive">
                 {t("dangerZone" as any)}
@@ -445,7 +541,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 {t("dangerZoneDescription" as any)}
               </p>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col gap-6 items-stretch">
+            <CardContent className="flex flex-col gap-6 items-stretch">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div className="h-full flex flex-col justify-between gap-4 p-4 border border-border rounded-lg">
                   <div className="flex flex-col gap-1">
@@ -521,8 +617,12 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                   onClick={async () => {
                     setIsDeleting(true);
                     try {
-                      await requestAccountDeletionAction();
-                      toast.success(t("deletionRequestSent"));
+                      const res = await requestAccountDeletionAction();
+                      if (res?.error) {
+                        toast.error(res.error);
+                      } else {
+                        toast.success(t("deletionRequestSent"));
+                      }
                     } finally {
                       setIsDeleting(false);
                     }

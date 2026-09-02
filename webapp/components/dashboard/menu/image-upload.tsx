@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { ImageSquare, X, UploadSimple } from "@phosphor-icons/react";
+import { Trash, UploadSimple, PencilSimple } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
-import { getImagePreviewUrl } from "@/lib/appwrite/client";
+import { getImagePreviewUrl } from "@/lib/convex/client";
 import { toast } from "sonner";
 
 interface ImageUploadProps {
@@ -97,7 +97,7 @@ export function ImageUpload({
     <div className={cn("flex flex-col h-full", className)}>
       <div
         className={cn(
-          "relative rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden flex-1 flex flex-col",
+          "relative rounded-xl border border-dashed transition-colors cursor-pointer overflow-hidden flex-1 flex flex-col",
           isDragging
             ? "border-primary-foreground bg-primary-foreground/10"
             : hasImage
@@ -128,33 +128,30 @@ export function ImageUpload({
               alt=""
               className="absolute inset-0 w-full h-full object-cover rounded-lg"
             />
-            <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
-              <span className="text-white font-medium text-sm bg-black/50 px-3 py-1.5 rounded-full z-10">
+            <div className="absolute inset-0 bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
+              <span className="text-white font-medium text-xs bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                <PencilSimple className="w-3.5 h-3.5" />
                 {t("changeImage")}
               </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemove();
+                }}
+                className="p-1.5 rounded-full bg-black/60 backdrop-blur-sm hover:bg-destructive hover:text-white text-white transition-colors shadow-sm"
+                title={t("removeImage")}
+              >
+                <Trash className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemove();
-              }}
-              className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 hover:bg-destructive/90 transition-colors shadow-sm z-10"
-              title={t("removeImage")}
-            >
-              <X className="w-3.5 h-3.5" weight="bold" />
-            </button>
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-1.5 p-6 text-center text-primary-foreground/70 min-h-[200px]">
-            {isDragging ? (
-              <UploadSimple
-                className="w-10 h-10 text-primary-foreground"
-                weight="bold"
-              />
-            ) : (
-              <ImageSquare className="w-10 h-10 text-primary-foreground/70" />
-            )}
+            <UploadSimple
+              className="w-10 h-10 text-primary-foreground/70 transition-colors"
+              weight={isDragging ? "bold" : "regular"}
+            />
             <p className="text-sm font-medium text-primary-foreground">
               {t("dragOrClick")}
             </p>

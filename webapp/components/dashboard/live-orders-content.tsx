@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, ReceiptX } from "@phosphor-icons/react";
+import { useEffect, useState, useRef } from "react";
+import { Check, ReceiptX, SpeakerHigh, SpeakerSlash, Clock } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useTranslation, formatPrice } from "@/lib/i18n";
-import { subscribeToOrders, subscribeToOrganization } from "@/lib/appwrite/realtime";
-import { RefreshButton } from "./refresh-button";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { updateOrderStatusAction } from "@/actions/order-actions";
+import { playNewOrderSound, initAudioContext } from "@/lib/audio";
 import { KITCHEN_CLEANUP_TIMEOUT } from "@/lib/constants";
 import type { Order, OrderItem } from "@/lib/types";
 import { useRouter } from "next/navigation";
@@ -50,16 +52,40 @@ function OrderGrid({
   const leftOrders = orders.filter((_, i) => i % 2 === 0);
   const rightOrders = orders.filter((_, i) => i % 2 === 1);
 
+  const formatOrderTime = (order: Order): string => {
+    const timeMs =
+      order._creationTime ||
+      (order.$createdAt ? new Date(order.$createdAt).getTime() : 0);
+    if (!timeMs) return "";
+    const elapsedMinutes = Math.floor((Date.now() - timeMs) / (1000 * 60));
+    if (elapsedMinutes < 1) return "Gerade eben";
+    if (elapsedMinutes < 60) return `vor ${elapsedMinutes} Min.`;
+    return new Date(timeMs).toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const renderOrderCard = (order: Order) => {
     const items = parseItems(order.items);
+    const timeLabel = formatOrderTime(order);
+
     return (
       <Card key={order.$id} className="flex flex-col justify-between">
         <div>
           <CardHeader className="p-4 pb-2">
             <div className="flex items-center justify-between w-full">
-              <h4 className="text-2xl font-extrabold text-foreground tracking-tight tabular-nums shrink-0">
-                {order.orderNumber}
-              </h4>
+              <div className="flex items-baseline gap-2 min-w-0">
+                <h4 className="text-3xl font-black text-foreground tracking-tight tabular-nums shrink-0">
+                  {order.orderNumber}
+                </h4>
+                {timeLabel && (
+                  <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                    <Clock className="w-3 h-3" />
+                    {timeLabel}
+                  </span>
+                )}
+              </div>
               <span className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight text-right truncate ml-2">
                 {order.type === "dine-in" || order.tableNumber
                   ? `${t("toTable")} ${order.tableNumber || ""}`.trim()
@@ -72,17 +98,32 @@ function OrderGrid({
               {items.map((item: any, index: number) => (
                 <div
                   key={`${item.cartItemId || item.id || item.menuItemId || item.name}-${index}`}
-                  className="flex justify-between items-baseline text-base py-0.5"
+                  className="flex flex-col py-1 border-b border-border/40 last:border-b-0 pb-1.5 last:pb-0"
                 >
-                  <span className="font-semibold text-foreground leading-snug">
-                    <span className="font-extrabold text-primary mr-2 text-lg">
-                      {item.quantity}×
+                  <div className="flex justify-between items-baseline text-base gap-2">
+                    <span className="font-semibold text-foreground leading-snug break-words flex-1 min-w-0">
+                      <span className="font-extrabold text-primary mr-2 text-lg shrink-0">
+                        {item.quantity}×
+                      </span>
+                      {item.name}
                     </span>
-                    {item.name}
-                  </span>
-                  <span className="text-muted-foreground text-sm font-medium shrink-0 ml-2">
-                    {formatPrice(item.price * item.quantity)}
-                  </span>
+                    <span className="text-muted-foreground text-sm font-medium shrink-0 ml-2">
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                  </div>
+                  {Array.isArray(item.customizations) && item.customizations.length > 0 && (
+                    <div className="pl-6 pt-1 flex flex-wrap gap-1">
+                      {item.customizations.map((c: any, cIdx: number) => (
+                        <span
+                          key={cIdx}
+                          className="inline-flex items-center text-xs font-medium text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md break-words"
+                        >
+                          +{c.optionName || c.name}
+                          {c.extraPrice > 0 ? ` (${formatPrice(c.extraPrice)})` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               <div className="mt-3 flex items-center justify-between border-t pt-3 font-bold text-base">
@@ -157,12 +198,13 @@ export function LiveOrdersContent({
   const [now, setNow] = useState<number>(Date.now());
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
-  const [prevOrdersProp, setPrevOrdersProp] = useState<Order[]>(orders);
-
-  if (orders !== prevOrdersProp) {
-    setPrevOrdersProp(orders);
-    setLocalOrders(orders);
-  }
+  // Reactive Convex queries for live orders and org status
+  const liveOrders = useQuery(api.orders.getLiveOrders, {
+    organizationId: organizationId as Id<"organizations">,
+  });
+  const org = useQuery(api.organizations.get, {
+    id: organizationId as Id<"organizations">,
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -172,63 +214,66 @@ export function LiveOrdersContent({
     return () => clearInterval(interval);
   }, []);
 
-  // Realtime subscription
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const isInitialRef = useRef(true);
+  const knownOrderIdsRef = useRef<Set<string>>(
+    new Set(orders.map((o) => o.$id || (o as any)._id))
+  );
+
   useEffect(() => {
-    const unsubscribe = subscribeToOrders(organizationId, (response) => {
-      const events = response.events || [];
-      const isCreate = events.some(
-        (e: string) => e.includes(".create") || e.includes("create"),
-      );
-      const isUpdate = events.some(
-        (e: string) => e.includes(".update") || e.includes("update"),
-      );
-      const isDelete = events.some(
-        (e: string) => e.includes(".delete") || e.includes("delete"),
-      );
+    // Read saved sound preference
+    const saved = localStorage.getItem("zakkig_kitchen_sound");
+    if (saved !== null) {
+      setSoundEnabled(saved === "1");
+    }
 
-      if (isCreate) {
-        const newOrder = response.payload as unknown as Order;
-        setLocalOrders((prev) => {
-          if (prev.some((o) => o.$id === newOrder.$id)) return prev;
-          return [newOrder, ...prev];
-        });
-        toast.success(t("newOrder"), {
-          description: `#${newOrder.orderNumber}`,
-        });
-      } else if (isUpdate) {
-        const updatedOrder = response.payload as unknown as Order;
-        setLocalOrders((prev) =>
-          prev.map((o) => (o.$id === updatedOrder.$id ? updatedOrder : o)),
-        );
-      } else if (isDelete) {
-        setLocalOrders((prev) =>
-          prev.filter((o) => o.$id !== response.payload.$id),
-        );
-      }
-    });
+    // Enable audio context on first click anywhere in the page
+    const handleFirstClick = () => initAudioContext();
+    window.addEventListener("click", handleFirstClick, { once: true });
+    return () => window.removeEventListener("click", handleFirstClick);
+  }, []);
 
-    return () => {
-      unsubscribe();
-    };
-  }, [organizationId, t]);
-
-  // Realtime subscription for organization deletion
   useEffect(() => {
-    if (!organizationId) return;
-    const unsubscribeOrg = subscribeToOrganization(organizationId, (response) => {
-      const events = response.events || [];
-      const isDelete = events.some(
-        (e: string) => e.includes(".delete") || e.includes("delete"),
-      );
-      if (isDelete) {
-        router.push("/");
-      }
-    });
+    if (liveOrders) {
+      const normalized = liveOrders.map((o: any) => ({
+        ...o,
+        $id: o._id,
+        $createdAt: new Date(o._creationTime).toISOString(),
+      }));
 
-    return () => {
-      unsubscribeOrg();
-    };
-  }, [organizationId]);
+      // Detect new incoming orders (status: in_progress)
+      if (!isInitialRef.current) {
+        const newOrders = liveOrders.filter(
+          (o: any) =>
+            o.status === "in_progress" && !knownOrderIdsRef.current.has(o._id)
+        );
+
+        if (newOrders.length > 0) {
+          if (soundEnabled) {
+            playNewOrderSound();
+          }
+          newOrders.forEach((o: any) => {
+            toast.info(`${t("newOrderReceived" as any)} #${o.orderNumber}`);
+          });
+        }
+      }
+
+      // Update known IDs
+      liveOrders.forEach((o: any) => {
+        knownOrderIdsRef.current.add(o._id);
+      });
+      isInitialRef.current = false;
+
+      setLocalOrders(normalized);
+    }
+  }, [liveOrders, soundEnabled, t]);
+
+  useEffect(() => {
+    if (org === null) {
+      toast.error(t("orgDeletedToast" as any));
+      router.push("/");
+    }
+  }, [org, router, t]);
 
   if (!mounted) {
     return null;
@@ -242,11 +287,14 @@ export function LiveOrdersContent({
     if (o.status !== "completed") return false;
     const timestamp = o.$updatedAt
       ? new Date(o.$updatedAt).getTime()
-      : new Date(o.$createdAt).getTime();
+      : new Date(o.$createdAt || o._creationTime || Date.now()).getTime();
     return now - timestamp < KITCHEN_CLEANUP_TIMEOUT;
   });
 
-  async function handleStatusChange(orderId: string, newStatus: string) {
+  async function handleStatusChange(
+    orderId: string,
+    newStatus: "in_progress" | "completed" | "cancelled"
+  ) {
     // Optimistic UI update for instant feedback
     setLocalOrders((prev) =>
       prev.map((o) =>
@@ -263,14 +311,36 @@ export function LiveOrdersContent({
   }
 
   return (
-    <div className="flex-1 space-y-4 pb-12">
-      {/* Top Header */}
+    <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between space-y-2 print:hidden">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">{t("orders")}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <RefreshButton />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              initAudioContext();
+              const next = !soundEnabled;
+              setSoundEnabled(next);
+              localStorage.setItem("zakkig_kitchen_sound", next ? "1" : "0");
+              if (next) playNewOrderSound();
+            }}
+            className="h-9 gap-1.5 px-3 rounded-full text-xs font-semibold shadow-xs"
+          >
+            {soundEnabled ? (
+              <>
+                <SpeakerHigh className="w-4 h-4 text-primary" weight="fill" />
+                <span>{t("soundOn" as any)}</span>
+              </>
+            ) : (
+              <>
+                <SpeakerSlash className="w-4 h-4 text-muted-foreground" />
+                <span>{t("soundOff" as any)}</span>
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -293,7 +363,7 @@ export function LiveOrdersContent({
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {inProgressOrders.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground font-medium border-2 border-dashed rounded-lg">
+              <div className="py-12 text-center text-muted-foreground font-medium border border-dashed rounded-lg">
                 {t("noInProgressOrders")}
               </div>
             ) : (
@@ -324,7 +394,7 @@ export function LiveOrdersContent({
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {completedOrders.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground font-medium border-2 border-dashed rounded-lg">
+              <div className="py-12 text-center text-muted-foreground font-medium border border-dashed rounded-lg">
                 {t("noCompletedRecentOrders")}
               </div>
             ) : (

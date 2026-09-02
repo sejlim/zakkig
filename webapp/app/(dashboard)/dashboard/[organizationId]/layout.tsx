@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/appwrite/server";
-import { getOrganization } from "@/lib/appwrite/database";
+import { getUser } from "@/lib/convex/auth";
+import { getOrganization } from "@/lib/convex/database";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default async function DashboardLayout({

@@ -5,8 +5,8 @@ import {
   getOrderSessions,
   createAvailabilitySession,
   createOrderSession,
-} from "@/lib/appwrite/database";
-import { getUser } from "@/lib/appwrite/server";
+} from "@/lib/convex/database";
+import { getUser } from "@/lib/convex/auth";
 import { OverviewContent } from "@/components/dashboard/overview-content";
 import { SessionsOverviewCard } from "@/components/dashboard/sessions-overview-card";
 import { headers } from "next/headers";

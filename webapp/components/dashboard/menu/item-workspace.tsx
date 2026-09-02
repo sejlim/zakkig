@@ -148,6 +148,13 @@ export function ItemWorkspace({
     const newErrors: { name?: string; price?: string } = {};
     if (!name.trim()) {
       newErrors.name = t("validationItemName");
+    } else if (name.trim().length > 100) {
+      newErrors.name = t("nameTooLong");
+      toast.error(t("nameTooLong"));
+    }
+    if (description && description.length > 500) {
+      toast.error(t("descTooLong"));
+      return;
     }
     if (!price || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
       newErrors.price = t("validationItemPrice");
@@ -289,7 +296,7 @@ export function ItemWorkspace({
                         }}
                         onKeyDown={(e) => e.stopPropagation()}
                         placeholder={t("itemNamePlaceholder")}
-                        maxLength={60}
+                        maxLength={100}
                         className={`bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 ${errors.name ? "border-destructive" : ""}`}
                       />
                       {errors.name && (

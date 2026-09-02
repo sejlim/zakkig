@@ -12,9 +12,9 @@ import {
   getMenuItem,
   updateCategorySortOrders,
   updateItemSortOrders,
-} from "@/lib/appwrite/database";
-import { uploadMenuImage, deleteMenuImage } from "@/lib/appwrite/storage";
-import { getUser } from "@/lib/appwrite/server";
+} from "@/lib/convex/database";
+import { uploadFileToConvex } from "@/lib/convex/storage";
+import { getUser } from "@/lib/convex/auth";
 import type { CustomizationStep } from "@/lib/types";
 
 export interface MenuActionState {
@@ -37,6 +37,7 @@ export async function createCategoryAction(
   const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
 
   if (!name) return { error: "Name ist erforderlich." };
+  if (name.length > 100) return { error: "Der Kategoriename darf maximal 100 Zeichen lang sein." };
 
   try {
     const newDoc = await createMenuCategory({
@@ -70,6 +71,7 @@ export async function updateCategoryAction(
   const organizationId = formData.get("organizationId") as string;
 
   if (!name) return { error: "Name ist erforderlich." };
+  if (name.length > 100) return { error: "Der Kategoriename darf maximal 100 Zeichen lang sein." };
 
   try {
     await updateMenuCategory(categoryId, {
@@ -96,22 +98,6 @@ export async function deleteCategoryAction(
   if (!user) return { error: "Nicht authentifiziert." };
 
   try {
-    // Delete all items in the category first
-    const items = await getMenuItems(organizationId);
-    const categoryItems = items.filter((i) => i.categoryId === categoryId);
-    await Promise.all(
-      categoryItems.map(async (item) => {
-        if (item.imageId) {
-          try {
-            await deleteMenuImage(item.imageId);
-          } catch {
-            /* ignore */
-          }
-        }
-        await deleteMenuItem(item.$id);
-      }),
-    );
-
     await deleteMenuCategory(categoryId);
     revalidatePath(`/dashboard/${organizationId}/menu`);
     return { success: true };
@@ -213,11 +199,20 @@ export async function createMenuItemAction(
   if (!name || isNaN(price)) {
     return { error: "Name und Preis sind erforderlich." };
   }
+  if (name.length > 100) {
+    return { error: "Der Artikelname darf maximal 100 Zeichen lang sein." };
+  }
+  if (description && description.length > 500) {
+    return { error: "Die Beschreibung darf maximal 500 Zeichen lang sein." };
+  }
+  if (price > 10000000) {
+    return { error: "Der Preis ist ungültig." };
+  }
 
   try {
-    let imageId = "";
+    let imageStorageId: string | undefined = undefined;
     if (imageFile && imageFile.size > 0) {
-      imageId = await uploadMenuImage(imageFile, user.$id);
+      imageStorageId = await uploadFileToConvex(imageFile);
     }
 
     await createMenuItem({
@@ -226,7 +221,8 @@ export async function createMenuItemAction(
       name,
       description,
       price,
-      imageId,
+      imageStorageId,
+      imageId: imageStorageId,
       sortOrder,
       ownerId: user.$id,
       taxRate,
@@ -266,30 +262,23 @@ export async function updateMenuItemAction(
   if (!name || isNaN(price)) {
     return { error: "Name und Preis sind erforderlich." };
   }
+  if (name.length > 100) {
+    return { error: "Der Artikelname darf maximal 100 Zeichen lang sein." };
+  }
+  if (description && description.length > 500) {
+    return { error: "Die Beschreibung darf maximal 500 Zeichen lang sein." };
+  }
+  if (price > 10000000) {
+    return { error: "Der Preis ist ungültig." };
+  }
 
   try {
-    let imageId = existingImageId;
+    let imageStorageId: string | undefined = existingImageId || undefined;
 
-    // Handle image removal
-    if (removeExistingImage && existingImageId) {
-      try {
-        await deleteMenuImage(existingImageId);
-      } catch {
-        /* ignore */
-      }
-      imageId = "";
-    }
-
-    // Handle new image upload
-    if (imageFile && imageFile.size > 0) {
-      if (existingImageId && !removeExistingImage) {
-        try {
-          await deleteMenuImage(existingImageId);
-        } catch {
-          /* ignore */
-        }
-      }
-      imageId = await uploadMenuImage(imageFile, user.$id);
+    if (removeExistingImage) {
+      imageStorageId = undefined;
+    } else if (imageFile && imageFile.size > 0) {
+      imageStorageId = await uploadFileToConvex(imageFile);
     }
 
     await updateMenuItem(itemId, {
@@ -297,7 +286,9 @@ export async function updateMenuItemAction(
       description,
       price,
       available,
-      imageId,
+      imageStorageId,
+      imageId: imageStorageId,
+      clearImage: removeExistingImage,
       taxRate,
       customizations,
     });
@@ -316,19 +307,12 @@ export async function updateMenuItemAction(
 export async function deleteMenuItemAction(
   itemId: string,
   organizationId: string,
-  imageId?: string,
+  _imageId?: string,
 ) {
   const user = await getUser();
   if (!user) return { error: "Nicht authentifiziert." };
 
   try {
-    if (imageId) {
-      try {
-        await deleteMenuImage(imageId);
-      } catch {
-        /* ignore */
-      }
-    }
     await deleteMenuItem(itemId);
     revalidatePath(`/dashboard/${organizationId}/menu`);
     return { success: true };
@@ -341,7 +325,6 @@ export async function deleteMenuItemAction(
   }
 }
 
-// @react-doctor-ignore server-auth-actions - Secured via availability session token in the UI
 export async function toggleMenuItemAvailability(
   itemId: string,
   available: boolean,
@@ -363,7 +346,6 @@ export async function toggleMenuItemAvailability(
   }
 }
 
-// @react-doctor-ignore server-auth-actions - Secured via availability session token in the UI
 export async function toggleCustomizationAvailabilityAction(
   itemId: string,
   stepId: string,
@@ -388,14 +370,12 @@ export async function toggleCustomizationAvailabilityAction(
       const currentStepId = step.id || (step as any).$id;
       if (currentStepId !== stepId) return step;
       if (!optionId) {
-        // Toggle entire step and cascade to all its options automatically
         const updatedOptions = (step.options || []).map((opt) => ({
           ...opt,
           available,
         }));
         return { ...step, available, options: updatedOptions };
       } else {
-        // Toggle specific option (only if step is not disabled)
         if (step.available === false && available === true) return step;
         const updatedOptions = (step.options || []).map((opt) => {
           const currentOptId = opt.id || (opt as any).$id;

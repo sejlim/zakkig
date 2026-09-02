@@ -59,7 +59,6 @@ import {
   toggleFeatureAction,
   updateTablesAction,
 } from "@/actions/settings-actions";
-import { RefreshButton } from "./refresh-button";
 import { cn } from "@/lib/utils";
 import type { Organization, Order } from "@/lib/types";
 import { ReactQRCode } from "@lglab/react-qr-code";
@@ -158,7 +157,10 @@ function filterOrdersByPeriod(orders: Order[], period: TimePeriod): Order[] {
     "90d": 90 * 24 * 60 * 60 * 1000,
   };
   return orders.filter(
-    (o) => now - new Date(o.$createdAt).getTime() < ms[period],
+    (o) =>
+      now -
+        new Date(o.$createdAt || o._creationTime || Date.now()).getTime() <
+      ms[period],
   );
 }
 
@@ -259,7 +261,7 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
         dataMap.set(`${d.getHours()}:00`, { orders: 0, revenue: 0 });
       }
       filtered.forEach((o) => {
-        const d = new Date(o.$createdAt);
+        const d = new Date(o.$createdAt || o._creationTime || Date.now());
         const key = `${d.getHours()}:00`;
         if (dataMap.has(key)) {
           const entry = dataMap.get(key)!;
@@ -275,7 +277,7 @@ function StatisticsCard({ orders, period, setPeriod, isMobile, mounted }: any) {
         dataMap.set(key, { orders: 0, revenue: 0 });
       }
       filtered.forEach((o) => {
-        const d = new Date(o.$createdAt);
+        const d = new Date(o.$createdAt || o._creationTime || Date.now());
         const key = `${d.getDate()}.${d.getMonth() + 1}.`;
         if (dataMap.has(key)) {
           const entry = dataMap.get(key)!;
@@ -697,7 +699,7 @@ function QrCodeGeneratorCard({
                       strategy={rectSortingStrategy}
                     >
                       {tables.length === 0 && !isAddingTable && (
-                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border border-dashed rounded-xl">
                           <p className="mb-4">{t("noTablesAdded")}</p>
                         </div>
                       )}
@@ -743,14 +745,14 @@ function QrCodeGeneratorCard({
                           }
                         }}
                         maxLength={4}
-                        className="w-full h-8 text-center text-sm font-medium border-2 border-dashed border-primary rounded-lg focus-visible:ring-0"
+                        className="w-full h-8 text-center text-sm font-medium border border-dashed border-primary rounded-lg focus-visible:ring-0"
                       />
                     ) : (
                       <Button
                         type="button"
                         variant="ghost"
                         onClick={() => setIsAddingTable(true)}
-                        className="w-full border-2 border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
+                        className="w-full border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
                       >
                         <Plus className="h-4 w-4 shrink-0" weight="bold" />
                         <span>{t("addTableFull")}</span>
@@ -904,7 +906,6 @@ export function OverviewContent({
               {t("overview")}
             </h1>
           </div>
-          <RefreshButton />
         </div>
 
         <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 print:block">

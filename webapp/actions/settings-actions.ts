@@ -2,61 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { after } from "next/server";
-import { updateOrganization } from "@/lib/appwrite/database";
-import { uploadMenuImage, deleteMenuImage } from "@/lib/appwrite/storage";
-import { getUser, createAdminClient, createSessionClient } from "@/lib/appwrite/server";
+import { updateOrganization } from "@/lib/convex/database";
+import { uploadFileToConvex } from "@/lib/convex/storage";
+import { getUser, getAuthenticatedConvexClient } from "@/lib/convex/auth";
+import { convexServer } from "@/lib/convex/server";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { redirect } from "next/navigation";
+import {
+  sendDeleteAccountEmail,
+  sendChangeEmailLink,
+  sendEmailOtp,
+} from "@/lib/email";
 import { SESSION_COOKIE_NAME } from "@/lib/constants";
-import { ID, Functions, Client, Account, Users, ExecutionMethod } from "node-appwrite";
-import crypto from "crypto";
 
 export interface SettingsActionState {
   error?: string;
   success?: boolean;
 }
 
-import { redirect } from "next/navigation";
-
 export async function logoutAllDevicesAction(): Promise<void> {
-  const user = await getUser();
-  if (!user) {
-    redirect("/sign-in");
-  }
-
-  const { users } = createAdminClient();
-  try {
-    await users.deleteSessions(user.$id);
-  } catch (error) {
-    console.error("Failed to delete all sessions:", error);
-  }
-
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE_NAME);
-  
-  redirect("/");
-}
-
-async function updateUserNameAction(
-  _prevState: SettingsActionState,
-  formData: FormData,
-): Promise<SettingsActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
-  const name = formData.get("name") as string;
-  if (!name) return { error: "Name ist erforderlich." };
-
-  try {
-    const { users } = createAdminClient();
-    await users.updateName(user.$id, name);
-    return { success: true };
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Fehler beim Speichern des Namens.";
-    return { error: message };
-  }
+  redirect("/sign-in");
 }
 
 export async function updateBusinessAction(
@@ -72,44 +38,52 @@ export async function updateBusinessAction(
   const address = formData.get("address") as string;
   const logoFile = formData.get("logo") as File | null;
   const existingLogoId = formData.get("existingLogoId") as string;
+  const removeLogo = formData.get("removeLogo") === "true";
+  const bannerFile = formData.get("banner") as File | null;
+  const existingBannerId = formData.get("existingBannerId") as string;
+  const removeBanner = formData.get("removeBanner") === "true";
 
   if (!organizationName) return { error: "Name des Betriebs ist erforderlich." };
+  if (organizationName.length > 100) return { error: "Der Name des Betriebs darf maximal 100 Zeichen lang sein." };
   if (!userName) return { error: "Vertretername ist erforderlich." };
+  if (userName.length > 100) return { error: "Der Name darf maximal 100 Zeichen lang sein." };
+  if (address && address.length > 200) return { error: "Die Adresse darf maximal 200 Zeichen lang sein." };
 
   try {
-    const { users } = createAdminClient();
-    await users.updateName(user.$id, userName);
+    const client = await getAuthenticatedConvexClient();
+    try {
+      await client.mutation(api.users.updateName, { name: userName });
+    } catch {
+      // ignore if auth context is separate
+    }
 
-    let logoFileId = existingLogoId;
-
-    if (formData.get("removeLogo") === "true") {
-      if (existingLogoId) {
-        try {
-          await deleteMenuImage(existingLogoId);
-        } catch {
-          /* ignore */
-        }
-      }
-      logoFileId = "";
+    let logoStorageId: string | undefined = existingLogoId || undefined;
+    if (removeLogo) {
+      logoStorageId = undefined;
     } else if (logoFile && logoFile.size > 0) {
-      if (existingLogoId) {
-        try {
-          await deleteMenuImage(existingLogoId);
-        } catch {
-          /* ignore */
-        }
-      }
-      logoFileId = await uploadMenuImage(logoFile, user.$id);
+      logoStorageId = await uploadFileToConvex(logoFile);
+    }
+
+    let bannerStorageId: string | undefined = existingBannerId || undefined;
+    if (removeBanner) {
+      bannerStorageId = undefined;
+    } else if (bannerFile && bannerFile.size > 0) {
+      bannerStorageId = await uploadFileToConvex(bannerFile);
     }
 
     await updateOrganization(organizationId, {
       name: organizationName,
       address,
-      logoFileId,
+      logoStorageId,
+      clearLogo: removeLogo,
+      bannerStorageId,
+      clearBanner: removeBanner,
     });
 
     revalidatePath(`/dashboard/${organizationId}/settings`);
     revalidatePath(`/dashboard/${organizationId}/overview`);
+    revalidatePath(`/to-go/${organizationId}`);
+    revalidatePath(`/to-stay/${organizationId}`);
     return { success: true };
   } catch (error: unknown) {
     const message =
@@ -120,91 +94,103 @@ export async function updateBusinessAction(
   }
 }
 
-
-
 export async function requestAccountDeletionAction() {
   try {
-    const session = await createSessionClient();
-    if (!session) {
-      return { success: false, error: "Not authenticated" };
+    const user = await getUser();
+    if (!user) return { success: false, error: "Nicht authentifiziert." };
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
+
+    const res = await convexServer.mutation(api.users.createAccountDeletionToken, {
+      userId: user._id,
+    });
+
+    if (!res.success || !res.token || !res.email) {
+      return { success: false, error: res.error || "Token konnte nicht erstellt werden." };
     }
-    const { account } = session;
-    const user = await account.get();
 
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
+    const deleteUrl = `${appUrl}/delete-account?userId=${user._id}&token=${res.token}`;
+    const emailResult = await sendDeleteAccountEmail({
+      to: res.email,
+      deleteUrl,
+      locale,
+    });
+
+    if (!emailResult.success) {
+      return { success: false, error: emailResult.error || "Bestätigungs-E-Mail konnte nicht gesendet werden." };
     }
-
-    if (!process.env.NEXT_PUBLIC_APP_URL) {
-      throw new Error("Missing NEXT_PUBLIC_APP_URL");
-    }
-
-    const { client } = await createAdminClient();
-    const functions = new Functions(client);
-
-    // Call the Appwrite function to handle the token generation and email sending
-    await functions.createExecution(
-      "deleteAccount",
-      JSON.stringify({
-        action: "request",
-        userId: user.$id,
-        locale: (await cookies()).get("NEXT_LOCALE")?.value || "de",
-        appUrl: process.env.NEXT_PUBLIC_APP_URL
-      }),
-      false, // async
-      "/", // path
-      ExecutionMethod.POST // method
-    );
 
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Account deletion request failed:", error);
-    return { success: false, error: "Failed to request deletion" };
+    return { success: false, error: error.message || "Fehler beim Anfordern der Kontolöschung." };
+  }
+}
+
+export async function confirmAccountDeletionAction(
+  userId: string,
+  token: string
+) {
+  try {
+    const res = await convexServer.mutation(api.users.confirmAccountDeletion, {
+      userId: userId as Id<"users">,
+      token,
+    });
+
+    if (res.error) {
+      return { success: false, error: res.error };
+    }
+
+    // Sign out user by clearing the session cookie
+    const cookieStore = await cookies();
+    cookieStore.delete(SESSION_COOKIE_NAME);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Account deletion confirm failed:", error);
+    return { success: false, error: error.message || "Fehler beim Löschen des Kontos." };
   }
 }
 
 export async function requestEmailChangeAction() {
   try {
-    const session = await createSessionClient();
-    if (!session) {
-      return { success: false, error: "Not authenticated" };
+    const user = await getUser();
+    if (!user) return { success: false, error: "Nicht authentifiziert." };
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
+
+    const res = await convexServer.mutation(api.users.createEmailChangeToken, {
+      userId: user._id,
+    });
+
+    if (!res.success || !res.token || !res.email) {
+      return { success: false, error: res.error || "Token konnte nicht erstellt werden." };
     }
-    const { account } = session;
-    const user = await account.get();
 
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
+    const changeUrl = `${appUrl}/change-email/confirm?userId=${user._id}&token=${res.token}`;
+    const emailResult = await sendChangeEmailLink({
+      to: res.email,
+      changeUrl,
+      locale,
+    });
+
+    if (!emailResult.success) {
+      return { success: false, error: emailResult.error || "Bestätigungs-E-Mail konnte nicht gesendet werden." };
     }
-
-    if (!process.env.NEXT_PUBLIC_APP_URL) {
-      throw new Error("Missing NEXT_PUBLIC_APP_URL");
-    }
-
-    const { client } = await createAdminClient();
-    const functions = new Functions(client);
-
-    await functions.createExecution(
-      "changeEmail",
-      JSON.stringify({
-        action: "request",
-        userId: user.$id,
-        locale: (await cookies()).get("NEXT_LOCALE")?.value || "de",
-        appUrl: process.env.NEXT_PUBLIC_APP_URL
-      }),
-      false, // async
-      "/", // path
-      ExecutionMethod.POST // method
-    );
 
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Email change request failed:", error);
-    return { success: false, error: "Failed to request email change" };
+    return { success: false, error: error.message || "Fehler beim Anfordern der E-Mail-Änderung." };
   }
 }
 
 export async function sendEmailChangeOtpAction(
-  prevState: { success?: boolean; error?: string },
+  _prevState: { success?: boolean; error?: string; email?: string; userId?: string; token?: string },
   formData: FormData
 ) {
   try {
@@ -213,47 +199,44 @@ export async function sendEmailChangeOtpAction(
     const newEmail = formData.get("newEmail") as string;
 
     if (!userId || !token || !newEmail) {
-      return { success: false, error: "Missing required fields" };
+      return { success: false, error: "Bitte fülle alle Pflichtfelder aus." };
     }
 
-    const { client } = await createAdminClient();
-    const users = new Users(client);
-    const functions = new Functions(client);
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
 
-    const user = await users.get(userId);
-    if (user.email === newEmail) {
-      return { success: false, error: "Die E-Mail-Adresse ist bereits mit diesem Konto verknüpft." };
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const res = await convexServer.mutation(api.users.storeNewEmailOtp, {
+      userId: userId as Id<"users">,
+      token,
+      newEmail,
+      otp,
+    });
+
+    if (!res.success) {
+      return { success: false, error: res.error || "Token ist ungültig oder abgelaufen." };
     }
 
-    const res = await functions.createExecution(
-      "changeEmail",
-      JSON.stringify({
-        action: "sendOtp",
-        userId,
-        token,
-        newEmail,
-        locale: (await cookies()).get("NEXT_LOCALE")?.value || "de",
-      }),
-      false, // async
-      "/", // path
-      ExecutionMethod.POST // method
-    );
-    
-    // Check if function failed
-    const responseBody = JSON.parse(res.responseBody);
-    if (!responseBody.success) {
-       return { success: false, error: responseBody.error || "Failed to send OTP" };
+    const emailRes = await sendEmailOtp({
+      to: newEmail,
+      code: otp,
+      locale,
+    });
+
+    if (!emailRes.success) {
+      return { success: false, error: emailRes.error || "Fehler beim Senden des Bestätigungscodes." };
     }
 
     return { success: true, email: newEmail, userId, token };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Email change send OTP failed:", error);
-    return { success: false, error: "Fehler beim Senden des Bestätigungscodes." };
+    return { success: false, error: error.message || "Fehler beim Senden des Bestätigungscodes." };
   }
 }
 
 export async function confirmEmailChangeOtpAction(
-  prevState: { success?: boolean; error?: string },
+  _prevState: { success?: boolean; error?: string },
   formData: FormData
 ) {
   try {
@@ -263,104 +246,24 @@ export async function confirmEmailChangeOtpAction(
     const otp = formData.get("otp") as string;
 
     if (!userId || !token || !email || !otp) {
-      return { success: false, error: "Missing required fields" };
+      return { success: false, error: "Bitte fülle alle Pflichtfelder aus." };
     }
 
-    const currentUser = await getUser();
-    if (!currentUser || currentUser.$id !== userId) {
-      return { success: false, error: "Nicht authentifiziert." };
-    }
-
-    const { client } = await createAdminClient();
-    const users = new Users(client);
-
-    const user = await users.get(userId);
-    const prefs = user.prefs || {};
-
-    if (!prefs.changeEmailToken || prefs.changeEmailToken !== token) {
-      return { success: false, error: "Token ist ungültig oder abgelaufen." };
-    }
-    
-    if (!prefs.newEmailOtp || prefs.newEmailOtp !== otp) {
-      return { success: false, error: "Falscher Bestätigungscode." };
-    }
-
-    if (!prefs.newEmailOtpExpires || Date.now() > prefs.newEmailOtpExpires) {
-      return { success: false, error: "Der Code ist abgelaufen." };
-    }
-    
-    if (prefs.pendingNewEmail !== email) {
-      return { success: false, error: "Email stimmt nicht überein." };
-    }
-
-    // 1. Update the Email and set it as verified
-    await users.updateEmail(userId, email);
-    await users.updateEmailVerification(userId, true);
-
-    // 2. Clear prefs
-    delete prefs.changeEmailToken;
-    delete prefs.changeEmailTokenExpires;
-    delete prefs.newEmailOtp;
-    delete prefs.newEmailOtpExpires;
-    delete prefs.pendingNewEmail;
-    await users.updatePrefs(userId, prefs);
-
-    // 3. Authenticate User (log them in)
-    const customToken = await users.createToken(userId);
-    const sessionClient = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!);
-    const sessionAccount = new Account(sessionClient);
-    const session = await sessionAccount.createSession(userId, customToken.secret);
-
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE_NAME, session.secret, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      expires: new Date(session.expire),
-      path: "/",
+    const res = await convexServer.mutation(api.users.confirmEmailChangeWithOtp, {
+      userId: userId as Id<"users">,
+      token,
+      newEmail: email,
+      otp,
     });
+
+    if (!res.success) {
+      return { success: false, error: res.error || "Fehler beim Bestätigen der E-Mail-Adresse." };
+    }
 
     return { success: true };
   } catch (error: any) {
     console.error("Email change confirm OTP failed:", error);
-    return { success: false, error: error?.message || "Fehler beim Bestätigen der Email-Adresse." };
-  }
-}
-
-export async function confirmAccountDeletionAction(
-  userId: string,
-  token: string
-) {
-  try {
-    const { client } = await createAdminClient();
-    const functions = new Functions(client);
-
-    const result = await functions.createExecution(
-      "deleteAccount",
-      JSON.stringify({
-        action: "confirm",
-        userId,
-        token
-      }),
-      false, // async
-      "/", // path
-      ExecutionMethod.POST // method
-    );
-
-    const response = JSON.parse(result.responseBody);
-    if (!response.success) {
-      return { success: false, error: response.error || "Failed to confirm deletion" };
-    }
-
-    const { signOut } = await import("@/lib/appwrite/auth");
-    await signOut();
-
-    return { success: true };
-  } catch (error: any) {
-    console.error("Account deletion confirm failed:", error);
-    return { success: false, error: error.message || "Failed to confirm deletion" };
+    return { success: false, error: error?.message || "Fehler beim Bestätigen der E-Mail-Adresse." };
   }
 }
 

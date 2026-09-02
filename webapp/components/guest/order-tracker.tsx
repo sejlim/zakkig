@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useTranslation } from "@/lib/i18n";
-import { subscribeToOrder } from "@/lib/appwrite/realtime";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { CheckCircle, CookingPot, X } from "@phosphor-icons/react";
+import { playOrderReadySound, initAudioContext } from "@/lib/audio";
 import type { Organization, Order } from "@/lib/types";
 
 interface OrderTrackerProps {
@@ -26,29 +30,41 @@ export function OrderTracker({
   initialOrder,
 }: OrderTrackerProps) {
   const { t } = useTranslation();
-  const [order, setOrder] = useState<Order | null>(initialOrder || null);
-  const [error, setError] = useState(initialOrder === null);
+
+  const liveOrder = useQuery(api.orders.getOrder, {
+    id: orderId as Id<"orders">,
+  });
+
+  const order: Order | null = liveOrder
+    ? {
+        ...liveOrder,
+        $id: liveOrder._id,
+        $createdAt: new Date(liveOrder._creationTime).toISOString(),
+      }
+    : initialOrder || null;
+
+  const prevStatusRef = useRef<string | null>(initialOrder?.status || null);
 
   useEffect(() => {
-    // If not provided from server, show error
-    if (!initialOrder) setError(true);
+    const handleInteract = () => initAudioContext();
+    window.addEventListener("click", handleInteract, { once: true });
+    return () => window.removeEventListener("click", handleInteract);
+  }, []);
 
-    // Appwrite Realtime WebSocket subscription
-    const unsubscribe = subscribeToOrder(orderId, (response) => {
-      const events = response.events || [];
-      if (
-        events.some(
-          (e: string) => e.includes(".update") || e.includes("update"),
-        )
-      ) {
-        setOrder(response.payload as unknown as Order);
-      }
-    });
+  useEffect(() => {
+    if (
+      order?.status === "completed" &&
+      prevStatusRef.current &&
+      prevStatusRef.current !== "completed"
+    ) {
+      playOrderReadySound();
+    }
+    if (order?.status) {
+      prevStatusRef.current = order.status;
+    }
+  }, [order?.status]);
 
-    return () => {
-      unsubscribe();
-    };
-  }, [orderId, initialOrder]);
+  const error = !order && liveOrder === null;
 
   if (error) {
     return (
@@ -74,8 +90,8 @@ export function OrderTracker({
     return (
       <div className="flex flex-col min-h-screen bg-muted/10 items-center justify-center p-6">
         <Card className="max-w-md w-full p-6 text-center space-y-4 border-destructive/20 bg-destructive/5">
-          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive font-bold text-xl">
-            ✕
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+            <X className="w-6 h-6" weight="bold" />
           </div>
           <h2 className="text-xl font-bold text-foreground">
             {t("orderCancelledTitle")}
@@ -113,12 +129,26 @@ export function OrderTracker({
             </div>
           </div>
 
-          {order.status === "completed" && (
-            <div className="w-full bg-emerald-500/10 border-2 border-emerald-500/30 rounded-2xl p-6 text-center space-y-2 animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center mx-auto text-2xl font-bold">
-                ✓
+          {order.status === "in_progress" && (
+            <div className="w-full bg-muted/40 border border-border/80 rounded-2xl p-5 text-center space-y-2 animate-in fade-in zoom-in-95 duration-300">
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                <CookingPot className="w-5 h-5" weight="bold" />
               </div>
-              <h2 className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
+              <h2 className="text-base font-bold text-foreground">
+                {t("inProgress")}
+              </h2>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {t("inProgressDesc" as any)}
+              </p>
+            </div>
+          )}
+
+          {order.status === "completed" && (
+            <div className="w-full bg-primary/10 border-2 border-primary/25 rounded-2xl p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
+              <div className="w-12 h-12 rounded-full bg-primary/15 text-primary flex items-center justify-center mx-auto">
+                <CheckCircle className="w-7 h-7" weight="fill" />
+              </div>
+              <h2 className="text-xl font-bold text-primary">
                 {t("orderReadyForPickup" as any)}
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -127,8 +157,8 @@ export function OrderTracker({
             </div>
           )}
 
-          <Card className="w-full">
-            <div className="pt-6">
+          <Card className="w-full p-5 sm:p-6 shadow-xs">
+            <div>
               <h2 className="font-semibold text-lg mb-6">{t("orderStatus")}</h2>
 
               <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-muted before:to-transparent">

@@ -1,5 +1,5 @@
-import { getOrganization } from "@/lib/appwrite/database";
-import { getUser } from "@/lib/appwrite/server";
+import { getOrganization } from "@/lib/convex/database";
+import { getUser } from "@/lib/convex/auth";
 import { SettingsContent } from "@/components/dashboard/settings-content";
 
 export const metadata = { title: "Einstellungen" };

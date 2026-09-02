@@ -49,10 +49,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { useTranslation, formatPrice } from "@/lib/i18n";
 import { exportOrdersCSVAction } from "@/actions/order-actions";
 import type { Order, OrderItem } from "@/lib/types";
-import { RefreshButton } from "./refresh-button";
 
 interface ArchiveContentProps {
   orders: Order[];
@@ -248,9 +250,6 @@ export function ArchiveContent({
       <div className="flex items-center justify-between space-y-2 print:hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("archive")}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <RefreshButton />
         </div>
       </div>
 
@@ -481,7 +480,9 @@ export function ArchiveContent({
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-sm">
                           <span suppressHydrationWarning>
-                            {dateFormatter.format(new Date(order.$createdAt))}
+                            {dateFormatter.format(
+                              new Date(order.$createdAt || order._creationTime || Date.now())
+                            )}
                           </span>
                         </TableCell>
                         <TableCell className="text-sm font-medium">

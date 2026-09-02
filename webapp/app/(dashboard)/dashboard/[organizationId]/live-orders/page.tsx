@@ -1,4 +1,4 @@
-import { getOrders, getOrganization } from "@/lib/appwrite/database";
+import { getOrders, getOrganization } from "@/lib/convex/database";
 import { LiveOrdersContent } from "@/components/dashboard/live-orders-content";
 
 export const metadata = { title: "Live-Bestellungen" };
