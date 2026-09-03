@@ -13,6 +13,7 @@ export const getLiveOrders = query({
       items: v.string(),
       total: v.number(),
       status: v.union(v.literal("in_progress"), v.literal("completed"), v.literal("cancelled")),
+      completedAt: v.optional(v.number()),
       email: v.string(),
       orderNumber: v.string(),
       stripePaymentId: v.optional(v.string()),
@@ -23,13 +24,29 @@ export const getLiveOrders = query({
     })
   ),
   handler: async (ctx, args) => {
-    return await ctx.db
+    const inProgress = await ctx.db
       .query("orders")
       .withIndex("by_organizationId_and_status", (q) =>
         q.eq("organizationId", args.organizationId).eq("status", "in_progress")
       )
       .order("desc")
       .collect();
+
+    const recentCompleted = await ctx.db
+      .query("orders")
+      .withIndex("by_organizationId_and_status", (q) =>
+        q.eq("organizationId", args.organizationId).eq("status", "completed")
+      )
+      .order("desc")
+      .take(20);
+
+    const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
+    const activeCompleted = recentCompleted.filter((o) => {
+      const timestamp = o.completedAt || o._creationTime;
+      return timestamp > fifteenMinutesAgo;
+    });
+
+    return [...inProgress, ...activeCompleted];
   },
 });
 
@@ -50,6 +67,7 @@ export const getOrders = query({
       items: v.string(),
       total: v.number(),
       status: v.union(v.literal("in_progress"), v.literal("completed"), v.literal("cancelled")),
+      completedAt: v.optional(v.number()),
       email: v.string(),
       orderNumber: v.string(),
       stripePaymentId: v.optional(v.string()),
@@ -93,6 +111,7 @@ export const getOrder = query({
       items: v.string(),
       total: v.number(),
       status: v.union(v.literal("in_progress"), v.literal("completed"), v.literal("cancelled")),
+      completedAt: v.optional(v.number()),
       email: v.string(),
       orderNumber: v.string(),
       stripePaymentId: v.optional(v.string()),
@@ -103,7 +122,14 @@ export const getOrder = query({
     })
   ),
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const order = await ctx.db.get(args.id);
+    if (!order) return null;
+    return {
+      ...order,
+      zakkigFee: 0,
+      stripeFee: 0,
+      netAmount: 0,
+    };
   },
 });
 
@@ -120,6 +146,7 @@ export const getOrderByPaymentIntent = query({
       items: v.string(),
       total: v.number(),
       status: v.union(v.literal("in_progress"), v.literal("completed"), v.literal("cancelled")),
+      completedAt: v.optional(v.number()),
       email: v.string(),
       orderNumber: v.string(),
       stripePaymentId: v.optional(v.string()),
@@ -130,12 +157,19 @@ export const getOrderByPaymentIntent = query({
     })
   ),
   handler: async (ctx, args) => {
-    return await ctx.db
+    const order = await ctx.db
       .query("orders")
       .withIndex("by_stripePaymentId", (q) =>
         q.eq("stripePaymentId", args.stripePaymentId)
       )
       .first();
+    if (!order) return null;
+    return {
+      ...order,
+      zakkigFee: 0,
+      stripeFee: 0,
+      netAmount: 0,
+    };
   },
 });
 
@@ -270,7 +304,14 @@ export const updateStatus = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { status: args.status });
+    const patchData: {
+      status: "in_progress" | "completed" | "cancelled";
+      completedAt?: number;
+    } = { status: args.status };
+    if (args.status === "completed") {
+      patchData.completedAt = Date.now();
+    }
+    await ctx.db.patch(args.id, patchData);
     return null;
   },
 });

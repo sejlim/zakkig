@@ -61,7 +61,7 @@ export const signInWithPassword = action({
       otp,
     });
 
-    await ctx.runAction(internal.emails.sendEmailOtp, {
+    await ctx.scheduler.runAfter(0, internal.emails.sendEmailOtp, {
       to: normalized,
       code: otp,
       locale: args.locale,
@@ -113,7 +113,14 @@ export const signUpWithPassword = action({
       otp,
     });
 
-    await ctx.runAction(internal.emails.sendEmailOtp, {
+    // Schedule deletion of unverified provisional account after 30 minutes
+    await ctx.scheduler.runAfter(
+      30 * 60 * 1000,
+      internal.authQueries.cleanupUnverifiedUser,
+      { userId }
+    );
+
+    await ctx.scheduler.runAfter(0, internal.emails.sendEmailOtp, {
       to: normalized,
       code: otp,
       locale: args.locale,
@@ -137,11 +144,12 @@ export const resendOtp = action({
       otp,
     });
 
-    return await ctx.runAction(internal.emails.sendEmailOtp, {
+    await ctx.scheduler.runAfter(0, internal.emails.sendEmailOtp, {
       to: args.email.toLowerCase().trim(),
       code: otp,
       locale: args.locale,
     });
+    return true;
   },
 });
 
@@ -206,7 +214,7 @@ export const requestPasswordReset = action({
     });
 
     const resetUrl = `${args.appUrl}/reset-password/confirm?userId=${creds.userId}&secret=${secret}`;
-    await ctx.runAction(internal.emails.sendPasswordResetEmail, {
+    await ctx.scheduler.runAfter(0, internal.emails.sendPasswordResetEmail, {
       to: normalized,
       resetUrl,
       userName: creds.name,

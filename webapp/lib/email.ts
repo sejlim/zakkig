@@ -64,9 +64,18 @@ export async function sendDeleteAccountEmail({
   const isDe = locale !== "en";
   const subject = isDe ? "Konto löschen bestätigen" : "Confirm account deletion";
   const intro = isDe
-    ? "Bitte klicke auf die folgende Schaltfläche, um dein Konto bei zakkig endgültig zu löschen. Dieser Link ist nur für kurze Zeit gültig."
-    : "Please click the button below to permanently delete your account at zakkig. This link is only valid for a short time.";
+    ? "Bitte klicke auf die folgende Schaltfläche, um dein Konto bei zakkig endgültig zu löschen. Dieser Link ist 30 Minuten gültig."
+    : "Please click the button below to permanently delete your zakkig account. This link is valid for 30 minutes.";
   const btnText = isDe ? "Konto unwiderruflich löschen" : "Delete account permanently";
+  const fallback = isDe
+    ? "Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:"
+    : "If the button doesn't work, copy and paste this link into your browser:";
+  const ignoreHint = isDe
+    ? "Falls du diese Löschung nicht angefragt hast, kannst du diese E-Mail einfach ignorieren."
+    : "If you didn't request this deletion, you can safely ignore this email.";
+  const footerText = isDe
+    ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+    : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
   const html = `<!DOCTYPE html>
 <html>
@@ -91,9 +100,15 @@ export async function sendDeleteAccountEmail({
       <div style="text-align: center; margin-bottom: 32px;">
         <a href="${deleteUrl}" target="_blank" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
-      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:</p>
+      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
       <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
         <a href="${deleteUrl}" style="color: #09090b; text-decoration: underline;">${deleteUrl}</a>
+      </p>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
+    </div>
+    <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
+      <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
+        ${footerText}
       </p>
     </div>
   </div>
@@ -120,11 +135,20 @@ export async function sendChangeEmailLink({
   locale?: string;
 }) {
   const isDe = locale !== "en";
-  const subject = isDe ? "E-Mail-Adresse ändern bestätigen" : "Confirm email address change";
+  const subject = isDe ? "Email-Adresse ändern bestätigen" : "Confirm email change";
   const intro = isDe
-    ? "Bitte klicke auf die folgende Schaltfläche, um deine neue E-Mail-Adresse für dein Konto bei zakkig zu bestätigen. Dieser Link ist nur für kurze Zeit gültig."
-    : "Please click the button below to confirm your new email address for your zakkig account. This link is only valid for a short time.";
-  const btnText = isDe ? "E-Mail-Adresse ändern" : "Change Email Address";
+    ? "Bitte klicke auf die folgende Schaltfläche, um die Änderung deiner Email-Adresse bei zakkig zu bestätigen. Dieser Link ist 30 Minuten gültig."
+    : "Please click the button below to confirm the change of your zakkig email address. This link is valid for 30 minutes.";
+  const btnText = isDe ? "Email-Adresse ändern" : "Change email address";
+  const fallback = isDe
+    ? "Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:"
+    : "If the button doesn't work, copy and paste this link into your browser:";
+  const ignoreHint = isDe
+    ? "Falls du diese Änderung nicht angefragt hast, kannst du diese E-Mail einfach ignorieren."
+    : "If you didn't request this change, you can safely ignore this email.";
+  const footerText = isDe
+    ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+    : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
   const html = `<!DOCTYPE html>
 <html>
@@ -149,9 +173,15 @@ export async function sendChangeEmailLink({
       <div style="text-align: center; margin-bottom: 32px;">
         <a href="${changeUrl}" target="_blank" style="display: inline-block; background-color: #09090b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
-      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:</p>
+      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
       <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
         <a href="${changeUrl}" style="color: #09090b; text-decoration: underline;">${changeUrl}</a>
+      </p>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
+    </div>
+    <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
+      <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
+        ${footerText}
       </p>
     </div>
   </div>
@@ -178,10 +208,19 @@ export async function sendEmailOtp({
   locale?: string;
 }) {
   const isDe = locale !== "en";
-  const subject = isDe ? "Dein Bestätigungscode" : "Your verification code";
+  const subject = isDe ? "Dein Anmeldecode" : "Your Login Code";
   const intro = isDe
-    ? "Verwende den folgenden Code, um deine neue E-Mail-Adresse zu bestätigen. Der Code ist 15 Minuten lang gültig."
-    : "Use the following code to verify your new email address. This code is valid for 15 minutes.";
+    ? "Verwende den folgenden Code, um deine Anmeldung zu bestätigen. Der Code ist 30 Minuten gültig."
+    : "Use the following code to confirm your login. The code is valid for 30 minutes.";
+  const hint1 = isDe
+    ? "Bitte gib diesen Code in dem geöffneten Browserfenster ein, um fortzufahren. Teile diesen Code niemals mit anderen Personen."
+    : "Please enter this code in the open browser window to continue. Never share this code with anyone else.";
+  const hint2 = isDe
+    ? "Falls du diese E-Mail nicht angefordert hast, kannst du sie einfach ignorieren."
+    : "If you did not request this email, you can safely ignore it.";
+  const footerText = isDe
+    ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+    : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
   const html = `<!DOCTYPE html>
 <html>
@@ -203,10 +242,16 @@ export async function sendEmailOtp({
     <div style="padding: 40px;">
       <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #09090b; letter-spacing: -0.5px;">${subject}</h1>
       <p style="margin: 0 0 32px; font-size: 15px; color: #71717a; line-height: 1.6;">${intro}</p>
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; background-color: #f4f4f5; border: 1px dashed #09090b; color: #09090b; font-size: 32px; font-weight: 800; letter-spacing: 6px; padding: 16px 32px; border-radius: 12px;">${code}</div>
+      <div style="background-color: #09090b; border-radius: 16px; padding: 32px 24px; text-align: center; margin-bottom: 32px;">
+        <p style="margin: 0; font-size: 48px; font-weight: 800; letter-spacing: 16px; color: #ffffff; padding-left: 16px;">${code}</p>
       </div>
-      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">Gib diesen Code in das geöffnete Formular ein, um die Änderung abzuschließen.</p>
+      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${hint1}</p>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${hint2}</p>
+    </div>
+    <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
+      <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
+        ${footerText}
+      </p>
     </div>
   </div>
 </div>
@@ -221,3 +266,4 @@ export async function sendEmailOtp({
     locale,
   });
 }
+

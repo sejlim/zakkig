@@ -1,6 +1,6 @@
 # zakkig: Vision, Produkt & Systemarchitektur
 
-Dieses Dokument ist die zentrale Source of Truth für die B2B Gastro Plattform **zakkig** (konsequent kleingeschrieben). Es vereint die fachliche Vision, das Geschäftsmodell, den detaillierten Anforderungskatalog, die rechtlichen und steuerlichen Vorgaben sowie die vollständige technische Implementierung als hochskalierbares, serverloses SaaS-System auf Basis von Appwrite Cloud.
+Dieses Dokument ist die zentrale Source of Truth für die B2B Gastro Plattform **zakkig** (konsequent kleingeschrieben). Es vereint die fachliche Vision, das Geschäftsmodell, den detaillierten Anforderungskatalog, die rechtlichen und steuerlichen Vorgaben sowie die vollständige technische Implementierung als hochskalierbares, reaktives SaaS-System auf Basis von Convex & Next.js.
 
 ---
 
@@ -42,7 +42,7 @@ Das System ist extrem fokussiert und verzichtet bewusst auf unnötige Extras. Al
 - `app.zakkig.de/sign-up`
 - `app.zakkig.de/reset-password`
 
-**Dashboard (Geschützt durch Appwrite Auth)**
+**Dashboard (Geschützt)**
 Erfordert eine gültige Session (E-Mail, Passwort, HttpOnly Cookie).
 
 - `app.zakkig.de/dashboard/{organizationId}/overview`
@@ -75,23 +75,29 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
 - **Live-Bestellungen (`/live-orders`):** Echtzeit-Ansicht der aktiven Bestellungen (In Bearbeitung, Abgeschlossen, Storniert).
 - **Archiv (`/archive`):** Detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater.
 - **Menu (`/menu`):** Zentrale Verwaltung der Speisekarte, Getränke, Kategorien, Preise und Bilder.
-- **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten (z. B. Logo-Upload im Full-Width Layout auf Desktop) und Stripe-Details. Die Kontolöschung erfolgt über einen zweistufigen Verifizierungsprozess: Eine Appwrite Function (`deleteAccount`) generiert einen temporären Token und sendet eine Bestätigungs-E-Mail über den eigenen SMTP-Server (Appwrite Messaging). Erst nach Klick auf den E-Mail-Link wird das Konto restlos durch die Appwrite Function gelöscht.
+- **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten (z. B. Logo-Upload im Full-Width Layout auf Desktop) und Stripe-Details. Die Kontolöschung erfolgt über einen zweistufigen Verifizierungsprozess: Eine serverseitige Mutation (`deleteAccount`) generiert einen temporären Token und sendet eine Bestätigungs-E-Mail über den eigenen SMTP-Server. Erst nach Klick auf den E-Mail-Link wird das Konto restlos gelöscht.
 
 ### 2.3 Core Features: Kitchen Board View
 
-- **Aufbau:** Ansicht mit den Status "In Bearbeitung", "Abgeschlossen" und "Storniert". Aktualisiert sich via Appwrite WebSockets in Echtzeit.
+- **Aufbau:** Ansicht mit den Status "In Bearbeitung", "Abgeschlossen" und "Storniert". Aktualisiert sich reaktiv in Echtzeit.
 - **Ablauf:** Eingehende Bestellungen erscheinen als Kacheln in historischer Reihenfolge. Ein Klick markiert die Bestellung als abgeschlossen und verschiebt sie.
-- **Cleanup:** Abgeschlossene Kacheln können bei Ausgabe an den Kunden manuell gelöscht werden, ansonsten verschwinden sie nach 10 Minuten automatisch.
+- **Cleanup & Auto-Archivierung:** Abgeschlossene Kacheln bleiben für 15 Minuten auf dem Kitchen Board sichtbar und zeigen einen Live-Timer an ("Auto-Archiv in X Min."). Anschließend werden sie automatisch ausgeblendet und sind im Archiv auffindbar.
 
 ### 2.4 Core Features: Gast-Frontend (To-Stay & To-Go)
 
 - **Layout:** Bottom-Navigation mit zwei Tabs (links: Menü, rechts: Warenkorb).
 - **Warenkorb (Client State):** Wird lokal via `Zustand` verwaltet. Mengenänderungen sind hier möglich. Bei einem Page-Reload wird der Warenkorb resettet.
 - **Checkout:** Abfrage der E-Mail-Adresse (Pflicht für digitalen Beleg), Auswahl der Zahlungsmethode (Apple Pay, Google Pay, Karte) und sofortige Bezahlung. Der Bon wird per E-Mail gesendet.
-- **Bestellnummern (Rolling 001 - 999):** Die für Gäste, Gastronomen und Küche sichtbare Bestellnummer rotiert fortlaufend im dreistelligen Format von `001` bis `999` und beginnt danach automatisch wieder bei `001`. Intern wird jede Bestellung zusätzlich durch eine eindeutige Appwrite-Dokumenten-ID sowie die Stripe-Payment-ID identifiziert.
+- **Bestellnummern (Rolling 001 - 999):** Die für Gäste, Gastronomen und Küche sichtbare Bestellnummer rotiert fortlaufend im dreistelligen Format von `001` bis `999` und beginnt danach automatisch wieder bei `001`. Intern wird jede Bestellung zusätzlich durch eine eindeutige Dokumenten-ID sowie die Stripe-Payment-ID identifiziert.
 - **Nach der Bestellung:**
   - **To-Stay:** Anzeige der Bestellnummer auf dem Screen. Gast wartet am Tisch. (Page-Reload resettet den State für eine potenzielle neue Bestellung).
-  - **To-Go:** Automatische Weiterleitung auf den Order-Tracker mit Live-Status und Anzeige der 3-stelligen Abholnummer. Der Link bleibt 10 Minuten nach Bestellabschluss (Abholbereit) aktiv, danach wird er ungültig.
+  - **To-Go:** Automatische Weiterleitung auf den Order-Tracker mit Live-Status und Anzeige der 3-stelligen Abholnummer. Der Link bleibt nach Bestellabschluss (Abholbereit) 10 Minuten lang mit einem Live-Restzeit-Countdown aktiv ("Tracking-Link aktiv für noch X:XX Min."), danach wird er ungültig und schaltet auf den sauberen Ablauf-Screen um.
+
+### 2.5 Lifecycle & Ablaufzeiten (Sicherheitsstandard & Auto-Cleanup)
+
+- **Einheitliche 30-Minuten-Regel:** Alle sicherheitsrelevanten Verifizierungscodes und temporären Bestätigungslinks (Login-OTP, Passwort-Reset, Account-Löschung, E-Mail-Änderung) sind einheitlich **30 Minuten** gültig.
+- **Vorläufige Registrierung & Auto-Cleanup:** Bei der Registrierung wird der Account nach Datenprüfung zunächst als vorläufig unbestätigt angelegt. Wird der per E-Mail zugesandte OTP nicht innerhalb der 30 Minuten eingetragen, löscht das System den vorläufigen Account automatisch restlos aus der Datenbank, sodass die E-Mail-Adresse wieder frei ist. Erst bei korrekter Bestätigung des Codes wird der Account final verifiziert.
+
 
 ---
 
@@ -202,44 +208,36 @@ Als technisches Fundament für das Interface nutzen wir **shadcn/ui** in Kombina
 
 ## TEIL 5: TECHNISCHE IMPLEMENTIERUNG (Zero-Ops Architektur)
 
-Das System setzt auf eine hochskalierbare, serverlose Architektur mit **Appwrite Cloud** als Backend und **GitHub** für das Code- und Repository-Management.
+Das System setzt auf eine moderne, reaktive Architektur mit **Convex** als All-in-One Backend-Plattform und **GitHub** für das Code- und Repository-Management.
 
 ### 5.1 Architektur Übersicht & Repository (GitHub)
 
-Das Projekt besteht aus zwei komplett unabhängigen Next.js-Applikationen in einem gemeinsamen GitHub-Repository (Monorepo-Ansatz). Beide Frontends werden nativ über **Appwrite Sites** deployed und als statische SSR/SSG-Anwendungen global über das Appwrite CDN ausgeliefert.
+Das Projekt besteht aus zwei komplett unabhängigen Next.js-Applikationen in einem gemeinsamen GitHub-Repository (Monorepo-Ansatz):
 
-- **Frontend Marketing (`website/`):** B2B Landingpage für den Vertrieb (deployed über Appwrite Sites auf `zakkig.de`).
-- **Frontend SaaS App (`webapp/`):** Admin Dashboard der Wirte, Bestell-UI der Gäste und das Echtzeit Kitchen Board (deployed über Appwrite Sites auf `app.zakkig.de`).
+- **Frontend Marketing (`website/`):** B2B Landingpage für den Vertrieb (`zakkig.de`).
+- **Frontend SaaS App (`webapp/`):** Admin Dashboard der Wirte, Bestell-UI der Gäste und das Echtzeit Kitchen Board (`app.zakkig.de`).
 
 ### 5.2 Der Technologie Stack
 
-- **Frontend-Framework:** Next.js (React) mit Server-Side Rendering (SSR) und Server Actions.
-- **UI & Styling:** shadcn/ui kombiniert mit Tailwind CSS v4.
-- **State Management:** Zustand für persistente Client-Side States.
+- **Frontend-Framework:** Next.js (React) mit Server-Side Rendering (SSR), Server Actions und Turbopack.
+- **Backend-Plattform:** Convex (Reaktive Echtzeit-Datenbank, serverseitige Mutations/Queries/Actions, File Storage, Crons & HTTP Endpoints).
+- **UI & Styling:** shadcn/ui kombiniert mit Tailwind CSS.
+- **State Management:** Zustand für persistente Client-Side States & reaktive Convex-Hooks (`useQuery`, `useMutation`).
 - **Lokalisierung:** i18n für ein dynamisches, mehrsprachiges Setup (Deutsch / Englisch).
-- **Backend as a Service:** Appwrite Cloud.
+- **E-Mail-Infrastruktur:** Hetzner Mailserver (SMTP via `mail.your-server.de`).
+- **Payment:** Stripe Connect mit Destination Charges (1% Plattform-Gebühr) und Stripe Payment Element.
 
-### 5.3 Appwrite Services (Das Backend)
+### 5.3 Domain, E-Mail & CI/CD
 
-1. **Database:** NoSQL für Gastronomen, Speisekarten, Bestellungen und Logs.
-2. **Realtime:** WebSockets für das Kitchen Board und den Takeaway-Tracker.
-3. **Storage:** S3-kompatibel für Speisekarten-Bilder (WebP-Kompression) über den `menu-images` Bucket.
-4. **Auth:** Onboarding und Session-Management.
-5. **Functions:** Isolierte Node.js-basierte Serverless Endpunkte. Hier läuft tiefgreifende Geschäftslogik, die nicht im Client liegen darf (z.B. komplexe kaskadierende Datenbank-Löschungen beim Account-Delete Flow oder Stripe Webhooks). Diese werden über die Appwrite CLI deployt (`npx appwrite-cli push functions`).
-6. **Sites:** Globales CDN-Hosting der Next.js Frontends. Verknüpft direkt mit dem GitHub-Repository für automatisiertes CI/CD Deployment bei neuen Commits.
-7. **Messaging:** Native Anbindung unseres externen Hetzner SMTP-Mailservers für transaktionale Mails.
-
-### 5.4 Domain, E-Mail & CI/CD
-
-- **Hetzner:** DNS-Management für `zakkig.de` und SMTP-Hosting (angebunden an Appwrite).
-- **GitHub Actions:** Vollautomatisierte CI/CD-Pipelines für Checks, Builds und das Rolling-Deployment via Appwrite CLI.
-- **Security:** Enterprise-Grade DDoS-Protection und globales CDN durch Appwrite und Stripe.
+- **Hetzner:** DNS-Management für `zakkig.de` und SMTP-Hosting.
+- **GitHub Actions:** Vollautomatisierte CI/CD-Pipelines für Checks und Builds.
+- **Security:** Enterprise-Grade DDoS-Protection und globales CDN über Cloudflare / Vercel und Stripe.
 
 ---
 
 ## TEIL 6: B2B LANDINGPAGE (zakkig.de)
 
-Die Marketingseite wird als SEO-optimierter One-Pager über **Appwrite Sites** gehostet, ergänzt durch separate rechtliche Unterseiten. Sie wird vollständig zweisprachig umgesetzt.
+Die Marketingseite wird als SEO-optimierter One-Pager gehostet, ergänzt durch separate rechtliche Unterseiten. Sie wird vollständig zweisprachig umgesetzt.
 
 ### 6.1 Routing & Lokalisierung
 
@@ -256,56 +254,28 @@ Die Marketingseite wird als SEO-optimierter One-Pager über **Appwrite Sites** g
 
 ## TEIL 7: ENTWICKLER-SETUP & INFRASTRUKTUR
 
-Dieser Abschnitt richtet sich an Entwickler und enthält technische Details zur Initialisierung, Architektur und zum Deployment der Appwrite-basierten Infrastruktur.
+Dieser Abschnitt richtet sich an Entwickler und enthält technische Details zur Initialisierung, Architektur und zum Betrieb.
 
 ### 7.1 Umgebungsvariablen & Ports
 
 Jedes Teilprojekt besitzt eine eigene `.env` und `.env.example` Datei im jeweiligen Verzeichnis (`webapp/` und `website/`).
-- **Webapp (`webapp/.env`):** Enthält Konfigurationen für Appwrite (inkl. `NEXT_PUBLIC_APPWRITE_DATABASE_ID="webapp"`), Stripe Keys, SMTP Provider IDs und URLs.
-- **Website (`website/.env`):** Enthält Konfigurationen für Appwrite (inkl. `NEXT_PUBLIC_APPWRITE_DATABASE_ID="website"`) und URLs.
+- **Webapp (`webapp/.env`):** Enthält Konfigurationen für Convex (`NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`), Stripe Keys, SMTP Provider Einstellungen und Session-Geheimnisse.
 - **Port-Management:**
   - Im **Development-Modus** läuft die Marketingseite auf Port 3000 (`next dev --port 3000`) und die Webapp auf Port 3001 (`next dev --port 3001`).
   - Im **Production-Modus** starten beide Anwendungen über den Standard-Befehl `next start` (Standard-Port 3000).
 
-### 7.2 Datenbank-Schema (Infrastructure as Code)
+### 7.2 Datenbank-Schema & Convex Functions
 
-Das gesamte Appwrite Datenbank-Schema (alle Tabellen, Kollektionen, Attribute, Datentypen und Indizes) ist deklarativ in der `appwrite.json` definiert.
-Um eine frische Datenbank zu initialisieren oder Updates am Schema vorzunehmen, musst du zunächst mit der CLI in einer aktiven Entwickler-Sitzung eingeloggt sein (authentifiziert sich gegen das Projekt in der `appwrite.json`):
+Das gesamte Datenbank-Schema ist typsicher in `webapp/convex/schema.ts` definiert:
+- Tabellen: `users`, `sessions`, `organizations`, `categories`, `items`, `orders`, `kitchenTokens`, `availabilityTokens`, `emailTokens`, `counters`.
+- Für die lokale Entwicklung läuft `npx convex dev` parallel zum Next.js Dev-Server.
 
-```bash
-npx appwrite-cli login
-```
+### 7.3 Authentifizierung & Server-Side Rendering (SSR)
 
-Führe anschließend im Root-Ordner aus:
+Für Next.js Server Components und Server Actions wird der serverseitige Convex-Client verwendet (`webapp/lib/convex/auth.ts`):
+- `getUser()` liest das sichere `HttpOnly`-Session-Cookie (`zakkig_session`) aus und validiert die Session in Convex.
+- `getAuthenticatedConvexClient()` instanziiert einen serverseitigen Client für Backend-Operationen.
 
-```bash
-npx appwrite-cli push tables
-```
+### 7.4 E-Mail & SMTP
 
-*(Hinweis: Manuelle JavaScript-Initialisierungsskripte werden hierfür nicht verwendet.)*
-
-### 7.3 Appwrite Funktionen
-
-Die Geschäftslogik, die nicht sicher auf dem Client oder als Next.js Server Action ausgeführt werden kann (z. B. Kontolöschung mit E-Mail-Verifizierung), wird in **Appwrite Functions** ausgelagert.
-- **Speicherort:** `/appwrite/functions/<functionName>`
-- **Laufzeitumgebung (Runtime):** Alle Funktionen laufen einheitlich auf `node-26`.
-- **Deployment:** Funktionen müssen immer mit dem Flag `--with-variables` ausgerollt werden. Dadurch liest die CLI die lokale `.env` aus dem Projekt-Root und pusht die Variablen sicher als Umgebungsvariablen in die Cloud-Umgebung der Funktion:
-  ```bash
-  npx appwrite-cli push functions --all --with-variables
-  ```
-
-### 7.4 Appwrite CLI Konfiguration (`appwrite.json`)
-
-Die Datei `appwrite.json` im Root steuert das Projekt-Deployment. 
-- Die darin hartkodierten Werte wie `projectId` und `endpoint` sind **kein** Sicherheitsrisiko. Es handelt sich um öffentliche Konfigurationswerte, die der CLI lediglich als Kontext dienen, gegen welchen Workspace sie arbeitet. 
-- **Sensible Daten (API Keys etc.)** gehören ausschließlich in die zentrale `.env`.
-
-### 7.5 Authentifizierung & Server-Side Rendering (SSR)
-
-Für Next.js Server Components wird das **Node.js Appwrite SDK** (`node-appwrite`) verwendet. 
-- Für administrative Aufgaben greift der Server über den `APPWRITE_API_KEY` zu. 
-- Für benutzerspezifische Aktionen (z. B. Dashboard-Zugriff) wird der Session-Cookie des Nutzers (Appwrite Auth) entgegengenommen und ein Client mit diesen Session-Daten instanziiert.
-
-### 7.6 Appwrite Messaging (E-Mail & SMTP)
-
-Der native SMTP-Service des Gastronomen ist in Appwrite angebunden. Alle ausgehenden transaktionalen Mails (wie z. B. die Token-Mails für den `deleteAccount`-Flow oder OTP-Logins) werden serverseitig über das Appwrite Messaging SDK ausgelöst.
+Der native SMTP-Service über Hetzner (`mail.your-server.de`) versendet alle ausgehenden transaktionalen Mails (Zwei-Faktor Einmalcodes für Registrierung und Login, Kontolöschungs-Tokens und digitale Quittungen).

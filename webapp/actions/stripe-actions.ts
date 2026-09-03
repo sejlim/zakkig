@@ -5,9 +5,12 @@ import { revalidatePath } from "next/cache";
 import { convexServer } from "@/lib/convex/server";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { requireOwner } from "@/lib/convex/auth";
 
 export async function connectStripeAction(organizationId: string) {
   try {
+    await requireOwner(organizationId);
+
     const headerList = await headers();
     const origin = headerList.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -26,6 +29,8 @@ export async function connectStripeAction(organizationId: string) {
 
 export async function getStripeAccountStatusAction(organizationId: string) {
   try {
+    await requireOwner(organizationId);
+
     const res = await convexServer.action(api.stripe.getStripeAccountStatus, {
       organizationId: organizationId as Id<"organizations">,
     });
@@ -45,6 +50,8 @@ export async function getStripeAccountStatusAction(organizationId: string) {
 
 export async function createStripeDashboardLinkAction(organizationId: string) {
   try {
+    await requireOwner(organizationId);
+
     const headerList = await headers();
     const origin = headerList.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -63,6 +70,8 @@ export async function createStripeDashboardLinkAction(organizationId: string) {
 
 export async function completeTestStripeOnboardingAction(organizationId: string) {
   try {
+    await requireOwner(organizationId);
+
     const res = await convexServer.action(api.stripe.completeTestStripeOnboarding, {
       organizationId: organizationId as Id<"organizations">,
     });

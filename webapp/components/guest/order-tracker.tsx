@@ -9,8 +9,9 @@ import { useTranslation } from "@/lib/i18n";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { CheckCircle, CookingPot, X } from "@phosphor-icons/react";
+import { CheckCircle, CookingPot, X, Clock } from "@phosphor-icons/react";
 import { playOrderReadySound, initAudioContext } from "@/lib/audio";
+import { TRACKING_EXPIRY_MS } from "@/lib/constants";
 import type { Organization, Order } from "@/lib/types";
 
 interface OrderTrackerProps {
@@ -44,6 +45,7 @@ export function OrderTracker({
     : initialOrder || null;
 
   const prevStatusRef = useRef<string | null>(initialOrder?.status || null);
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     const handleInteract = () => initAudioContext();
@@ -64,13 +66,38 @@ export function OrderTracker({
     }
   }, [order?.status]);
 
-  const error = !order && liveOrder === null;
+  useEffect(() => {
+    if (order?.status === "completed") {
+      const interval = setInterval(() => {
+        setNow(Date.now());
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [order?.status]);
+
+  const completedTime =
+    order?.completedAt ||
+    (order?.$updatedAt ? new Date(order.$updatedAt).getTime() : 0) ||
+    order?._creationTime ||
+    (order?.$createdAt ? new Date(order.$createdAt).getTime() : Date.now());
+
+  const remainingMs = Math.max(0, TRACKING_EXPIRY_MS - (now - completedTime));
+  const isExpired = order?.status === "completed" && remainingMs <= 0;
+
+  const error = (!order && liveOrder === null) || isExpired;
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
         <h1 className="text-xl font-bold mb-2">{t("error")}</h1>
-        <p className="text-muted-foreground">{t("trackingExpired")}</p>
+        <p className="text-muted-foreground mb-6">{t("trackingExpired")}</p>
+        <Button
+          variant="outline"
+          className="font-semibold"
+          onClick={() => (window.location.href = `/to-go/${organization.$id}`)}
+        >
+          {t("orderAgain" as any)}
+        </Button>
       </div>
     );
   }
@@ -143,19 +170,30 @@ export function OrderTracker({
             </div>
           )}
 
-          {order.status === "completed" && (
-            <div className="w-full bg-primary/10 border-2 border-primary/25 rounded-2xl p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-12 h-12 rounded-full bg-primary/15 text-primary flex items-center justify-center mx-auto">
-                <CheckCircle className="w-7 h-7" weight="fill" />
+          {order.status === "completed" && (() => {
+            const remainingTotalSeconds = Math.ceil(remainingMs / 1000);
+            const remainingMins = Math.floor(remainingTotalSeconds / 60);
+            const remainingSecs = remainingTotalSeconds % 60;
+            const timeFormatted = `${remainingMins}:${remainingSecs.toString().padStart(2, "0")} Min.`;
+
+            return (
+              <div className="w-full bg-primary/10 border-2 border-primary/25 rounded-2xl p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
+                <div className="w-12 h-12 rounded-full bg-primary/15 text-primary flex items-center justify-center mx-auto">
+                  <CheckCircle className="w-7 h-7" weight="fill" />
+                </div>
+                <h2 className="text-xl font-bold text-primary">
+                  {t("orderReadyForPickup" as any)}
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t("orderReadyDesc" as any)}
+                </p>
+                <div className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full mt-1">
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <span>{t("trackingActiveRemaining", { time: timeFormatted })}</span>
+                </div>
               </div>
-              <h2 className="text-xl font-bold text-primary">
-                {t("orderReadyForPickup" as any)}
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t("orderReadyDesc" as any)}
-              </p>
-            </div>
-          )}
+            );
+          })()}
 
           <Card className="w-full p-5 sm:p-6 shadow-xs">
             <div>

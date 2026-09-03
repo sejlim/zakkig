@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { updateOrganization } from "@/lib/convex/database";
 import { uploadFileToConvex } from "@/lib/convex/storage";
-import { getUser, getAuthenticatedConvexClient } from "@/lib/convex/auth";
+import { getUser, getAuthenticatedConvexClient, requireOwner } from "@/lib/convex/auth";
 import { convexServer } from "@/lib/convex/server";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -29,10 +29,11 @@ export async function updateBusinessAction(
   _prevState: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   const organizationId = formData.get("organizationId") as string;
+  if (!organizationId) return { error: "Betriebs-ID fehlt." };
+
+  try {
+    const { user } = await requireOwner(organizationId);
   const organizationName = formData.get("organizationName") as string;
   const userName = formData.get("userName") as string;
   const address = formData.get("address") as string;
@@ -49,8 +50,7 @@ export async function updateBusinessAction(
   if (userName.length > 100) return { error: "Der Name darf maximal 100 Zeichen lang sein." };
   if (address && address.length > 200) return { error: "Die Adresse darf maximal 200 Zeichen lang sein." };
 
-  try {
-    const client = await getAuthenticatedConvexClient();
+  const client = await getAuthenticatedConvexClient();
     try {
       await client.mutation(api.users.updateName, { name: userName });
     } catch {
@@ -101,10 +101,12 @@ export async function requestAccountDeletionAction() {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
 
     const res = await convexServer.mutation(api.users.createAccountDeletionToken, {
       userId: user._id,
+      sessionToken,
     });
 
     if (!res.success || !res.token || !res.email) {
@@ -161,10 +163,12 @@ export async function requestEmailChangeAction() {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
 
     const res = await convexServer.mutation(api.users.createEmailChangeToken, {
       userId: user._id,
+      sessionToken,
     });
 
     if (!res.success || !res.token || !res.email) {
@@ -272,10 +276,9 @@ export async function toggleFeatureAction(
   feature: "to-go" | "to-stay",
   value: boolean,
 ): Promise<SettingsActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    await requireOwner(organizationId);
+
     const updateData =
       feature === "to-go"
         ? { isToGoEnabled: value }
@@ -298,11 +301,19 @@ export async function updateTablesAction(
   organizationId: string,
   tables: string[],
 ): Promise<SettingsActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
-    await updateOrganization(organizationId, { tables });
+    await requireOwner(organizationId);
+
+    // Validate tables array: max 100 tables, each max 20 chars
+    if (!Array.isArray(tables) || tables.length > 100) {
+      return { error: "Ungültige Tischanzahl (maximal 100 Tische)." };
+    }
+    const cleanTables = tables
+      .map((t) => String(t).trim())
+      .filter(Boolean)
+      .map((t) => t.slice(0, 20));
+
+    await updateOrganization(organizationId, { tables: cleanTables });
     revalidatePath(`/dashboard/${organizationId}/overview`);
     return { success: true };
   } catch (error: unknown) {

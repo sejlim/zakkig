@@ -14,7 +14,7 @@ import {
   updateItemSortOrders,
 } from "@/lib/convex/database";
 import { uploadFileToConvex } from "@/lib/convex/storage";
-import { getUser } from "@/lib/convex/auth";
+import { getUser, requireOwner, requireStaffOrOwner } from "@/lib/convex/auth";
 import type { CustomizationStep } from "@/lib/types";
 
 export interface MenuActionState {
@@ -23,28 +23,28 @@ export interface MenuActionState {
   categoryId?: string;
 }
 
-// ─── Categories ─────────────────────────────────────────────────
+// Categories
 
 export async function createCategoryAction(
   _prevState: MenuActionState,
   formData: FormData,
 ): Promise<MenuActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   const organizationId = formData.get("organizationId") as string;
   const name = formData.get("name") as string;
   const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
 
+  if (!organizationId) return { error: "Betriebs-ID fehlt." };
   if (!name) return { error: "Name ist erforderlich." };
   if (name.length > 100) return { error: "Der Kategoriename darf maximal 100 Zeichen lang sein." };
 
   try {
+    const { user } = await requireOwner(organizationId);
+
     const newDoc = await createMenuCategory({
       organizationId,
       name,
       sortOrder,
-      ownerId: user.$id,
+      ownerId: user.$id || user._id,
     });
 
     revalidatePath(`/dashboard/${organizationId}/menu`);
@@ -62,18 +62,18 @@ export async function updateCategoryAction(
   _prevState: MenuActionState,
   formData: FormData,
 ): Promise<MenuActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   const categoryId = formData.get("categoryId") as string;
   const name = formData.get("name") as string;
   const sortOrder = parseInt(formData.get("sortOrder") as string);
   const organizationId = formData.get("organizationId") as string;
 
+  if (!organizationId) return { error: "Betriebs-ID fehlt." };
   if (!name) return { error: "Name ist erforderlich." };
   if (name.length > 100) return { error: "Der Kategoriename darf maximal 100 Zeichen lang sein." };
 
   try {
+    await requireOwner(organizationId);
+
     await updateMenuCategory(categoryId, {
       name,
       ...(isNaN(sortOrder) ? {} : { sortOrder }),
@@ -94,10 +94,9 @@ export async function deleteCategoryAction(
   categoryId: string,
   organizationId: string,
 ) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    await requireOwner(organizationId);
+
     await deleteMenuCategory(categoryId);
     revalidatePath(`/dashboard/${organizationId}/menu`);
     return { success: true };
@@ -114,10 +113,9 @@ export async function reorderCategoriesAction(
   organizationId: string,
   orderedIds: string[],
 ) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    await requireOwner(organizationId);
+
     const updates = orderedIds.map((id, index) => ({
       id,
       sortOrder: index,
@@ -140,10 +138,9 @@ export async function reorderItemsAction(
     string | { id: string; sortOrder: number; categoryId?: string }
   )[],
 ) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    await requireOwner(organizationId);
+
     const updates = itemsPayload.map((item, index) => {
       if (typeof item === "string") {
         return { id: item, sortOrder: index };
@@ -162,15 +159,12 @@ export async function reorderItemsAction(
   }
 }
 
-// ─── Menu Items ─────────────────────────────────────────────────
+// Menu Items
 
 export async function createMenuItemAction(
   _prevState: MenuActionState,
   formData: FormData,
 ): Promise<MenuActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   const organizationId = formData.get("organizationId") as string;
   const categoryId = formData.get("categoryId") as string;
   const name = formData.get("name") as string;
@@ -196,6 +190,7 @@ export async function createMenuItemAction(
   const imageFile = formData.get("image") as File | null;
   const customizations = (formData.get("customizations") as string) || "[]";
 
+  if (!organizationId) return { error: "Betriebs-ID fehlt." };
   if (!name || isNaN(price)) {
     return { error: "Name und Preis sind erforderlich." };
   }
@@ -205,11 +200,13 @@ export async function createMenuItemAction(
   if (description && description.length > 500) {
     return { error: "Die Beschreibung darf maximal 500 Zeichen lang sein." };
   }
-  if (price > 10000000) {
+  if (price < 0 || price > 10000000) {
     return { error: "Der Preis ist ungültig." };
   }
 
   try {
+    const { user } = await requireOwner(organizationId);
+
     let imageStorageId: string | undefined = undefined;
     if (imageFile && imageFile.size > 0) {
       imageStorageId = await uploadFileToConvex(imageFile);
@@ -224,7 +221,7 @@ export async function createMenuItemAction(
       imageStorageId,
       imageId: imageStorageId,
       sortOrder,
-      ownerId: user.$id,
+      ownerId: user.$id || user._id,
       taxRate,
       customizations,
     });
@@ -244,9 +241,6 @@ export async function updateMenuItemAction(
   _prevState: MenuActionState,
   formData: FormData,
 ): Promise<MenuActionState> {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   const itemId = formData.get("itemId") as string;
   const organizationId = formData.get("organizationId") as string;
   const name = formData.get("name") as string;
@@ -259,6 +253,7 @@ export async function updateMenuItemAction(
   const removeExistingImage = formData.get("removeImage") === "true";
   const customizations = (formData.get("customizations") as string) || "[]";
 
+  if (!organizationId) return { error: "Betriebs-ID fehlt." };
   if (!name || isNaN(price)) {
     return { error: "Name und Preis sind erforderlich." };
   }
@@ -268,11 +263,13 @@ export async function updateMenuItemAction(
   if (description && description.length > 500) {
     return { error: "Die Beschreibung darf maximal 500 Zeichen lang sein." };
   }
-  if (price > 10000000) {
+  if (price < 0 || price > 10000000) {
     return { error: "Der Preis ist ungültig." };
   }
 
   try {
+    await requireOwner(organizationId);
+
     let imageStorageId: string | undefined = existingImageId || undefined;
 
     if (removeExistingImage) {
@@ -309,10 +306,9 @@ export async function deleteMenuItemAction(
   organizationId: string,
   _imageId?: string,
 ) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    await requireOwner(organizationId);
+
     await deleteMenuItem(itemId);
     revalidatePath(`/dashboard/${organizationId}/menu`);
     return { success: true };
@@ -331,10 +327,16 @@ export async function toggleMenuItemAvailability(
   organizationId?: string,
 ) {
   try {
+    const item = await getMenuItem(itemId);
+    if (!item) return { error: "Artikel nicht gefunden." };
+    const orgId = organizationId || item.organizationId;
+
+    await requireStaffOrOwner(orgId);
+
     await updateMenuItem(itemId, { available });
-    if (organizationId) {
-      revalidatePath(`/dashboard/${organizationId}/menu`);
-      revalidatePath(`/availability/${organizationId}`);
+    if (orgId) {
+      revalidatePath(`/dashboard/${orgId}/menu`);
+      revalidatePath(`/availability/${orgId}`);
     }
     return { success: true };
   } catch (error: unknown) {
@@ -356,6 +358,9 @@ export async function toggleCustomizationAvailabilityAction(
   try {
     const item = await getMenuItem(itemId);
     if (!item) return { error: "Artikel nicht gefunden." };
+    const orgId = organizationId || item.organizationId;
+
+    await requireStaffOrOwner(orgId);
 
     let steps: CustomizationStep[] = [];
     try {
@@ -388,9 +393,9 @@ export async function toggleCustomizationAvailabilityAction(
     await updateMenuItem(itemId, {
       customizations: JSON.stringify(updatedSteps),
     });
-    if (organizationId) {
-      revalidatePath(`/dashboard/${organizationId}/menu`);
-      revalidatePath(`/availability/${organizationId}`);
+    if (orgId) {
+      revalidatePath(`/dashboard/${orgId}/menu`);
+      revalidatePath(`/availability/${orgId}`);
     }
     return { success: true };
   } catch (error: unknown) {

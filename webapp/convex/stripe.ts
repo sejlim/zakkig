@@ -245,6 +245,66 @@ export const createPaymentIntent = action({
       if (!org) return { error: "Organization not found" };
       if (!org.stripeAccountId) return { error: "Restaurant is not connected to Stripe" };
 
+      // 1. Validate total
+      if (!Number.isInteger(args.total) || args.total <= 0 || args.total > 1000000) {
+        return { error: "Ungültiger Gesamtbetrag." };
+      }
+
+      // 2. Validate email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(args.email.trim()) || args.email.length > 100) {
+        return { error: "Ungültige E-Mail-Adresse." };
+      }
+
+      // 3. Validate tableNumber
+      if (args.tableNumber && args.tableNumber.length > 20) {
+        return { error: "Ungültige Tischnummer." };
+      }
+
+      // 4. Validate items JSON & verify prices / availability against DB
+      let parsedItems: any[];
+      try {
+        parsedItems = JSON.parse(args.items);
+      } catch {
+        return { error: "Ungültiges Artikel-Format." };
+      }
+
+      if (!Array.isArray(parsedItems) || parsedItems.length === 0 || parsedItems.length > 100) {
+        return { error: "Der Warenkorb muss zwischen 1 und 100 Artikel enthalten." };
+      }
+
+      const menuItems: any[] = await ctx.runQuery(api.menu.getItems, { organizationId: args.organizationId });
+      const menuMap = new Map(menuItems.map((m: any) => [m._id, m]));
+
+      let calculatedTotal = 0;
+      for (const item of parsedItems) {
+        const qty = Number(item.quantity);
+        const price = Number(item.price);
+
+        if (!Number.isInteger(qty) || qty <= 0 || qty > 50) {
+          return { error: "Ungültige Artikelanzahl." };
+        }
+        if (!Number.isInteger(price) || price < 0) {
+          return { error: "Ungültiger Artikelpreis." };
+        }
+
+        if (item.menuItemId && menuMap.has(item.menuItemId)) {
+          const dbItem = menuMap.get(item.menuItemId);
+          if (dbItem.available === false) {
+            return { error: `"${dbItem.name}" ist zurzeit leider nicht verfügbar.` };
+          }
+          if (price < dbItem.price) {
+            return { error: `Ungültiger Preis für "${dbItem.name}".` };
+          }
+        }
+
+        calculatedTotal += price * qty;
+      }
+
+      if (Math.round(calculatedTotal) !== Math.round(args.total)) {
+        return { error: "Gesamtbetrag stimmt nicht mit den ausgewählten Artikeln überein." };
+      }
+
       const stripe = getStripeClient();
       const curr = (args.currency || org.currency || "eur").toLowerCase();
 

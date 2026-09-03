@@ -4,7 +4,7 @@ Dieses Verzeichnis enthält die Haupt-Applikation von Zakkig (das Gastronomen-Da
 
 ---
 
-## 🏗️ Technologie-Stack
+## Technologie-Stack
 
 - **Framework:** Next.js (App Router, Server Actions, Server Components, Turbopack)
 - **Backend Platform:** Convex (Reaktive Echtzeit-Datenbank, serverseitige Mutations/Queries/Actions, File Storage, Crons & HTTP Endpoints)
@@ -17,17 +17,17 @@ Dieses Verzeichnis enthält die Haupt-Applikation von Zakkig (das Gastronomen-Da
 
 ---
 
-## 🔒 Architektur & Authentifizierung
+## Architektur & Authentifizierung
 
 Die Applikation nutzt ein striktes **Server-Side Rendering (SSR) Authentifizierungs-Modell** in Verbindung mit Convex.
 
 - **Sichere HttpOnly-Cookies:** Nach erfolgreicher Anmeldung oder Registrierung setzt der Server ein sicheres `HttpOnly`-Cookie (`zakkig_session`). Clientseitiger JavaScript-Code kann das Cookie nicht auslesen, was effektiven Schutz vor XSS bietet.
 - **Zwei-Faktor E-Mail-OTP:** Sowohl bei der Registrierung als auch beim Login wird standardmäßig ein kryptografischer 6-stelliger Einmalcode per E-Mail versendet. Erst nach korrekter Eingabe wird die Sitzung aktiv.
-- **Middleware & Session-Validierung:** `webapp/middleware.ts` und serverseitige Helfer in `lib/convex/auth.ts` (`getUser()`, `getAuthenticatedConvexClient()`) validieren bestehende Sessions für geschützte Routen.
+- **Proxy & Session-Validierung:** `webapp/proxy.ts` und serverseitige Helfer in `lib/convex/auth.ts` (`getUser()`, `getAuthenticatedConvexClient()`) validieren bestehende Sessions für geschützte Routen.
 
 ---
 
-## 📧 E-Mail-Infrastruktur
+## E-Mail-Infrastruktur
 
 Der Versand von Transaktions-E-Mails (Anmeldecodes, Passwort-Resets, Bestätigungen für E-Mail-Änderungen und Account-Löschungen) ist in `convex/emails.ts` implementiert.
 
@@ -40,7 +40,7 @@ Der Versand von Transaktions-E-Mails (Anmeldecodes, Passwort-Resets, Bestätigun
 
 ---
 
-## 🗄️ Datenmodell & Schema (`convex/schema.ts`)
+## Datenmodell & Schema (`convex/schema.ts`)
 
 Alle Tabellen sind typsicher über Convex definiert:
 
@@ -54,7 +54,7 @@ Alle Tabellen sind typsicher über Convex definiert:
 
 ---
 
-## ⚡ Reaktives Echtzeit-System (Realtime)
+## Reaktives Echtzeit-System (Realtime)
 
 Convex synchronisiert Änderungen automatisch und ohne manuelle WebSocket-Verwaltung an alle aktiven Clients:
 
@@ -64,7 +64,25 @@ Convex synchronisiert Änderungen automatisch und ohne manuelle WebSocket-Verwal
 
 ---
 
-## 💳 Zahlungsabwicklung mit Stripe Connect
+## Ablaufzeiten & Lifecycle-Management (TTL & Timeouts)
+
+Um höchste Sicherheit, Speicher-Hygiene und transparente Nutzererfahrung zu gewährleisten, folgt die Plattform strikten und einheitlichen Ablaufzeiten:
+
+1. **Einheitlicher 30-Minuten-Sicherheitsstandard (Auth & Account):**
+   - **Login-OTP:** Der 6-stellige Einmalcode per E-Mail ist 30 Minuten gültig.
+   - **Vorläufige Registrierung & automatische Bereinigung:** Bei der Registrierung wird der Account nach Prüfung aller Daten zunächst als vorläufig unbestätigt angelegt und der 30-Minuten-OTP versandt. Trägt der Nutzer den Code innerhalb der 30 Minuten ein, wird der Account dauerhaft und vollständig verifiziert (`emailVerificationTime`). Erfolgt keine Bestätigung innerhalb von 30 Minuten, löscht der integrierte Convex Scheduler (`cleanupUnverifiedUser`) den unbestätigten Account restlos aus der Datenbank, sodass die E-Mail-Adresse wieder frei ist.
+   - **Passwort zurücksetzen:** Der Wiederherstellungslink per E-Mail ist 30 Minuten gültig.
+   - **Konto löschen & E-Mail-Adresse ändern:** Die Bestätigungslinks per E-Mail sind jeweils 30 Minuten gültig.
+   - **Klare Visualisierung:** Auf allen Eingabebildschirmen und in allen E-Mail-Vorlagen wird die 30-Minuten-Frist klar und transparent ausgewiesen.
+
+2. **Operative Echtzeit-Timer:**
+   - **Küchen-Board & Live-Orders (15 Minuten):** Fertige Bestellungen verbleiben 15 Minuten in der „Abgeschlossen“-Spalte und tragen ein diskretes Countdown-Badge (`Auto-Archiv in X Min.`), bevor sie automatisch ins Archiv verschoben werden.
+   - **Gast Takeaway Order-Tracker (10 Minuten):** Sobald die Bestellung auf „Abholbereit“ springt, wird dem Gast ein Live-Countdown (`Tracking-Link aktiv für noch X:XX Min.`) angezeigt. Nach 10 Minuten wird der Link ungültig und der Gast erhält einen sauberen Ablauf-Screen mit der Option, erneut zu bestellen.
+
+
+---
+
+## Zahlungsabwicklung mit Stripe Connect
 
 Zakkig verwendet **Stripe Connect Express** mit **Destination Charges**:
 
@@ -82,7 +100,7 @@ Zakkig verwendet **Stripe Connect Express** mit **Destination Charges**:
 
 ---
 
-## 📁 Dateispeicher (Convex Storage)
+## Dateispeicher (Convex Storage)
 
 Logos und Produktbilder werden im nativen Convex File Storage gespeichert:
 - Serverseitig: `convex/storage.ts` generiert signierte Upload-URLs (`generateUploadUrl`) und löscht veraltete Dateien (`deleteFile`).
@@ -91,7 +109,7 @@ Logos und Produktbilder werden im nativen Convex File Storage gespeichert:
 
 ---
 
-## 🗺️ Routing & Verzeichnisstruktur
+## Routing & Verzeichnisstruktur
 
 ```
 webapp/
@@ -123,12 +141,12 @@ webapp/
 │   ├── constants.ts     # Globale Konstanten & Timer
 │   ├── i18n.ts          # Lokalisierung (next-intl)
 │   └── types.ts         # TypeScript Interfaces
-└── middleware.ts        # Edge Middleware für Auth-Prüfungen
+└── proxy.ts             # Proxy für Session- & Auth-Prüfungen
 ```
 
 ---
 
-## 🚀 Entwicklung & Deployment
+## Entwicklung & Deployment
 
 ### Lokaler Start
 ```bash

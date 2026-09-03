@@ -71,14 +71,18 @@ export const sendEmailOtp = internalAction({
 
     const title = isDe ? "Dein Anmeldecode" : "Your sign-in code";
     const intro = isDe
-      ? "Verwende den folgenden Code, um deine Anmeldung zu bestätigen. Der Code ist nur für kurze Zeit gültig."
-      : "Use the following code to confirm your sign-in. The code is only valid for a short time.";
+      ? "Verwende den folgenden Code, um deine Anmeldung zu bestätigen. Der Code ist 30 Minuten gültig."
+      : "Use the following code to confirm your sign-in. The code is valid for 30 minutes.";
     const hint1 = isDe
       ? "Bitte gib diesen Code in dem geöffneten Browserfenster ein, um fortzufahren. Teile diesen Code niemals mit anderen Personen."
       : "Please enter this code in the open browser window to proceed. Never share this code with anyone.";
     const hint2 = isDe
       ? "Falls du diese E-Mail nicht angefordert hast, kannst du sie einfach ignorieren."
       : "If you did not request this email, you can safely ignore it.";
+
+    const footerText = isDe
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -108,7 +112,7 @@ export const sendEmailOtp = internalAction({
     </div>
     <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
       <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
-        Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.
+        ${footerText}
       </p>
     </div>
   </div>
@@ -138,9 +142,18 @@ export const sendPasswordResetEmail = internalAction({
     const isDe = args.locale !== "en";
     const subject = isDe ? "Passwort zurücksetzen" : "Reset your password";
     const greeting = isDe
-      ? `Hallo${args.userName ? " " + args.userName : ""}, klicke auf die folgende Schaltfläche, um dein Passwort vom Konto zurückzusetzen.`
-      : `Hello${args.userName ? " " + args.userName : ""}, click the button below to reset your account password.`;
+      ? `Hallo${args.userName ? " " + args.userName : ""}, klicke auf die folgende Schaltfläche, um dein Passwort vom Konto zurückzusetzen. Dieser Link ist 30 Minuten gültig.`
+      : `Hello${args.userName ? " " + args.userName : ""}, click the button below to reset your account password. This link is valid for 30 minutes.`;
     const btnText = isDe ? "Passwort zurücksetzen" : "Reset Password";
+    const fallback = isDe
+      ? "Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:"
+      : "If the button doesn't work, copy and paste this link into your browser:";
+    const ignoreHint = isDe
+      ? "Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail einfach ignorieren."
+      : "If you didn't request a password reset, you can safely ignore this email.";
+    const footerText = isDe
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -165,9 +178,15 @@ export const sendPasswordResetEmail = internalAction({
       <div style="text-align: center; margin-bottom: 32px;">
         <a href="${args.resetUrl}" target="_blank" style="display: inline-block; background-color: #09090b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
-      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:</p>
+      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
       <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
         <a href="${args.resetUrl}" style="color: #09090b; text-decoration: underline;">${args.resetUrl}</a>
+      </p>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
+    </div>
+    <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
+      <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
+        ${footerText}
       </p>
     </div>
   </div>
@@ -196,9 +215,18 @@ export const sendDeleteAccountEmail = internalAction({
     const isDe = args.locale !== "en";
     const subject = isDe ? "Konto löschen bestätigen" : "Confirm account deletion";
     const intro = isDe
-      ? "Bitte klicke auf die folgende Schaltfläche, um dein Konto bei zakkig endgültig zu löschen. Dieser Link ist nur für kurze Zeit gültig."
-      : "Please click the button below to permanently delete your account at zakkig. This link is only valid for a short time.";
+      ? "Bitte klicke auf die folgende Schaltfläche, um dein Konto bei zakkig endgültig zu löschen. Dieser Link ist 30 Minuten gültig."
+      : "Please click the button below to permanently delete your zakkig account. This link is valid for 30 minutes.";
     const btnText = isDe ? "Konto unwiderruflich löschen" : "Delete account permanently";
+    const fallback = isDe
+      ? "Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:"
+      : "If the button doesn't work, copy and paste this link into your browser:";
+    const ignoreHint = isDe
+      ? "Falls du diese Löschung nicht angefragt hast, kannst du diese E-Mail einfach ignorieren."
+      : "If you didn't request this deletion, you can safely ignore this email.";
+    const footerText = isDe
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -223,9 +251,15 @@ export const sendDeleteAccountEmail = internalAction({
       <div style="text-align: center; margin-bottom: 32px;">
         <a href="${args.deleteUrl}" target="_blank" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
-      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:</p>
+      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
       <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
         <a href="${args.deleteUrl}" style="color: #09090b; text-decoration: underline;">${args.deleteUrl}</a>
+      </p>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
+    </div>
+    <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
+      <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
+        ${footerText}
       </p>
     </div>
   </div>
@@ -252,11 +286,20 @@ export const sendChangeEmailLink = internalAction({
   returns: v.boolean(),
   handler: async (_ctx, args) => {
     const isDe = args.locale !== "en";
-    const subject = isDe ? "E-Mail-Adresse ändern bestätigen" : "Confirm email address change";
+    const subject = isDe ? "Email-Adresse ändern bestätigen" : "Confirm email change";
     const intro = isDe
-      ? "Bitte klicke auf die folgende Schaltfläche, um deine neue E-Mail-Adresse zu bestätigen."
-      : "Please click the button below to confirm your new email address.";
-    const btnText = isDe ? "E-Mail-Adresse bestätigen" : "Confirm Email Address";
+      ? "Bitte klicke auf die folgende Schaltfläche, um die Änderung deiner Email-Adresse bei zakkig zu bestätigen. Dieser Link ist 30 Minuten gültig."
+      : "Please click the button below to confirm the change of your zakkig email address. This link is valid for 30 minutes.";
+    const btnText = isDe ? "Email-Adresse ändern" : "Change email address";
+    const fallback = isDe
+      ? "Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:"
+      : "If the button doesn't work, copy and paste this link into your browser:";
+    const ignoreHint = isDe
+      ? "Falls du diese Änderung nicht angefragt hast, kannst du diese E-Mail einfach ignorieren."
+      : "If you didn't request this change, you can safely ignore this email.";
+    const footerText = isDe
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -281,9 +324,15 @@ export const sendChangeEmailLink = internalAction({
       <div style="text-align: center; margin-bottom: 32px;">
         <a href="${args.changeUrl}" target="_blank" style="display: inline-block; background-color: #09090b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
-      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">Falls die Schaltfläche nicht funktioniert, kopiere diesen Link in deinen Browser:</p>
+      <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
       <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
         <a href="${args.changeUrl}" style="color: #09090b; text-decoration: underline;">${args.changeUrl}</a>
+      </p>
+      <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
+    </div>
+    <div style="padding: 24px 40px; border-top: 1px solid #f4f4f5; background-color: #fafafa;">
+      <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.6; text-align: center;">
+        ${footerText}
       </p>
     </div>
   </div>
@@ -300,3 +349,4 @@ export const sendChangeEmailLink = internalAction({
     });
   },
 });
+

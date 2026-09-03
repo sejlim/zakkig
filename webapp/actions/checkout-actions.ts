@@ -15,8 +15,14 @@ interface CreatePaymentIntentParams {
 }
 
 export async function createPaymentIntentAction(params: CreatePaymentIntentParams) {
-  if (params.email && params.email.length > 100) {
-    return { error: "Die E-Mail-Adresse darf maximal 100 Zeichen lang sein." };
+  if (!params.organizationId) {
+    return { error: "Betriebs-ID fehlt." };
+  }
+  if (!params.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(params.email.trim()) || params.email.length > 100) {
+    return { error: "Ungültige E-Mail-Adresse." };
+  }
+  if (!params.total || params.total <= 0 || params.total > 1000000) {
+    return { error: "Ungültiger Gesamtbetrag." };
   }
   if (params.tableNumber && params.tableNumber.length > 20) {
     return { error: "Die Tischnummer darf maximal 20 Zeichen lang sein." };

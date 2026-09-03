@@ -48,7 +48,7 @@ export const requestEmailChange = mutation({
     if (!user || !user.email) throw new Error("User not found");
 
     const token = crypto.randomUUID();
-    const expires = Date.now() + 15 * 60 * 1000;
+    const expires = Date.now() + 30 * 60 * 1000;
 
     await ctx.db.insert("verificationCodes", {
       identifier: `email_change_${userId}`,
@@ -88,7 +88,7 @@ export const sendNewEmailOtp = mutation({
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = Date.now() + 15 * 60 * 1000;
+    const expires = Date.now() + 30 * 60 * 1000;
 
     await ctx.db.insert("verificationCodes", {
       identifier: `new_email_otp_${userId}`,
@@ -158,7 +158,7 @@ export const requestAccountDeletion = mutation({
     if (!user || !user.email) throw new Error("User not found");
 
     const token = crypto.randomUUID();
-    const expires = Date.now() + 15 * 60 * 1000;
+    const expires = Date.now() + 30 * 60 * 1000;
 
     await ctx.db.insert("verificationCodes", {
       identifier: `delete_account_${userId}`,
@@ -180,6 +180,7 @@ export const requestAccountDeletion = mutation({
 export const createEmailChangeToken = mutation({
   args: {
     userId: v.id("users"),
+    sessionToken: v.optional(v.string()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -188,13 +189,24 @@ export const createEmailChangeToken = mutation({
     error: v.optional(v.string()),
   }),
   handler: async (ctx, args) => {
+    if (!args.sessionToken) {
+      return { success: false, error: "Unauthorized" };
+    }
+    const sessionRecord = await ctx.db
+      .query("verificationCodes")
+      .withIndex("by_identifier", (q) => q.eq("identifier", `session_${args.sessionToken}`))
+      .first();
+    if (!sessionRecord || sessionRecord.code !== args.userId || Date.now() > sessionRecord.expires) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const user = await ctx.db.get(args.userId);
     if (!user || !user.email) {
       return { success: false, error: "User not found" };
     }
 
     const token = crypto.randomUUID();
-    const expires = Date.now() + 15 * 60 * 1000;
+    const expires = Date.now() + 30 * 60 * 1000;
 
     const existing = await ctx.db
       .query("verificationCodes")
@@ -232,7 +244,7 @@ export const storeNewEmailOtp = mutation({
       return { success: false, error: "Token expired or invalid" };
     }
 
-    const expires = Date.now() + 15 * 60 * 1000;
+    const expires = Date.now() + 30 * 60 * 1000;
 
     const existing = await ctx.db
       .query("verificationCodes")
@@ -291,6 +303,7 @@ export const confirmEmailChangeWithOtp = mutation({
 export const createAccountDeletionToken = mutation({
   args: {
     userId: v.id("users"),
+    sessionToken: v.optional(v.string()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -299,13 +312,24 @@ export const createAccountDeletionToken = mutation({
     error: v.optional(v.string()),
   }),
   handler: async (ctx, args) => {
+    if (!args.sessionToken) {
+      return { success: false, error: "Unauthorized" };
+    }
+    const sessionRecord = await ctx.db
+      .query("verificationCodes")
+      .withIndex("by_identifier", (q) => q.eq("identifier", `session_${args.sessionToken}`))
+      .first();
+    if (!sessionRecord || sessionRecord.code !== args.userId || Date.now() > sessionRecord.expires) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const user = await ctx.db.get(args.userId);
     if (!user || !user.email) {
       return { success: false, error: "User not found" };
     }
 
     const token = crypto.randomUUID();
-    const expires = Date.now() + 15 * 60 * 1000;
+    const expires = Date.now() + 30 * 60 * 1000;
 
     const existing = await ctx.db
       .query("verificationCodes")

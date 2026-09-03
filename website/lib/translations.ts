@@ -8,7 +8,7 @@ export const translations = {
     heroTitle: "Lass deine Kunden selbst bestellen",
     heroSubline:
       "Bestellung und Bezahlung per QR-Code zum Abholen oder an den Tisch. Dein Personal gewinnt Zeit für das\u00A0Wesentliche.",
-    registerCta: "Jetzt kostenlos registrieren",
+    registerCta: "Kostenlos Registrieren",
     registerUrl: "https://app.zakkig.de/sign-up",
     painTitle: "Wartezeiten kosten dich Geld",
     painText:
@@ -82,7 +82,7 @@ export const translations = {
     heroTitle: "Let your customers order themselves",
     heroSubline:
       "Ordering and payment via QR code for pickup or directly at the table. Your staff wins time for what matters.",
-    registerCta: "Register for free",
+    registerCta: "Register for Free",
     registerUrl: "https://app.zakkig.de/sign-up",
     painTitle: "Waiting times cost you money",
     painText:

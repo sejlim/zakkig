@@ -43,11 +43,13 @@ function OrderGrid({
   onComplete,
   onCancel,
   t,
+  now = Date.now(),
 }: {
   orders: Order[];
   onComplete?: (orderId: string) => void;
   onCancel?: (orderId: string) => void;
   t: (key: any, params?: any) => string;
+  now?: number;
 }) {
   const leftOrders = orders.filter((_, i) => i % 2 === 0);
   const rightOrders = orders.filter((_, i) => i % 2 === 1);
@@ -57,7 +59,7 @@ function OrderGrid({
       order._creationTime ||
       (order.$createdAt ? new Date(order.$createdAt).getTime() : 0);
     if (!timeMs) return "";
-    const elapsedMinutes = Math.floor((Date.now() - timeMs) / (1000 * 60));
+    const elapsedMinutes = Math.floor((now - timeMs) / (1000 * 60));
     if (elapsedMinutes < 1) return "Gerade eben";
     if (elapsedMinutes < 60) return `vor ${elapsedMinutes} Min.`;
     return new Date(timeMs).toLocaleTimeString("de-DE", {
@@ -70,6 +72,14 @@ function OrderGrid({
     const items = parseItems(order.items);
     const timeLabel = formatOrderTime(order);
 
+    const completedTime =
+      order.completedAt ||
+      (order.$updatedAt ? new Date(order.$updatedAt).getTime() : 0) ||
+      order._creationTime ||
+      (order.$createdAt ? new Date(order.$createdAt).getTime() : Date.now());
+    const remainingMs = Math.max(0, KITCHEN_CLEANUP_TIMEOUT - (now - completedTime));
+    const remainingMins = Math.max(1, Math.ceil(remainingMs / (60 * 1000)));
+
     return (
       <Card key={order.$id} className="flex flex-col justify-between">
         <div>
@@ -79,12 +89,17 @@ function OrderGrid({
                 <h4 className="text-3xl font-black text-foreground tracking-tight tabular-nums shrink-0">
                   {order.orderNumber}
                 </h4>
-                {timeLabel && (
+                {order.status === "completed" ? (
+                  <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                    <Clock className="w-3 h-3 text-primary" />
+                    {t("autoArchiveRemaining", { time: `${remainingMins} Min.` })}
+                  </span>
+                ) : timeLabel ? (
                   <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
                     <Clock className="w-3 h-3" />
                     {timeLabel}
                   </span>
-                )}
+                ) : null}
               </div>
               <span className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight text-right truncate ml-2">
                 {order.type === "dine-in" || order.tableNumber
@@ -210,7 +225,7 @@ export function LiveOrdersContent({
     setMounted(true);
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 30000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -285,7 +300,9 @@ export function LiveOrdersContent({
   );
   const completedOrders = localOrders.filter((o) => {
     if (o.status !== "completed") return false;
-    const timestamp = o.$updatedAt
+    const timestamp = o.completedAt
+      ? o.completedAt
+      : o.$updatedAt
       ? new Date(o.$updatedAt).getTime()
       : new Date(o.$createdAt || o._creationTime || Date.now()).getTime();
     return now - timestamp < KITCHEN_CLEANUP_TIMEOUT;
@@ -302,6 +319,7 @@ export function LiveOrdersContent({
           ? {
               ...o,
               status: newStatus as any,
+              completedAt: newStatus === "completed" ? Date.now() : o.completedAt,
               $updatedAt: new Date().toISOString(),
             }
           : o,
@@ -372,6 +390,7 @@ export function LiveOrdersContent({
                 onComplete={(id) => handleStatusChange(id, "completed")}
                 onCancel={(id) => setOrderToCancel(id)}
                 t={t}
+                now={now}
               />
             )}
           </CardContent>
@@ -402,6 +421,7 @@ export function LiveOrdersContent({
                 orders={completedOrders}
                 onCancel={(id) => setOrderToCancel(id)}
                 t={t}
+                now={now}
               />
             )}
           </CardContent>

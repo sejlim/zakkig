@@ -10,7 +10,7 @@ import {
   getOrderSessions,
 } from "@/lib/convex/database";
 import { createPaymentPlaceholder } from "@/lib/stripe/placeholder";
-import { getUser } from "@/lib/convex/auth";
+import { getUser, requireOwner, requireKitchenOrOwner } from "@/lib/convex/auth";
 import type { OrderItem } from "@/lib/types";
 
 export interface OrderActionState {
@@ -28,12 +28,20 @@ export async function placeOrderAction(
   const organizationId = formData.get("organizationId") as string;
   const type = formData.get("type") as "dine-in" | "takeaway";
   const tableNumber = formData.get("tableNumber") as string;
-  const email = formData.get("email") as string;
+  const email = (formData.get("email") as string || "").trim().toLowerCase();
   const itemsJson = formData.get("items") as string;
-  const total = parseInt(formData.get("total") as string);
+  const total = parseInt(formData.get("total") as string, 10);
 
-  if (!email || !itemsJson || isNaN(total)) {
-    return { error: "Pflichtfelder fehlen." };
+  if (!organizationId || !email || !itemsJson || isNaN(total) || total <= 0) {
+    return { error: "Pflichtfelder fehlen oder sind ungültig." };
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 100) {
+    return { error: "Ungültige E-Mail-Adresse." };
+  }
+
+  if (tableNumber && tableNumber.length > 20) {
+    return { error: "Tischnummer darf maximal 20 Zeichen lang sein." };
   }
 
   let items: OrderItem[];
@@ -43,8 +51,24 @@ export async function placeOrderAction(
     return { error: "Ungültige Artikeldaten." };
   }
 
-  if (items.length === 0) {
-    return { error: "Der Warenkorb ist leer." };
+  if (!Array.isArray(items) || items.length === 0 || items.length > 100) {
+    return { error: "Der Warenkorb muss zwischen 1 und 100 Artikel enthalten." };
+  }
+
+  // Verify item prices and quantities
+  let calculatedTotal = 0;
+  for (const item of items) {
+    if (!item.quantity || item.quantity <= 0 || item.quantity > 50) {
+      return { error: "Ungültige Artikelanzahl." };
+    }
+    if (typeof item.price !== "number" || item.price < 0) {
+      return { error: "Ungültiger Artikelpreis." };
+    }
+    calculatedTotal += item.price * item.quantity;
+  }
+
+  if (Math.round(calculatedTotal) !== Math.round(total)) {
+    return { error: "Gesamtbetrag stimmt nicht mit den Artikeln überein." };
   }
 
   try {
@@ -85,13 +109,14 @@ export async function placeOrderAction(
   }
 }
 
-// @react-doctor-ignore server-auth-actions - Secured via kitchen session token in the UI or by being restricted to specific clients
 export async function updateOrderStatusAction(
   orderId: string,
   status: "in_progress" | "completed" | "cancelled",
   organizationId: string,
 ) {
   try {
+    await requireKitchenOrOwner(organizationId);
+
     await updateOrderStatus(orderId, status);
     revalidatePath(`/dashboard/${organizationId}/live-orders`);
     revalidatePath(`/dashboard/${organizationId}/orders`);
@@ -107,9 +132,9 @@ export async function updateOrderStatusAction(
 }
 
 export async function exportOrdersCSVAction(organizationId: string) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
   try {
+    await requireOwner(organizationId);
+
     const orders = await getOrders(organizationId);
 
     const headers = [
@@ -154,13 +179,12 @@ export async function exportOrdersCSVAction(organizationId: string) {
 }
 
 export async function generateOrderSessionAction(organizationId: string) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    const { user } = await requireOwner(organizationId);
+
     const existing = await getOrderSessions(organizationId);
     await Promise.all(existing.map((s) => deleteOrderSession(s.$id)));
-    const session = await createOrderSession(organizationId, user.$id);
+    const session = await createOrderSession(organizationId, user.$id || user._id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
     return { success: true, session: structuredClone(session) };
   } catch (error: unknown) {

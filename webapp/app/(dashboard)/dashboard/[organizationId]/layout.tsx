@@ -27,7 +27,7 @@ export default async function DashboardLayout({
     }
 
     // Verify ownership
-    if (organization.ownerId !== user.$id) {
+    if (organization.ownerId !== user.$id && organization.ownerId !== user._id) {
       redirect("/sign-in");
     }
   }

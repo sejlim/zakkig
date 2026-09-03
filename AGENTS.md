@@ -3,6 +3,7 @@
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+- **Proxy Convention (Next.js 16+):** The `middleware.ts` file convention is deprecated and renamed to `proxy.ts`. Always use `proxy.ts` (exporting `export const proxy = ...` and default export) instead of `middleware.ts`.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -25,21 +26,68 @@ All UI texts, labels, and URLs must be handled consistently and exclusively usin
 
 <!-- END:i18n-rules -->
 
-<!-- BEGIN:appwrite-rules -->
+<!-- BEGIN:anti-ai-slop-rules -->
 
-# Appwrite, Environment & Infrastructure
+# Anti-AI Slop & Clean Code Quality
 
-- **Research & Context:** When working with Appwrite, ALWAYS use the provided Appwrite MCP tools (e.g. `appwrite-api`, `appwrite-docs`) and the `appwrite-cli` / `appwrite-typescript` skills for context and documentation. Do not guess Appwrite APIs or CLI commands.
-- **Project Environments:** Each project (`webapp` and `website`) maintains its own `.env` and `.env.example` file located directly in its project directory with its respective URLs, keys, and settings.
-- **Database IDs:** Each project defines `NEXT_PUBLIC_APPWRITE_DATABASE_ID` in its own `.env` (e.g., `webapp` for the webapp and `website` for the landing page).
-- **Development & Production Ports:** In development, the website runs on port 3000 (`next dev --port 3000`) and the webapp on port 3001 (`next dev --port 3001`). In production, both start with standard `next start` (defaulting to port 3000).
-- **CLI Config (`appwrite.json`):** The `appwrite.json` at the project root only contains the public `projectId` and `endpoint` for the CLI. Do not hardcode sensitive variables in it.
-- **Database Schema (Infrastructure as Code):** The entire database schema (tables, collections, attributes, indexes) is stored directly in `appwrite.json`. 
-  - To initialize or update the databases on Appwrite, simply run: `npx appwrite-cli push tables` from the root directory.
-  - Do NOT use custom JS initialization scripts.
-- **Appwrite Functions:**
-  - Functions are located in `appwrite/functions/<functionName>/`.
-  - When deploying Appwrite Functions, use the `--with-variables` flag to push variables to the cloud environment:
-    `npx appwrite-cli push functions --all --with-variables`
+Keep the codebase clean, professional, minimal, and human-written. Strictly follow these quality constraints:
 
-<!-- END:appwrite-rules -->
+1. **Zero Emojis:**
+   - DO NOT use emojis anywhere in the codebase: no emojis in source code, JSX, comments, documentation, markdown headers, or commit messages.
+   - Use Phosphor Icons (`@phosphor-icons/react`) for UI iconography.
+
+2. **No Decorative Comment Dividers:**
+   - DO NOT use decorative AI-style horizontal comment lines (e.g. `// ─── Categories ───` or `// ==================`).
+   - Use clean, standard, idiomatic comments (e.g. `// Categories`, `// Menu Items`).
+
+3. **No AI Debug Logging:**
+   - DO NOT introduce temporary or weird `console.log` statements (e.g. `console.log("Here we do...", ...)`, `console.log("DEBUG: ...")`).
+   - Use only standardized `console.error` and `console.warn` for genuine, unhandled server-side exceptions or browser API fallback events.
+
+4. **No Boilerplate Bloat or Over-Engineering:**
+   - Write concise, idiomatic, high-performance TypeScript. Avoid unnecessary abstractions, wrapper-layers, or redundant types.
+
+<!-- END:anti-ai-slop-rules -->
+
+<!-- BEGIN:architecture-security-rules -->
+
+# System Architecture & Security (Defense-in-Depth)
+
+Follow this unified, multi-layered architecture for all features and changes:
+
+1. **Strict Layering & Entry Points:**
+   - **Client Components** must NEVER call mutating Convex functions directly. All mutations MUST run through Next.js Server Actions (`webapp/actions/`).
+   - **Server Actions** are the authoritative boundary: validate input types, verify authorization, sanitize errors, and call Convex via `convexServer`.
+   - **Convex Functions** enforce defense-in-depth: validate string lengths, bounds, and business invariants directly in mutation handlers.
+
+2. **Tenant Isolation & Authorization (Anti-IDOR):**
+   - Every Server Action that modifies or accesses organization data MUST call `await requireOwner(organizationId)`. Never trust client-supplied `organizationId` without checking `org.ownerId === user._id`.
+   - Operations on terminal endpoints (kitchen display, 86-availability) must be authorized with `requireKitchenOrOwner` or `requireStaffOrOwner`.
+   - Dashboard layouts must strictly verify ownership (`if (org.ownerId !== user._id && org.ownerId !== user.$id) redirect("/sign-in")`).
+
+3. **Zero Data Leakage (Guest Boundary & DOM Hygiene):**
+   - When passing data to public guest pages (`to-go`, `to-stay`), NEVER expose sensitive merchant or platform accounting data (`stripeAccountId`, `taxId`, `ownerId`, `zakkigFee`, `stripeFee`, `netAmount`). Always sanitize or zero out before serializing into RSC payloads or query responses.
+
+4. **Server-Side Price & Integrity Enforcement:**
+   - NEVER trust client-supplied prices, item names, or order totals.
+   - `createPaymentIntent` must query the database, check that each item exists, is available (`available !== false`), satisfies minimum price, and recalculates `calculatedTotal === args.total` to the exact cent.
+
+5. **Convex Public API Surface Minimization:**
+   - Functions not called directly by the browser MUST be declared as `internalMutation`, `internalQuery`, or `internalAction` (e.g. file deletion, database seeds, webhook order processing).
+   - Sensitive user mutations (`createAccountDeletionToken`, `createEmailChangeToken`) must require and verify a valid server-issued `sessionToken`.
+   - Never leave unauthenticated or debug queries (like `listAll`) open on Convex.
+
+6. **Standardized Lifecycles & Timeouts (TTL):**
+   - **Auth, OTPs & Security Links:** Strictly 30 minutes (`30 * 60 * 1000` ms).
+   - **Brute-Force Lockout:** OTP codes must track failed attempts and permanently delete the code after 5 failures.
+   - **Unverified Accounts:** Delete unverified registrations automatically after 30 minutes via the Convex scheduler.
+   - **Kitchen Board Auto-Archive:** 15 minutes for completed orders.
+   - **Guest Takeaway Tracker:** 10 minutes active countdown once ready for pickup.
+
+7. **Terminal Session Persistence:**
+   - Terminal pairing tokens from URLs (`?token=...`) must be persisted via secure, HttpOnly, SameSite=lax cookies (`order_session_[orgId]`, `availability_session_[orgId]`). Never store pairing tokens in unencrypted client `localStorage`.
+
+<!-- END:architecture-security-rules -->
+
+
+

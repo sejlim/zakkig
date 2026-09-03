@@ -111,8 +111,19 @@ export const create = mutation({
   },
   returns: v.id("organizations"),
   handler: async (ctx, args) => {
+    const trimmedName = args.name.trim();
+    if (trimmedName.length === 0 || trimmedName.length > 100) {
+      throw new Error("Invalid organization name");
+    }
+    if (args.address && args.address.length > 200) {
+      throw new Error("Address too long");
+    }
+    if (args.tables && args.tables.length > 100) {
+      throw new Error("Too many tables");
+    }
+
     const orgId = await ctx.db.insert("organizations", {
-      name: args.name,
+      name: trimmedName,
       ownerId: args.ownerId,
       address: args.address,
       logoStorageId: args.logoStorageId || undefined,
@@ -154,6 +165,19 @@ export const update = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const { id, clearLogo, clearBanner, ...patchData } = args;
+    if (patchData.name !== undefined) {
+      const trimmedName = patchData.name.trim();
+      if (trimmedName.length === 0 || trimmedName.length > 100) {
+        throw new Error("Invalid organization name");
+      }
+      patchData.name = trimmedName;
+    }
+    if (patchData.address !== undefined && patchData.address.length > 200) {
+      throw new Error("Address too long");
+    }
+    if (patchData.tables !== undefined && patchData.tables.length > 100) {
+      throw new Error("Too many tables");
+    }
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Organization not found");
 
@@ -268,10 +292,3 @@ export const cascadeDelete = internalMutation({
   },
 });
 
-export const listAll = query({
-  args: {},
-  returns: v.any(),
-  handler: async (ctx) => {
-    return await ctx.db.query("organizations").take(10);
-  },
-});

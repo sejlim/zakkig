@@ -281,7 +281,7 @@ export function MenuContent({
     });
   };
 
-  // Handle Drag End (persist final category or item positions to Appwrite)
+  // Handle Drag End (persist final category or item positions to Convex)
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveItem(null);
@@ -808,10 +808,7 @@ export function MenuContent({
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sortable Category Card Component
-// ─────────────────────────────────────────────────────────────────────────────
+// Sortable Category Card
 
 interface SortableCategoryCardProps {
   category: MenuCategory;
@@ -1075,10 +1072,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
     </div>
   );
 });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sortable Item Row Component & Presentation View
-// ─────────────────────────────────────────────────────────────────────────────
+// Sortable Item Row
 
 interface ItemRowViewProps {
   item: MenuItem;

@@ -6,18 +6,17 @@ import {
   deleteAvailabilitySession,
   getAvailabilitySessions,
 } from "@/lib/convex/database";
-import { getUser } from "@/lib/convex/auth";
+import { requireOwner } from "@/lib/convex/auth";
 
 export async function generateAvailabilitySessionAction(
   organizationId: string,
 ) {
-  const user = await getUser();
-  if (!user) return { error: "Nicht authentifiziert." };
-
   try {
+    const { user } = await requireOwner(organizationId);
+
     const existing = await getAvailabilitySessions(organizationId);
     await Promise.all(existing.map((s) => deleteAvailabilitySession(s.$id)));
-    const session = await createAvailabilitySession(organizationId, user.$id);
+    const session = await createAvailabilitySession(organizationId, user.$id || user._id);
     revalidatePath(`/dashboard/${organizationId}/overview`);
     return { success: true, session: structuredClone(session) };
   } catch (error: unknown) {

@@ -48,7 +48,7 @@ export function DashboardShell({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const liveOrders = useQuery(
-    api.orders.getOrders,
+    api.orders.getLiveOrders,
     organization?.$id
       ? { organizationId: organization.$id as Id<"organizations"> }
       : "skip"

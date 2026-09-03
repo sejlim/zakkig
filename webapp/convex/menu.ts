@@ -149,9 +149,13 @@ export const createCategory = mutation({
   },
   returns: v.id("menuCategories"),
   handler: async (ctx, args) => {
+    const trimmed = args.name.trim();
+    if (trimmed.length === 0 || trimmed.length > 100) {
+      throw new Error("Invalid category name");
+    }
     return await ctx.db.insert("menuCategories", {
       organizationId: args.organizationId,
-      name: args.name,
+      name: trimmed,
       sortOrder: args.sortOrder,
     });
   },
@@ -166,6 +170,13 @@ export const updateCategory = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const { id, ...patch } = args;
+    if (patch.name !== undefined) {
+      const trimmed = patch.name.trim();
+      if (trimmed.length === 0 || trimmed.length > 100) {
+        throw new Error("Invalid category name");
+      }
+      patch.name = trimmed;
+    }
     await ctx.db.patch(id, patch);
     return null;
   },
@@ -208,8 +219,19 @@ export const createItem = mutation({
   },
   returns: v.id("menuItems"),
   handler: async (ctx, args) => {
+    const trimmed = args.name.trim();
+    if (trimmed.length === 0 || trimmed.length > 100) {
+      throw new Error("Invalid item name");
+    }
+    if (args.price < 0 || args.price > 10000000) {
+      throw new Error("Invalid price");
+    }
+    if (args.description && args.description.length > 1000) {
+      throw new Error("Description too long");
+    }
     const itemData = {
       ...args,
+      name: trimmed,
       imageStorageId: args.imageStorageId || undefined,
     };
     return await ctx.db.insert("menuItems", itemData);
@@ -233,6 +255,19 @@ export const updateItem = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const { id, clearImage, ...patch } = args;
+    if (patch.name !== undefined) {
+      const trimmed = patch.name.trim();
+      if (trimmed.length === 0 || trimmed.length > 100) {
+        throw new Error("Invalid item name");
+      }
+      patch.name = trimmed;
+    }
+    if (patch.price !== undefined && (patch.price < 0 || patch.price > 10000000)) {
+      throw new Error("Invalid price");
+    }
+    if (patch.description !== undefined && patch.description.length > 1000) {
+      throw new Error("Description too long");
+    }
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Item not found");
 

@@ -53,6 +53,7 @@ export default defineSchema({
     items: v.string(), // JSON stringified OrderItem[]
     total: v.number(), // in cents
     status: v.union(v.literal("in_progress"), v.literal("completed"), v.literal("cancelled")),
+    completedAt: v.optional(v.number()),
     email: v.string(),
     orderNumber: v.string(), // 3-digit rolling number e.g. "001"
     stripePaymentId: v.optional(v.string()),

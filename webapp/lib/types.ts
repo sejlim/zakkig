@@ -1,4 +1,4 @@
-// ─── Convex Document Base ────────────────────────────────────────
+// Convex Document Base
 
 export interface ConvexDocument {
   _id: string;
@@ -13,10 +13,7 @@ export interface ConvexDocument {
   $collectionId?: string;
 }
 
-// Keep AppwriteDocument as alias for smooth migration
-export type AppwriteDocument = ConvexDocument;
-
-// ─── Organizations ──────────────────────────────────────────────
+// Organizations
 
 export interface Organization extends ConvexDocument {
   name: string;
@@ -53,7 +50,7 @@ export interface CreateOrganizationData {
   tables?: string[];
 }
 
-// ─── Menu Categories ────────────────────────────────────────────
+// Menu Categories
 
 export interface MenuCategory extends ConvexDocument {
   organizationId: string;
@@ -68,7 +65,7 @@ export interface CreateMenuCategoryData {
   ownerId?: string;
 }
 
-// ─── Menu Items ─────────────────────────────────────────────────
+// Menu Items
 
 export interface CustomizationOption {
   id: string;
@@ -121,7 +118,7 @@ export interface CreateMenuItemData {
   customizations?: string;
 }
 
-// ─── Orders ─────────────────────────────────────────────────────
+// Orders
 
 export interface OrderItem {
   menuItemId: string;
@@ -137,6 +134,7 @@ export interface Order extends ConvexDocument {
   items: string; // JSON serialized OrderItem[]
   total: number; // in cents
   status: "in_progress" | "completed" | "cancelled";
+  completedAt?: number;
   email: string;
   orderNumber: string;
   stripePaymentId?: string;
@@ -160,7 +158,7 @@ export interface CreateOrderData {
   currency?: string;
 }
 
-// ─── Order Sessions ───────────────────────────────────────────
+// Order Sessions
 
 export interface OrderSession extends ConvexDocument {
   organizationId: string;
@@ -168,7 +166,7 @@ export interface OrderSession extends ConvexDocument {
   expiresAt?: string | null;
 }
 
-// ─── Availability Sessions ────────────────────────────────────
+// Availability Sessions
 
 export interface AvailabilitySession extends ConvexDocument {
   organizationId: string;
@@ -176,7 +174,7 @@ export interface AvailabilitySession extends ConvexDocument {
   expiresAt?: string | null;
 }
 
-// ─── Cart (Client State) ────────────────────────────────────────
+// Cart (Client State)
 
 export interface CartItem {
   id: string; // Unique ID for this specific configured item

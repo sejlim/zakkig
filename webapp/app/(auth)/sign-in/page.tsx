@@ -31,6 +31,7 @@ import {
   SignIn,
   CircleNotch,
   PaperPlaneRight,
+  Clock,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
@@ -159,6 +160,10 @@ function OtpForm({ state }: { state: any }) {
                   />
                 </InputOTPGroup>
               </InputOTP>
+              <div className="flex items-center justify-center gap-1.5 text-xs text-primary-foreground/75 mt-3 font-medium">
+                <Clock className="w-3.5 h-3.5" />
+                <span>{t("otpValidDuration")}</span>
+              </div>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full">

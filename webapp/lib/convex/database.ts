@@ -68,7 +68,7 @@ function toStorageId(id?: string | null): Id<"_storage"> | undefined {
   return id as Id<"_storage">;
 }
 
-// ─── Organizations ──────────────────────────────────────────────
+// Organizations
 
 export async function getOrganizationByOwner(
   ownerId: string,
@@ -132,7 +132,7 @@ export async function updateOrganization(
   });
 }
 
-// ─── Menu Categories ────────────────────────────────────────────
+// Menu Categories
 
 export async function getMenuCategories(
   organizationId: string,
@@ -190,7 +190,7 @@ export async function updateCategorySortOrders(
   });
 }
 
-// ─── Menu Items ─────────────────────────────────────────────────
+// Menu Items
 
 export async function getMenuItems(
   organizationId: string,
@@ -278,7 +278,7 @@ export async function updateItemSortOrders(
   });
 }
 
-// ─── Orders ─────────────────────────────────────────────────────
+// Orders
 
 export async function getOrders(
   organizationId: string,
@@ -338,7 +338,7 @@ export async function updateOrderStatus(
   });
 }
 
-// ─── Order Sessions ───────────────────────────────────────────
+// Order Sessions
 
 export async function getOrderSessions(
   organizationId: string,
@@ -351,28 +351,28 @@ export async function getOrderSessions(
 
 export async function createOrderSession(
   organizationId: string,
-  _ownerId?: string,
+  _userId: string,
 ): Promise<OrderSession> {
   const res = await convexServer.mutation(api.sessions.createOrderSession, {
     organizationId: organizationId as Id<"organizations">,
   });
   return {
-    _id: res._id,
     $id: res._id,
+    $createdAt: new Date().toISOString(),
+    _id: res._id,
     _creationTime: Date.now(),
     organizationId,
     token: res.token,
-    expiresAt: null,
   };
 }
 
-export async function deleteOrderSession(id: string) {
-  return await convexServer.mutation(api.sessions.deleteOrderSession, {
+export async function deleteOrderSession(id: string): Promise<void> {
+  await convexServer.mutation(api.sessions.deleteOrderSession, {
     id: id as Id<"orderSessions">,
   });
 }
 
-// ─── Availability Sessions ────────────────────────────────────
+// Availability Sessions
 
 export async function getAvailabilitySessions(
   organizationId: string,

@@ -88,9 +88,16 @@ export default async function ToGoPage({
     );
   }
 
+  const publicOrganization = {
+    ...organization,
+    stripeAccountId: undefined,
+    taxId: undefined,
+    ownerId: "",
+  };
+
   return (
     <GuestFrontend
-      organization={structuredClone(organization)}
+      organization={structuredClone(publicOrganization)}
       categories={structuredClone(categories)}
       items={structuredClone(items)}
       type="takeaway"

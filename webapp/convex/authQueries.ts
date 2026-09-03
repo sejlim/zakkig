@@ -11,7 +11,12 @@ export const checkEmailExists = query({
       .query("users")
       .withIndex("email", (q) => q.eq("email", normalized))
       .first();
-    return !!user;
+    if (!user) return false;
+    // If user is unverified and past 30 minutes, they don't block registration
+    if (!user.emailVerificationTime && Date.now() - user._creationTime > 30 * 60 * 1000) {
+      return false;
+    }
+    return true;
   },
 });
 
@@ -127,10 +132,18 @@ export const storeOtp = internalMutation({
       await ctx.db.delete(r._id);
     }
 
+    const existingAttempts = await ctx.db
+      .query("verificationCodes")
+      .withIndex("by_identifier", (q) => q.eq("identifier", `otp_attempts_${args.userId}`))
+      .collect();
+    for (const r of existingAttempts) {
+      await ctx.db.delete(r._id);
+    }
+
     await ctx.db.insert("verificationCodes", {
       identifier: `otp_${args.userId}`,
       code: args.otp,
-      expires: Date.now() + 15 * 60 * 1000,
+      expires: Date.now() + 30 * 60 * 1000,
     });
 
     return null;
@@ -144,15 +157,55 @@ export const validateOtpAndConsume = internalMutation({
   },
   returns: v.boolean(),
   handler: async (ctx, args): Promise<boolean> => {
+    const attemptRecord = await ctx.db
+      .query("verificationCodes")
+      .withIndex("by_identifier", (q) => q.eq("identifier", `otp_attempts_${args.userId}`))
+      .first();
+
+    const currentAttempts = attemptRecord ? parseInt(attemptRecord.code, 10) : 0;
+    if (currentAttempts >= 5) {
+      // Lockout: delete the OTP so it cannot be brute-forced
+      const otpRecord = await ctx.db
+        .query("verificationCodes")
+        .withIndex("by_identifier", (q) => q.eq("identifier", `otp_${args.userId}`))
+        .first();
+      if (otpRecord) await ctx.db.delete(otpRecord._id);
+      return false;
+    }
+
     const record = await ctx.db
       .query("verificationCodes")
       .withIndex("by_identifier", (q) => q.eq("identifier", `otp_${args.userId}`))
       .first();
 
-    if (!record || record.code !== args.otp || Date.now() > record.expires) {
+    if (!record || Date.now() > record.expires) {
       return false;
     }
 
+    if (record.code !== args.otp) {
+      if (attemptRecord) {
+        await ctx.db.patch(attemptRecord._id, {
+          code: String(currentAttempts + 1),
+          expires: Date.now() + 30 * 60 * 1000,
+        });
+      } else {
+        await ctx.db.insert("verificationCodes", {
+          identifier: `otp_attempts_${args.userId}`,
+          code: "1",
+          expires: Date.now() + 30 * 60 * 1000,
+        });
+      }
+
+      if (currentAttempts + 1 >= 5) {
+        await ctx.db.delete(record._id);
+      }
+      return false;
+    }
+
+    // Success: clean up attempts counter and OTP
+    if (attemptRecord) {
+      await ctx.db.delete(attemptRecord._id);
+    }
     await ctx.db.delete(record._id);
 
     const user = await ctx.db.get(args.userId as Id<"users">);
@@ -199,7 +252,7 @@ export const storeResetToken = internalMutation({
     await ctx.db.insert("verificationCodes", {
       identifier: `reset_${args.userId}`,
       code: args.secret,
-      expires: Date.now() + 60 * 60 * 1000, // 1 hour
+      expires: Date.now() + 30 * 60 * 1000, // 30 minutes
     });
     return null;
   },
@@ -246,3 +299,39 @@ export const updatePasswordHash = internalMutation({
     return null;
   },
 });
+
+export const cleanupUnverifiedUser = internalMutation({
+  args: { userId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args): Promise<null> => {
+    try {
+      const user = await ctx.db.get(args.userId as Id<"users">);
+      // Only delete if the user exists and was never verified!
+      if (user && !user.emailVerificationTime) {
+        const accounts = await ctx.db
+          .query("authAccounts")
+          .withIndex("userIdAndProvider", (q) =>
+            q.eq("userId", user._id).eq("provider", "password")
+          )
+          .collect();
+        for (const acc of accounts) {
+          await ctx.db.delete(acc._id);
+        }
+
+        const codes = await ctx.db
+          .query("verificationCodes")
+          .withIndex("by_identifier", (q) => q.eq("identifier", `otp_${user._id}`))
+          .collect();
+        for (const code of codes) {
+          await ctx.db.delete(code._id);
+        }
+
+        await ctx.db.delete(user._id);
+      }
+    } catch {
+      // Ignore if already deleted
+    }
+    return null;
+  },
+});
+

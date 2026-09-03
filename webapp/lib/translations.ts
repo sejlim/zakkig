@@ -19,7 +19,7 @@ export const translations = {
     resetPasswordDescription:
       "Gib deine E-Mail-Adresse ein und wir schicken dir einen Link zum Zurücksetzen deines Passworts.",
     resetPasswordSent:
-      "Wir haben dir eine E-Mail zum Zurücksetzen deines Passworts gesendet, folge den Anweisungen.",
+      "Wir haben dir eine E-Mail zum Zurücksetzen deines Passworts gesendet, folge den Anweisungen. Der Link ist 30 Minuten gültig.",
     resetPasswordLinkSent: "Link erfolgreich gesendet",
     noAccount: "Noch kein Konto?",
     alreadyAccount: "Bereits ein Konto?",
@@ -359,9 +359,11 @@ export const translations = {
     dangerZoneDescription: "Sensible Aktionen an deinem Konto.",
     changeEmailAddress: "Email-Adresse ändern",
     changedMind: "Umentschieden?",
-    changeEmailDescription: "Ändere die E-Mail-Adresse, die mit diesem Konto verknüpft ist. Es wird dir eine E-Mail an deine aktuelle Adresse geschickt, um die Änderung zu bestätigen.",
+    changeEmailDescription:
+      "Ändere die E-Mail-Adresse, die mit diesem Konto verknüpft ist. Wir senden dir eine E-Mail mit einem Bestätigungslink, der 30 Minuten gültig ist.",
     changeEmailButton: "Email ändern",
-    changeEmailRequestSent: "Eine E-Mail zur Bestätigung wurde versandt. Bitte überprüfe dein Postfach.",
+    changeEmailRequestSent:
+      "Eine E-Mail zur Bestätigung wurde versandt. Der Link ist 30 Minuten gültig. Bitte überprüfe dein Postfach.",
     emailChangedSuccess: "Email-Adresse erfolgreich geändert.",
     newEmailAddress: "Neue Email-Adresse",
     newEmailAddressDesc: "Bitte gib deine neue Email-Adresse ein. Wir senden dir einen Anmeldecode, um diese zu bestätigen.",
@@ -372,7 +374,8 @@ export const translations = {
     logoutAllDevices: "Alle Geräte abmelden",
     logoutAllDevicesDescription: "Melde dich von allen Geräten ab, die aktuell mit diesem Konto verbunden sind.",
     deleteAccount: "Konto löschen",
-    deleteAccountDescription: "Es wird dir eine E-Mail mit einem Bestätigungslink geschickt, über den du dein Konto unwiderruflich löschen kannst.",
+    deleteAccountDescription:
+      "Es wird dir eine E-Mail mit einem Bestätigungslink geschickt, der 30 Minuten gültig ist, über den du dein Konto unwiderruflich löschen kannst.",
     requestDeletion: "Konto löschen",
     save: "Speichern",
     saved: "Gespeichert.",
@@ -469,7 +472,12 @@ export const translations = {
     reorderCategories: "Kategorien anordnen",
     reorderTables: "Tische anordnen",
     reorder: "Reihenfolge ändern",
-    deletionRequestSent: "Eine E-Mail zur Bestätigung wurde versandt. Bitte überprüfe dein Postfach.",
+    deletionRequestSent:
+      "Eine E-Mail zur Bestätigung wurde versandt. Der Link ist 30 Minuten gültig. Bitte überprüfe dein Postfach.",
+    otpValidDuration: "Code ist 30 Minuten gültig",
+    autoArchiveRemaining: "Auto-Archiv in {time}",
+    trackingActiveRemaining: "Tracking-Link aktiv für noch {time}",
+    trackingMinutes: "{count} Min.",
     accountDataInfo:
       "Aus Sicherheitsgründen kann die verknüpfte E-Mail-Adresse nur manuell von uns geändert werden. Bitte sende dazu eine E-Mail von deiner aktuell verknüpften Adresse an selim@zakkig.de mit dem Betreff 'zakkig Konto Email Adresse ändern' und nenne uns in der Nachricht die neue gewünschte E-Mail-Adresse. Die Änderung dauert im Schnitt bis zu 7 Tage.",
     invalidToken: "Ungültiger oder abgelaufener Token.",
@@ -526,7 +534,7 @@ export const translations = {
     resetPasswordDescription:
       "Enter your email address and we will send you a link to reset your password.",
     resetPasswordSent:
-      "We sent you an email to reset your password, please follow the instructions.",
+      "We sent you an email to reset your password, please follow the instructions. The link is valid for 30 minutes.",
     resetPasswordLinkSent: "Link successfully sent",
     noAccount: "No account yet?",
     alreadyAccount: "Already have an account?",
@@ -860,9 +868,11 @@ export const translations = {
     dangerZoneDescription: "Sensitive actions on your account.",
     changeEmailAddress: "Change Email Address",
     changedMind: "Changed your mind?",
-    changeEmailDescription: "Change the email address associated with this account. An email will be sent to your current address to confirm the change.",
+    changeEmailDescription:
+      "Change the email address associated with this account. We will send you an email with a confirmation link valid for 30 minutes.",
     changeEmailButton: "Change Email",
-    changeEmailRequestSent: "A confirmation email has been sent. Please check your inbox.",
+    changeEmailRequestSent:
+      "A confirmation email has been sent. The link is valid for 30 minutes. Please check your inbox.",
     emailChangedSuccess: "Email address successfully changed.",
     newEmailAddress: "New Email Address",
     newEmailAddressDesc: "Please enter your new email address. We will send you a verification code to confirm it.",
@@ -873,7 +883,8 @@ export const translations = {
     logoutAllDevices: "Log out all devices",
     logoutAllDevicesDescription: "Sign out from all devices currently connected to this account.",
     deleteAccount: "Delete Account",
-    deleteAccountDescription: "You will receive an email with a confirmation link to permanently delete your account.",
+    deleteAccountDescription:
+      "You will receive an email with a confirmation link valid for 30 minutes to permanently delete your account.",
     requestDeletion: "Delete account",
     save: "Save",
     saved: "Saved.",
@@ -961,7 +972,12 @@ export const translations = {
     reorderCategories: "Reorder categories",
     reorderTables: "Reorder tables",
     reorder: "Change order",
-    deletionRequestSent: "A confirmation email has been sent. Please check your inbox.",
+    deletionRequestSent:
+      "A confirmation email has been sent. The link is valid for 30 minutes. Please check your inbox.",
+    otpValidDuration: "Code is valid for 30 minutes",
+    autoArchiveRemaining: "Auto-archives in {time}",
+    trackingActiveRemaining: "Tracking link active for {time}",
+    trackingMinutes: "{count} min.",
     accountDataInfo:
       "For security reasons, the linked email address can only be changed manually by us. Please send an email from your currently linked address to selim@zakkig.de with the subject 'zakkig Change Account Email Address' and specify the new desired email address in the message. The change takes up to 7 days on average.",
     invalidToken: "Invalid or expired token.",

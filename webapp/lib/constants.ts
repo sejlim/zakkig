@@ -20,5 +20,13 @@ export const ORDER_TYPE = {
   TAKEAWAY: "takeaway",
 } as const;
 
-// Kitchen Board cleanup timer (ms)
-export const KITCHEN_CLEANUP_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+// Expiration & Cleanup Timeouts (ms)
+export const AUTH_TOKEN_EXPIRY_MINUTES = 30;
+export const AUTH_TOKEN_EXPIRY_MS = AUTH_TOKEN_EXPIRY_MINUTES * 60 * 1000; // 30 minutes
+
+export const TRACKING_EXPIRY_MINUTES = 10;
+export const TRACKING_EXPIRY_MS = TRACKING_EXPIRY_MINUTES * 60 * 1000; // 10 minutes
+
+export const KITCHEN_CLEANUP_MINUTES = 15;
+export const KITCHEN_CLEANUP_TIMEOUT = KITCHEN_CLEANUP_MINUTES * 60 * 1000; // 15 minutes
+
