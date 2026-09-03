@@ -354,3 +354,500 @@ export const seedDemoData = internalMutation({
     };
   },
 });
+
+export const seedDemoProfile = internalMutation({
+  args: {
+    logoStorageId: v.id("_storage"),
+    bannerStorageId: v.id("_storage"),
+    margheritaStorageId: v.id("_storage"),
+    tartufoStorageId: v.id("_storage"),
+    carbonaraStorageId: v.id("_storage"),
+    tiramisuStorageId: v.id("_storage"),
+    limonataStorageId: v.id("_storage"),
+  },
+  returns: v.object({
+    organizationId: v.id("organizations"),
+    userId: v.id("users"),
+    categoriesCount: v.number(),
+    itemsCount: v.number(),
+    ordersCount: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    // 1. Ensure user selim@zakkig.de
+    let user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", "selim@zakkig.de"))
+      .first();
+
+    let userId = user?._id;
+    if (!userId) {
+      userId = await ctx.db.insert("users", {
+        name: "Selim Eser",
+        email: "selim@zakkig.de",
+        emailVerificationTime: Date.now(),
+      });
+    } else {
+      await ctx.db.patch(userId, {
+        name: "Selim Eser",
+        emailVerificationTime: Date.now(),
+      });
+    }
+
+    // 2. Ensure session token session_demo_owner_session
+    const existingSession = await ctx.db
+      .query("verificationCodes")
+      .withIndex("by_identifier", (q) => q.eq("identifier", "session_demo_owner_session"))
+      .first();
+
+    if (!existingSession) {
+      await ctx.db.insert("verificationCodes", {
+        identifier: "session_demo_owner_session",
+        code: userId,
+        expires: Date.now() + 365 * 24 * 60 * 60 * 1000,
+      });
+    } else {
+      await ctx.db.patch(existingSession._id, {
+        code: userId,
+        expires: Date.now() + 365 * 24 * 60 * 60 * 1000,
+      });
+    }
+
+    // 3. Find or create Organization for selim@zakkig.de
+    let org = await ctx.db
+      .query("organizations")
+      .withIndex("by_ownerId", (q) => q.eq("ownerId", userId!))
+      .first();
+
+    let orgId = org?._id;
+    const orgData = {
+      name: "Napoletana Craft & Gusto",
+      legalName: "Napoletana Gastronomie GmbH",
+      address: "Musterstraße 42, 10115 Berlin",
+      ownerId: userId!,
+      logoStorageId: args.logoStorageId,
+      bannerStorageId: args.bannerStorageId,
+      stripeAccountId: "acct_test_napoletana",
+      stripeOnboardingComplete: true,
+      isToGoEnabled: true,
+      isToStayEnabled: true,
+      currency: "EUR",
+      taxId: "DE382910482",
+      deletionRequested: false,
+      tables: ["1", "2", "3", "4", "5", "6", "Terrasse 1", "Terrasse 2"],
+    };
+
+    if (!orgId) {
+      orgId = await ctx.db.insert("organizations", orgData);
+    } else {
+      await ctx.db.patch(orgId, orgData);
+    }
+
+    // 4. Clean old categories, items, and orders for a clean, consistent state
+    const oldCategories = await ctx.db
+      .query("menuCategories")
+      .withIndex("by_organizationId", (q) => q.eq("organizationId", orgId!))
+      .collect();
+    for (const c of oldCategories) {
+      await ctx.db.delete(c._id);
+    }
+
+    const oldItems = await ctx.db
+      .query("menuItems")
+      .withIndex("by_organizationId", (q) => q.eq("organizationId", orgId!))
+      .collect();
+    for (const item of oldItems) {
+      await ctx.db.delete(item._id);
+    }
+
+    const oldOrders = await ctx.db
+      .query("orders")
+      .withIndex("by_organizationId", (q) => q.eq("organizationId", orgId!))
+      .collect();
+    for (const o of oldOrders) {
+      await ctx.db.delete(o._id);
+    }
+
+    // 5. Insert Categories
+    const catPizza = await ctx.db.insert("menuCategories", {
+      organizationId: orgId!,
+      name: "Pizza Napoletana",
+      sortOrder: 0,
+    });
+    const catPasta = await ctx.db.insert("menuCategories", {
+      organizationId: orgId!,
+      name: "Pasta & Cucina",
+      sortOrder: 1,
+    });
+    const catDolci = await ctx.db.insert("menuCategories", {
+      organizationId: orgId!,
+      name: "Dolci & Desserts",
+      sortOrder: 2,
+    });
+    const catDrinks = await ctx.db.insert("menuCategories", {
+      organizationId: orgId!,
+      name: "Bevande & Drinks",
+      sortOrder: 3,
+    });
+
+    // 6. Insert Menu Items
+    // 1. Pizza Margherita
+    await ctx.db.insert("menuItems", {
+      organizationId: orgId!,
+      categoryId: catPizza,
+      name: "Pizza Margherita",
+      description: "San Marzano Tomatensauce, cremiger Fior di Latte Mozzarella, frisches Basilikum und feinstes Olivenöl extra vergine auf knusprigem Leoparden-Teigrand.",
+      price: 1150,
+      taxRate: 7,
+      available: true,
+      sortOrder: 0,
+      imageStorageId: args.margheritaStorageId,
+      customizations: JSON.stringify([
+        {
+          id: "step_toppings",
+          name: "Wunschbeläge",
+          required: false,
+          minSelect: 0,
+          maxSelect: 4,
+          options: [
+            { id: "opt_bufala", name: "Büffelmozzarella DOP", extraPrice: 250, available: true, sortOrder: 0 },
+            { id: "opt_spianata", name: "Scharfe Spianata Calabrese", extraPrice: 200, available: true, sortOrder: 1 },
+            { id: "opt_cherry", name: "Frische Kirschtomaten", extraPrice: 150, available: true, sortOrder: 2 },
+            { id: "opt_rucola", name: "Frischer Rucola", extraPrice: 100, available: true, sortOrder: 3 },
+          ],
+        },
+        {
+          id: "step_crust",
+          name: "Kruste",
+          required: true,
+          minSelect: 1,
+          maxSelect: 1,
+          options: [
+            { id: "opt_classic", name: "Klassisch neapolitanisch", extraPrice: 0, available: true, sortOrder: 0 },
+            { id: "opt_ricotta", name: "Mit Ricotta gefüllter Rand", extraPrice: 250, available: true, sortOrder: 1 },
+          ],
+        },
+      ]),
+    });
+
+    // 2. Pizza Tartufo & Funghi
+    await ctx.db.insert("menuItems", {
+      organizationId: orgId!,
+      categoryId: catPizza,
+      name: "Pizza Tartufo & Funghi",
+      description: "Edle weiße Pizza mit Trüffelcreme, Fior di Latte, gebratenen Steinpilzen, Pfifferlingen, frischen schwarzen Trüffelhobeln und Thymian.",
+      price: 1650,
+      taxRate: 7,
+      available: true,
+      sortOrder: 1,
+      imageStorageId: args.tartufoStorageId,
+      customizations: JSON.stringify([
+        {
+          id: "step_truffle",
+          name: "Trüffel-Upgrade",
+          required: false,
+          minSelect: 0,
+          maxSelect: 1,
+          options: [
+            { id: "opt_double_truffle", name: "Extra Portion frischer schwarzer Trüffel", extraPrice: 350, available: true, sortOrder: 0 },
+          ],
+        },
+      ]),
+    });
+
+    // 3. Spaghetti alla Carbonara
+    await ctx.db.insert("menuItems", {
+      organizationId: orgId!,
+      categoryId: catPasta,
+      name: "Spaghetti alla Carbonara",
+      description: "Klassisch römisch zubereitet: Cremiges Eigelb, gereifter Pecorino Romano DOP, kross gebratener Guanciale und frisch gemahlener Tellicherry-Pfeffer.",
+      price: 1450,
+      taxRate: 7,
+      available: true,
+      sortOrder: 0,
+      imageStorageId: args.carbonaraStorageId,
+      customizations: JSON.stringify([
+        {
+          id: "step_portion",
+          name: "Portionsgröße",
+          required: true,
+          minSelect: 1,
+          maxSelect: 1,
+          options: [
+            { id: "opt_norm", name: "Normal (ca. 180g)", extraPrice: 0, available: true, sortOrder: 0 },
+            { id: "opt_large", name: "Große Portion (+80g)", extraPrice: 300, available: true, sortOrder: 1 },
+          ],
+        },
+        {
+          id: "step_cheese",
+          name: "Käse-Auswahl",
+          required: true,
+          minSelect: 1,
+          maxSelect: 1,
+          options: [
+            { id: "opt_pecorino", name: "Original Pecorino Romano DOP (würzig)", extraPrice: 0, available: true, sortOrder: 0 },
+            { id: "opt_grana", name: "Grana Padano (milder)", extraPrice: 0, available: true, sortOrder: 1 },
+          ],
+        },
+      ]),
+    });
+
+    // 4. Tiramisù Tradizionale
+    await ctx.db.insert("menuItems", {
+      organizationId: orgId!,
+      categoryId: catDolci,
+      name: "Tiramisù Tradizionale",
+      description: "Hausgemacht nach altem Familienrezept aus Treviso: Löffelbiskuits getränkt in Espresso, lockere Mascarponecreme und edler Valrhona-Kakao.",
+      price: 690,
+      taxRate: 7,
+      available: true,
+      sortOrder: 0,
+      imageStorageId: args.tiramisuStorageId,
+      customizations: "[]",
+    });
+
+    // 5. Hausgemachte Blutorangen-Limonade
+    await ctx.db.insert("menuItems", {
+      organizationId: orgId!,
+      categoryId: catDrinks,
+      name: "Hausgemachte Blutorangen-Limonade",
+      description: "Sonnengereifte sizilianische Blutorangen, frischer Rosmarin, prickelndes Quellwasser und Crushed Ice.",
+      price: 490,
+      taxRate: 19,
+      available: true,
+      sortOrder: 0,
+      imageStorageId: args.limonataStorageId,
+      customizations: JSON.stringify([
+        {
+          id: "step_size",
+          name: "Größe",
+          required: true,
+          minSelect: 1,
+          maxSelect: 1,
+          options: [
+            { id: "opt_small", name: "0,33l Glas", extraPrice: 0, available: true, sortOrder: 0 },
+            { id: "opt_large", name: "0,5l Karaffe", extraPrice: 150, available: true, sortOrder: 1 },
+          ],
+        },
+      ]),
+    });
+
+    // 7. Insert Balanced Orders (Open & Completed)
+    const now = Date.now();
+
+    // Open Order 1: Dine-in (Table 4) - active
+    await ctx.db.insert("orders", {
+      organizationId: orgId!,
+      tableNumber: "4",
+      type: "dine-in",
+      orderNumber: "042",
+      status: "in_progress",
+      total: 1640,
+      email: "tisch4@gast.de",
+      items: JSON.stringify([
+        {
+          name: "Pizza Margherita",
+          price: 1150,
+          quantity: 1,
+          customizations: [{ step: "Kruste", choice: "Klassisch neapolitanisch" }],
+        },
+        {
+          name: "Hausgemachte Blutorangen-Limonade",
+          price: 490,
+          quantity: 1,
+          customizations: [{ step: "Größe", choice: "0,33l Glas" }],
+        },
+      ]),
+      zakkigFee: 16,
+      stripeFee: 0,
+      netAmount: 1624,
+      currency: "EUR",
+    });
+
+    // Open Order 2: Takeaway - active
+    await ctx.db.insert("orders", {
+      organizationId: orgId!,
+      type: "takeaway",
+      orderNumber: "043",
+      status: "in_progress",
+      total: 3790,
+      email: "abholung@gast.de",
+      items: JSON.stringify([
+        {
+          name: "Pizza Tartufo & Funghi",
+          price: 1650,
+          quantity: 1,
+          customizations: [],
+        },
+        {
+          name: "Spaghetti alla Carbonara",
+          price: 1450,
+          quantity: 1,
+          customizations: [
+            { step: "Portion", choice: "Normal (ca. 180g)" },
+            { step: "Käse", choice: "Original Pecorino Romano DOP (würzig)" },
+          ],
+        },
+        {
+          name: "Tiramisù Tradizionale",
+          price: 690,
+          quantity: 1,
+          customizations: [],
+        },
+      ]),
+      zakkigFee: 38,
+      stripeFee: 0,
+      netAmount: 3752,
+      currency: "EUR",
+    });
+
+    // Completed Order 1 (completed 5 min ago, in 15min auto-archive window)
+    await ctx.db.insert("orders", {
+      organizationId: orgId!,
+      tableNumber: "2",
+      type: "dine-in",
+      orderNumber: "041",
+      status: "completed",
+      completedAt: now - 5 * 60 * 1000,
+      total: 2790,
+      email: "gast.tisch2@example.com",
+      items: JSON.stringify([
+        {
+          name: "Pizza Margherita",
+          price: 1400,
+          quantity: 1,
+          customizations: [{ step: "Wunschbeläge", choice: "Büffelmozzarella DOP" }],
+        },
+        {
+          name: "Spaghetti alla Carbonara",
+          price: 1450,
+          quantity: 1,
+          customizations: [],
+        },
+      ]),
+      zakkigFee: 28,
+      stripeFee: 0,
+      netAmount: 2762,
+      currency: "EUR",
+    });
+
+    // Completed Order 2 (completed 11 min ago, in 15min auto-archive window)
+    await ctx.db.insert("orders", {
+      organizationId: orgId!,
+      type: "takeaway",
+      orderNumber: "040",
+      status: "completed",
+      completedAt: now - 11 * 60 * 1000,
+      total: 1150,
+      email: "takeaway.gast@example.com",
+      items: JSON.stringify([
+        {
+          name: "Pizza Margherita",
+          price: 1150,
+          quantity: 1,
+          customizations: [],
+        },
+      ]),
+      zakkigFee: 12,
+      stripeFee: 0,
+      netAmount: 1138,
+      currency: "EUR",
+    });
+
+    // Completed Order 3 (completed 2 hours ago, in archive)
+    await ctx.db.insert("orders", {
+      organizationId: orgId!,
+      tableNumber: "6",
+      type: "dine-in",
+      orderNumber: "039",
+      status: "completed",
+      completedAt: now - 2 * 60 * 60 * 1000,
+      total: 4280,
+      email: "dinner@example.com",
+      items: JSON.stringify([
+        {
+          name: "Pizza Tartufo & Funghi",
+          price: 2000,
+          quantity: 1,
+          customizations: [{ step: "Trüffel-Upgrade", choice: "Extra Portion frischer schwarzer Trüffel" }],
+        },
+        {
+          name: "Spaghetti alla Carbonara",
+          price: 1750,
+          quantity: 1,
+          customizations: [{ step: "Portion", choice: "Große Portion (+80g)" }],
+        },
+        {
+          name: "Hausgemachte Blutorangen-Limonade",
+          price: 530,
+          quantity: 1,
+          customizations: [],
+        },
+      ]),
+      zakkigFee: 43,
+      stripeFee: 0,
+      netAmount: 4237,
+      currency: "EUR",
+    });
+
+    // Completed Order 4 (completed yesterday, in archive)
+    await ctx.db.insert("orders", {
+      organizationId: orgId!,
+      type: "takeaway",
+      orderNumber: "038",
+      status: "completed",
+      completedAt: now - 24 * 60 * 60 * 1000,
+      total: 3290,
+      email: "yesterday@example.com",
+      items: JSON.stringify([
+        {
+          name: "Pizza Margherita",
+          price: 1150,
+          quantity: 2,
+          customizations: [],
+        },
+        {
+          name: "Hausgemachte Blutorangen-Limonade",
+          price: 490,
+          quantity: 2,
+          customizations: [],
+        },
+      ]),
+      zakkigFee: 33,
+      stripeFee: 0,
+      netAmount: 3257,
+      currency: "EUR",
+    });
+
+    // 8. Ensure Terminal Tokens
+    let orderSession = await ctx.db
+      .query("orderSessions")
+      .withIndex("by_organizationId", (q) => q.eq("organizationId", orgId!))
+      .first();
+    if (!orderSession) {
+      await ctx.db.insert("orderSessions", {
+        organizationId: orgId!,
+        token: "demo_kitchen_token",
+      });
+    }
+
+    let availSession = await ctx.db
+      .query("availabilitySessions")
+      .withIndex("by_organizationId", (q) => q.eq("organizationId", orgId!))
+      .first();
+    if (!availSession) {
+      await ctx.db.insert("availabilitySessions", {
+        organizationId: orgId!,
+        token: "demo_avail_token",
+      });
+    }
+
+    return {
+      organizationId: orgId!,
+      userId: userId!,
+      categoriesCount: 4,
+      itemsCount: 5,
+      ordersCount: 6,
+    };
+  },
+});
+
