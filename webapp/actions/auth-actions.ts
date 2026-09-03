@@ -143,11 +143,17 @@ export async function signUpAction(
   }
 }
 
+export interface VerifyOtpResult {
+  error?: string;
+  isLockedOut?: boolean;
+  attemptsRemaining?: number;
+}
+
 export async function verifyOtpAction(
   userId: string,
   otp: string,
   pendingOrgData?: { restaurantName: string; name: string },
-): Promise<{ error?: string }> {
+): Promise<VerifyOtpResult> {
   if (!otp || otp.length !== 6) {
     return { error: "invalidOtpLength" };
   }
@@ -159,7 +165,11 @@ export async function verifyOtpAction(
     });
 
     if (!res.success || !res.sessionToken) {
-      return { error: res.error || "invalidOtp" };
+      return {
+        error: res.error || "invalidOtp",
+        isLockedOut: res.isLockedOut,
+        attemptsRemaining: res.attemptsRemaining,
+      };
     }
 
     const cookieStore = await cookies();

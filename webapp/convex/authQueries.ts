@@ -155,8 +155,17 @@ export const validateOtpAndConsume = internalMutation({
     userId: v.string(),
     otp: v.string(),
   },
-  returns: v.boolean(),
-  handler: async (ctx, args): Promise<boolean> => {
+  returns: v.object({
+    success: v.boolean(),
+    status: v.union(
+      v.literal("valid"),
+      v.literal("invalid"),
+      v.literal("locked_out"),
+      v.literal("expired")
+    ),
+    attemptsRemaining: v.optional(v.number()),
+  }),
+  handler: async (ctx, args) => {
     const attemptRecord = await ctx.db
       .query("verificationCodes")
       .withIndex("by_identifier", (q) => q.eq("identifier", `otp_attempts_${args.userId}`))
@@ -164,13 +173,13 @@ export const validateOtpAndConsume = internalMutation({
 
     const currentAttempts = attemptRecord ? parseInt(attemptRecord.code, 10) : 0;
     if (currentAttempts >= 5) {
-      // Lockout: delete the OTP so it cannot be brute-forced
+      // Already locked out: ensure OTP is deleted
       const otpRecord = await ctx.db
         .query("verificationCodes")
         .withIndex("by_identifier", (q) => q.eq("identifier", `otp_${args.userId}`))
         .first();
       if (otpRecord) await ctx.db.delete(otpRecord._id);
-      return false;
+      return { success: false, status: "locked_out" as const, attemptsRemaining: 0 };
     }
 
     const record = await ctx.db
@@ -179,13 +188,14 @@ export const validateOtpAndConsume = internalMutation({
       .first();
 
     if (!record || Date.now() > record.expires) {
-      return false;
+      return { success: false, status: "expired" as const };
     }
 
     if (record.code !== args.otp) {
+      const nextAttempts = currentAttempts + 1;
       if (attemptRecord) {
         await ctx.db.patch(attemptRecord._id, {
-          code: String(currentAttempts + 1),
+          code: String(nextAttempts),
           expires: Date.now() + 30 * 60 * 1000,
         });
       } else {
@@ -196,10 +206,13 @@ export const validateOtpAndConsume = internalMutation({
         });
       }
 
-      if (currentAttempts + 1 >= 5) {
+      if (nextAttempts >= 5) {
         await ctx.db.delete(record._id);
+        return { success: false, status: "locked_out" as const, attemptsRemaining: 0 };
       }
-      return false;
+
+      const attemptsRemaining = Math.max(0, 5 - nextAttempts);
+      return { success: false, status: "invalid" as const, attemptsRemaining };
     }
 
     // Success: clean up attempts counter and OTP
@@ -213,7 +226,7 @@ export const validateOtpAndConsume = internalMutation({
       await ctx.db.patch(user._id, { emailVerificationTime: Date.now() });
     }
 
-    return true;
+    return { success: true, status: "valid" as const };
   },
 });
 

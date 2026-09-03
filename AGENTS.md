@@ -89,5 +89,19 @@ Follow this unified, multi-layered architecture for all features and changes:
 
 <!-- END:architecture-security-rules -->
 
+<!-- BEGIN:ui-feedback-conventions -->
 
+# UI Feedback, Form Errors & Toast Conventions
 
+1. **Toast Notifications:**
+   - Must ALWAYS render at the top center (`position="top-center"`), regardless of viewport (desktop or mobile).
+   - Icons are reserved exclusively for toasts (positioned on the left of the pill). The text in the container to the right of the icon is centered.
+   - DO NOT fire a toast if an inline error message is already visible on the screen or form (avoid duplicate user feedback).
+
+2. **Form Errors & Inline Notices:**
+   - Must ALWAYS be left-aligned (`text-left`, `w-full`).
+   - Must ALWAYS use the standard error color token `text-destructive` with `text-sm font-medium` (or `text-sm font-semibold`).
+   - DO NOT use icons next to inline form error or warning text.
+   - DO NOT use heavy, blocky background alert boxes for simple form validation errors or attempts counters.
+
+<!-- END:ui-feedback-conventions -->

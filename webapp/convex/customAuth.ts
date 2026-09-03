@@ -162,12 +162,20 @@ export const verifyOtp = action({
     success: v.boolean(),
     sessionToken: v.optional(v.string()),
     error: v.optional(v.string()),
+    isLockedOut: v.optional(v.boolean()),
+    attemptsRemaining: v.optional(v.number()),
   }),
   handler: async (
     ctx,
     args
-  ): Promise<{ success: boolean; sessionToken?: string; error?: string }> => {
-    const valid: boolean = await ctx.runMutation(
+  ): Promise<{
+    success: boolean;
+    sessionToken?: string;
+    error?: string;
+    isLockedOut?: boolean;
+    attemptsRemaining?: number;
+  }> => {
+    const res: any = await ctx.runMutation(
       internal.authQueries.validateOtpAndConsume,
       {
         userId: args.userId,
@@ -175,8 +183,26 @@ export const verifyOtp = action({
       }
     );
 
-    if (!valid) {
-      return { success: false, error: "invalidOtp" };
+    if (!res.success) {
+      if (res.status === "locked_out") {
+        return {
+          success: false,
+          error: "otpLockedOut",
+          isLockedOut: true,
+          attemptsRemaining: 0,
+        };
+      }
+      if (res.status === "expired") {
+        return {
+          success: false,
+          error: "otpExpired",
+        };
+      }
+      return {
+        success: false,
+        error: "invalidOtp",
+        attemptsRemaining: res.attemptsRemaining,
+      };
     }
 
     const sessionToken = crypto.randomUUID();

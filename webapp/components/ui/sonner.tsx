@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import {
@@ -13,14 +12,6 @@ import {
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   return (
     <Sonner
@@ -43,13 +34,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
         className:
           "!font-sans !shadow-none !rounded-full !font-bold !border-none !text-[16px] !p-4 !items-center data-[type=error]:!bg-destructive data-[type=error]:!text-destructive-foreground data-[type=success]:!bg-primary data-[type=success]:!text-primary-foreground data-[type=warning]:!bg-primary data-[type=warning]:!text-primary-foreground data-[type=info]:!bg-primary data-[type=info]:!text-primary-foreground data-[type=default]:!bg-primary data-[type=default]:!text-primary-foreground",
         classNames: {
-          description: "!font-medium !opacity-90 !text-[14px]",
+          icon: "!shrink-0 !self-center",
+          content:
+            "!flex-1 !flex !flex-col !items-center !justify-center !text-center",
+          title: "!text-center !w-full !font-semibold",
+          description:
+            "!font-medium !opacity-90 !text-[14px] !text-center !w-full",
           actionButton: "!bg-background !text-foreground",
           cancelButton: "!bg-transparent !text-inherit",
         },
       }}
+      position="top-center"
       {...props}
-      position={isMobile ? "bottom-center" : "top-center"}
     />
   );
 };

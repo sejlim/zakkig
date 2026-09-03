@@ -44,6 +44,11 @@ export const translations = {
       "Erstelle einen Account für deinen Gastronomie-Betrieb, um digitale Live-Bestellungen vor Ort entgegenzunehmen.",
     restaurantName: "Betriebsname",
     invalidOtp: "Der eingegebene Code ist falsch.",
+    otpLockedOut:
+      "Zu viele Fehlversuche. Dieser Code wurde aus Sicherheitsgründen gesperrt. Bitte fordere einen neuen Code an.",
+    otpRemainingAttemptsOne: "Falscher Code. Noch 1 Versuch verbleibend.",
+    otpRemainingAttempts: "Falscher Code. Noch {count} Versuche verbleibend.",
+    requestNewCodeNow: "Neuen Code anfordern",
     authError: "Die Anmeldung ist fehlgeschlagen. Bitte überprüfe deine Daten.",
     authErrorUserExists: "Ein Konto mit dieser E-Mail existiert bereits.",
     signingIn: "Wird angemeldet…",
@@ -69,6 +74,7 @@ export const translations = {
     backToSignIn: "Zurück zur Anmeldung",
     resendCode: "Code erneut senden",
     resendIn: "Erneut senden in {time}s",
+    codeSent: "Neuer Code wurde per E-Mail gesendet.",
 
     // Dashboard
     dashboard: "Dashboard",
@@ -559,6 +565,11 @@ export const translations = {
       "Create an account for your hospitality business to receive digital live orders on-site.",
     restaurantName: "Business name",
     invalidOtp: "The entered code is invalid.",
+    otpLockedOut:
+      "Too many failed attempts. This code has been locked for security reasons. Please request a new code.",
+    otpRemainingAttemptsOne: "Invalid code. 1 attempt remaining.",
+    otpRemainingAttempts: "Invalid code. {count} attempts remaining.",
+    requestNewCodeNow: "Request new code",
     authError: "Sign in failed. Please check your credentials.",
     authErrorUserExists: "An account with this email already exists.",
     signingIn: "Signing in…",
@@ -583,6 +594,7 @@ export const translations = {
     backToSignIn: "Back to Sign In",
     resendCode: "Resend code",
     resendIn: "Resend in {time}s",
+    codeSent: "New code sent via email.",
 
     // Dashboard
     dashboard: "Dashboard",

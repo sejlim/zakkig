@@ -60,6 +60,8 @@ function OtpForm({ state }: { state: any }) {
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(60);
+  const [isLockedOut, setIsLockedOut] = useState(false);
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -69,12 +71,25 @@ function OtpForm({ state }: { state: any }) {
   }, [countdown]);
 
   const submitOtp = async (code: string) => {
-    if (!state.userId) return;
+    if (!state.userId || isLockedOut) return;
     setIsVerifying(true);
     const res = await verifyOtpAction(state.userId, code);
     setIsVerifying(false);
+
+    if (res?.isLockedOut) {
+      setIsLockedOut(true);
+      setAttemptsRemaining(0);
+      setCountdown(0);
+      setOtp("");
+      return;
+    }
+
     if (res?.error) {
-      toast.error(t(res.error as any));
+      if (typeof res.attemptsRemaining === "number") {
+        setAttemptsRemaining(res.attemptsRemaining);
+      } else {
+        toast.error(t(res.error as any));
+      }
     }
   };
 
@@ -84,9 +99,15 @@ function OtpForm({ state }: { state: any }) {
   };
 
   const handleResendOtp = async () => {
-    if (countdown > 0 || !state.userId || !state.email) return;
+    if ((countdown > 0 && !isLockedOut) || !state.userId || !state.email) return;
+    setIsLockedOut(false);
+    setAttemptsRemaining(null);
     setCountdown(60);
-    await resendOtpAction(state.userId, state.email);
+    setOtp("");
+    const res = await resendOtpAction(state.userId, state.email);
+    if (res?.success) {
+      toast.success(t("codeSent"));
+    }
   };
 
   return (
@@ -119,19 +140,34 @@ function OtpForm({ state }: { state: any }) {
           noValidate
           className="flex flex-col gap-4"
         >
-          <div className="flex flex-col items-center justify-center gap-4 py-4 w-full">
+          {isLockedOut && (
+            <p className="w-full text-left text-sm font-medium text-destructive">
+              {t("otpLockedOut")}
+            </p>
+          )}
+
+          {!isLockedOut && attemptsRemaining !== null && attemptsRemaining < 5 && (
+            <p className="w-full text-left text-sm font-medium text-destructive">
+              {attemptsRemaining === 1
+                ? t("otpRemainingAttemptsOne")
+                : t("otpRemainingAttempts").replace("{count}", String(attemptsRemaining))}
+            </p>
+          )}
+
+          <div className="flex flex-col items-center justify-center py-2 w-full">
             <div className="w-full">
               <InputOTP
                 maxLength={6}
                 value={otp}
                 onChange={(val) => {
+                  if (isLockedOut) return;
                   setOtp(val);
                   if (val.length === 6) {
                     submitOtp(val);
                   }
                 }}
-                disabled={isVerifying}
-                autoFocus
+                disabled={isVerifying || isLockedOut}
+                autoFocus={!isLockedOut}
               >
                 <InputOTPGroup className="w-full flex gap-2">
                   <InputOTPSlot
@@ -160,40 +196,44 @@ function OtpForm({ state }: { state: any }) {
                   />
                 </InputOTPGroup>
               </InputOTP>
-              <div className="flex items-center justify-center gap-1.5 text-xs text-primary-foreground/75 mt-3 font-medium">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{t("otpValidDuration")}</span>
-              </div>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-primary-foreground/75 font-medium -mt-1 mb-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{t("otpValidDuration")}</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Button
               type="button"
-              className="w-full sm:w-1/2 h-11 bg-transparent border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 disabled:border-primary-foreground/10 disabled:text-primary-foreground/40 disabled:opacity-100"
-              disabled={countdown > 0}
+              className={`w-full ${isLockedOut ? "sm:w-full font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90" : "sm:w-1/2 bg-transparent border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 disabled:border-primary-foreground/10 disabled:text-primary-foreground/40 disabled:opacity-100"} h-11 transition-all`}
+              disabled={countdown > 0 && !isLockedOut}
               onClick={handleResendOtp}
             >
-              {countdown > 0
-                ? t("resendIn").replace("{time}", countdown.toString())
-                : t("resendCode")}
+              {isLockedOut
+                ? t("requestNewCodeNow")
+                : countdown > 0
+                  ? t("resendIn").replace("{time}", countdown.toString())
+                  : t("resendCode")}
             </Button>
-            <Button
-              type="submit"
-              className="w-full sm:w-1/2 gap-2 h-11 bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100"
-              disabled={isVerifying || otp.length < 6}
-            >
-              {isVerifying ? (
-                <>
-                  <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
-                  {t("verifying")}
-                </>
-              ) : (
-                <>
-                  <PaperPlaneRight className="w-5 h-5" weight="bold" />
-                  {t("confirm")}
-                </>
-              )}
-            </Button>
+            {!isLockedOut && (
+              <Button
+                type="submit"
+                className="w-full sm:w-1/2 gap-2 h-11 bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:bg-primary-foreground/20 disabled:text-primary-foreground/50 disabled:opacity-100"
+                disabled={isVerifying || otp.length < 6}
+              >
+                {isVerifying ? (
+                  <>
+                    <CircleNotch className="w-5 h-5 animate-spin" weight="bold" />
+                    {t("verifying")}
+                  </>
+                ) : (
+                  <>
+                    <PaperPlaneRight className="w-5 h-5" weight="bold" />
+                    {t("confirm")}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </form>
       </CardContent>

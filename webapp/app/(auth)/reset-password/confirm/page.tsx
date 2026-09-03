@@ -129,7 +129,7 @@ function InvalidLinkState({ locale }: { locale: string }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <X className="w-12 h-12 text-red-500 mb-4" />
+      <X className="w-12 h-12 text-destructive mb-4" />
       <h2 className="text-xl font-semibold">{t("invalidLink")}</h2>
       <p className="text-muted-foreground mt-2">{t("invalidLinkDesc")}</p>
       <Button

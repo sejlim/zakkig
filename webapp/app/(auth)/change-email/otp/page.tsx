@@ -144,13 +144,13 @@ function ChangeEmailOtpForm() {
                   />
                 </InputOTPGroup>
               </InputOTP>
-              <div className="flex items-center justify-center gap-1.5 text-xs text-primary-foreground/75 mt-3 font-medium">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{t("otpValidDuration" as any)}</span>
-              </div>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-primary-foreground/75 font-medium -mt-1 mb-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{t("otpValidDuration" as any)}</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Button
               type="button"
               className="w-full sm:w-1/2 h-11 bg-transparent border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 disabled:border-primary-foreground/10 disabled:text-primary-foreground/40 disabled:opacity-100"
