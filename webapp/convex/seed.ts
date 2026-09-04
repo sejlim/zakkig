@@ -393,6 +393,30 @@ export const seedDemoProfile = internalMutation({
       });
     }
 
+    // Ensure authAccount with password (TobiIstCool12.)
+    const existingAccount = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) =>
+        q.eq("userId", userId!).eq("provider", "password")
+      )
+      .first();
+
+    const passwordHash =
+      "b214787761be4824a10ee92a39d0ab1a:d7635764984256caba819516041e2bf4160fe346a6e353401fbbb647954a4f7a804f3936cea239db07a20041ee80d3660ac841fadd9fc88d43e0679f590500f7";
+
+    if (!existingAccount) {
+      await ctx.db.insert("authAccounts", {
+        userId: userId!,
+        provider: "password",
+        providerAccountId: "selim@zakkig.de",
+        secret: passwordHash,
+      });
+    } else {
+      await ctx.db.patch(existingAccount._id, {
+        secret: passwordHash,
+      });
+    }
+
     // 2. Ensure session token session_demo_owner_session
     const existingSession = await ctx.db
       .query("verificationCodes")
