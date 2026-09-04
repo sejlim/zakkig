@@ -15,15 +15,39 @@ export async function sendMail({
   text,
   locale,
 }: SendMailParams): Promise<{ success: boolean; error?: string }> {
+  const host = process.env.SMTP_HOST;
+  const portStr = process.env.SMTP_PORT;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const senderEmail = process.env.EMAIL_FROM;
+  const replyToEmail = process.env.EMAIL_REPLY_TO;
+
+  if (!host || !portStr || !user || !pass || !senderEmail || !replyToEmail) {
+    const missing = [
+      !host && "SMTP_HOST",
+      !portStr && "SMTP_PORT",
+      !user && "SMTP_USER",
+      !pass && "SMTP_PASS",
+      !senderEmail && "EMAIL_FROM",
+      !replyToEmail && "EMAIL_REPLY_TO",
+    ]
+      .filter(Boolean)
+      .join(", ");
+    const errorMsg = `Missing required SMTP environment variables: ${missing}`;
+    console.error(errorMsg);
+    return { success: false, error: errorMsg };
+  }
+
+  const port = Number(portStr);
+  if (isNaN(port)) {
+    const errorMsg = `Invalid SMTP_PORT: "${portStr}" is not a valid number`;
+    console.error(errorMsg);
+    return { success: false, error: errorMsg };
+  }
+
   const isEn = locale === "en";
   const senderName = isEn ? "Selim at zakkig" : "Selim von zakkig";
-  const senderEmail = process.env.EMAIL_FROM || "selim@zakkig.de";
   const fromHeader = `"${senderName}" <${senderEmail}>`;
-
-  const host = process.env.SMTP_HOST || "mail.your-server.de";
-  const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER || "selim@zakkig.de";
-  const pass = process.env.SMTP_PASS || "TobiIstCool12.";
 
   try {
     const transporter = nodemailer.createTransport({
@@ -35,6 +59,7 @@ export async function sendMail({
 
     await transporter.sendMail({
       from: fromHeader,
+      replyTo: replyToEmail,
       envelope: {
         from: user,
         to,

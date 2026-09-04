@@ -241,7 +241,10 @@ export async function resetPasswordAction(
   }
 
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      throw new Error("Missing required environment variable: NEXT_PUBLIC_APP_URL is not set");
+    }
     const cookieStore = await cookies();
     const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
 

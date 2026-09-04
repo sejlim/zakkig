@@ -17,22 +17,37 @@ async function sendMail({
   text?: string;
   locale?: string;
 }): Promise<boolean> {
-  const isEn = locale === "en";
-  const senderName = isEn ? "Selim at zakkig" : "Selim von zakkig";
-  const senderEmail = process.env.EMAIL_FROM || "noreply@zakkig.de";
-  const fromHeader = `"${senderName}" <${senderEmail}>`;
-
   const host = process.env.SMTP_HOST;
+  const portStr = process.env.SMTP_PORT;
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
+  const senderEmail = process.env.EMAIL_FROM;
+  const replyToEmail = process.env.EMAIL_REPLY_TO;
 
-  if (!host || !user || !pass) {
-    console.error("SMTP configuration missing: SMTP_HOST, SMTP_USER or SMTP_PASS not set");
-    return false;
+  if (!host || !portStr || !user || !pass || !senderEmail || !replyToEmail) {
+    const missing = [
+      !host && "SMTP_HOST",
+      !portStr && "SMTP_PORT",
+      !user && "SMTP_USER",
+      !pass && "SMTP_PASS",
+      !senderEmail && "EMAIL_FROM",
+      !replyToEmail && "EMAIL_REPLY_TO",
+    ]
+      .filter(Boolean)
+      .join(", ");
+    throw new Error(`Missing required SMTP environment variables: ${missing}`);
   }
 
+  const port = Number(portStr);
+  if (isNaN(port)) {
+    throw new Error(`Invalid SMTP_PORT: "${portStr}" is not a valid number`);
+  }
+
+  const isEn = locale === "en";
+  const senderName = isEn ? "Selim at zakkig" : "Selim von zakkig";
+  const fromHeader = `"${senderName}" <${senderEmail}>`;
+
   try {
-    const port = Number(process.env.SMTP_PORT || 587);
     const transporter = nodemailer.createTransport({
       host,
       port,
@@ -42,6 +57,7 @@ async function sendMail({
 
     await transporter.sendMail({
       from: fromHeader,
+      replyTo: replyToEmail,
       envelope: {
         from: user,
         to,

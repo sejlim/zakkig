@@ -12,7 +12,10 @@ export async function connectStripeAction(organizationId: string) {
     await requireOwner(organizationId);
 
     const headerList = await headers();
-    const origin = headerList.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = headerList.get("origin") || process.env.NEXT_PUBLIC_APP_URL;
+    if (!origin) {
+      throw new Error("Missing origin header and NEXT_PUBLIC_APP_URL is not set");
+    }
 
     const res = await convexServer.action(api.stripe.connectStripe, {
       organizationId: organizationId as Id<"organizations">,
@@ -53,7 +56,10 @@ export async function createStripeDashboardLinkAction(organizationId: string) {
     await requireOwner(organizationId);
 
     const headerList = await headers();
-    const origin = headerList.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = headerList.get("origin") || process.env.NEXT_PUBLIC_APP_URL;
+    if (!origin) {
+      throw new Error("Missing origin header and NEXT_PUBLIC_APP_URL is not set");
+    }
 
     const res = await convexServer.action(api.stripe.createStripeDashboardLink, {
       organizationId: organizationId as Id<"organizations">,

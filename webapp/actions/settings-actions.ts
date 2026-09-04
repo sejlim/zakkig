@@ -99,7 +99,10 @@ export async function requestAccountDeletionAction() {
     const user = await getUser();
     if (!user) return { success: false, error: "Nicht authentifiziert." };
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      throw new Error("Missing required environment variable: NEXT_PUBLIC_APP_URL is not set");
+    }
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
@@ -161,7 +164,10 @@ export async function requestEmailChangeAction() {
     const user = await getUser();
     if (!user) return { success: false, error: "Nicht authentifiziert." };
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      throw new Error("Missing required environment variable: NEXT_PUBLIC_APP_URL is not set");
+    }
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const locale = cookieStore.get("NEXT_LOCALE")?.value || "de";
