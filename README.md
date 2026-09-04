@@ -73,7 +73,7 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
   - **Kitchen-Session Management:** Ansicht zum Erstellen und Verwalten von Kitchen-Sessions inkl. kopierbarem Pairing-Link.
   - **QR-Code Generator:** Erstellung von QR-Codes für To-Go und To-Stay (inkl. sichtbarer Tischnummer über dem Code). Generierte QR-Codes sind als PDF für den Druck herunterladbar.
 - **Live-Bestellungen (`/live-orders`):** Echtzeit-Ansicht der aktiven Bestellungen (In Bearbeitung, Abgeschlossen, Storniert).
-- **Archiv (`/archive`):** Detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater.
+- **Archiv (`/archive`):** Detaillierte Historien-Tabelle aller vergangenen Bestellungen mit Filter-/Suchfunktionen und dem DATEV CSV-Export für den Steuerberater. Die Sortierung erfolgt millisekundengenau absteigend (neueste Bestellungen oben), während die Anzeige im Interface sauber auf die Minute formatiert ist.
 - **Menu (`/menu`):** Zentrale Verwaltung der Speisekarte, Getränke, Kategorien, Preise und Bilder.
 - **Settings (`/settings`):** Verwaltung von Account- und Betriebsdaten (z. B. Logo-Upload im Full-Width Layout auf Desktop) und Stripe-Details. Die Kontolöschung erfolgt über einen zweistufigen Verifizierungsprozess: Eine serverseitige Mutation (`deleteAccount`) generiert einen temporären Token und sendet eine Bestätigungs-E-Mail über den eigenen SMTP-Server. Erst nach Klick auf den E-Mail-Link wird das Konto restlos gelöscht.
 
@@ -85,8 +85,11 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
 
 ### 2.4 Core Features: Gast-Frontend (To-Stay & To-Go)
 
-- **Layout:** Bottom-Navigation mit zwei Tabs (links: Menü, rechts: Warenkorb).
-- **Warenkorb (Client State):** Wird lokal via `Zustand` verwaltet. Mengenänderungen sind hier möglich. Bei einem Page-Reload wird der Warenkorb resettet.
+- **Layout & Guest Flow (Lieferando-Style):**
+  - **Initialzustand:** Sauberes Menü ohne störende Navigations-Tabs am unteren Bildschirmrand, wenn der Warenkorb leer ist.
+  - **Schwebender Warenkorb-Banner:** Sobald Artikel in den Warenkorb gelegt werden, ploppt unten ein dezenter schwebender Pill-Banner auf (Artikelanzahl, Zwischensumme, "Zum Warenkorb"). Beim Leeren des Warenkorbs blendet sich der Banner automatisch wieder aus.
+  - **Fokussierte Warenkorb-Seite:** Beim Klick auf den Banner wechselt die Ansicht in den Warenkorb – das Restaurant-Hero-Banner wird ausgeblendet und ein Zurück-Pfeil oben links führt jederzeit zurück zum Menü.
+- **Warenkorb (Client State):** Wird lokal via `Zustand` verwaltet. Mengenänderungen (+ / -) sind direkt möglich. Bei einem Page-Reload wird der Warenkorb resettet.
 - **Checkout:** Abfrage der E-Mail-Adresse (Pflicht für digitalen Beleg), Auswahl der Zahlungsmethode (Apple Pay, Google Pay, Karte) und sofortige Bezahlung. Der Bon wird per E-Mail gesendet.
 - **Bestellnummern (Rolling 001 - 999):** Die für Gäste, Gastronomen und Küche sichtbare Bestellnummer rotiert fortlaufend im dreistelligen Format von `001` bis `999` und beginnt danach automatisch wieder bei `001`. Intern wird jede Bestellung zusätzlich durch eine eindeutige Dokumenten-ID sowie die Stripe-Payment-ID identifiziert.
 - **Nach der Bestellung:**

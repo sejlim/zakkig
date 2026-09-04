@@ -171,7 +171,8 @@ export function DashboardShell({
                     key={item.href}
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start px-2.5 h-10 overflow-hidden",
+                      "w-full h-10 transition-colors relative overflow-visible",
+                      isExpanded ? "justify-start px-2.5" : "justify-center px-0",
                       isActive
                         ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90 hover:text-primary"
                         : "text-primary-foreground/80 hover:bg-primary-foreground/20 hover:text-primary-foreground",
@@ -182,13 +183,29 @@ export function DashboardShell({
                       router.push(item.href);
                     }}
                   >
-                    <item.icon
-                      weight={isActive ? "fill" : "regular"}
-                      className="h-5 w-5 shrink-0"
-                    />
-                    {isExpanded ? (
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <item.icon
+                        weight={isActive ? "fill" : "regular"}
+                        className="h-5 w-5 shrink-0"
+                      />
+                      {!isExpanded &&
+                        item.href.includes("live-orders") &&
+                        activeOrdersCount > 0 && (
+                          <span
+                            className={cn(
+                              "absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full shadow-sm",
+                              isActive
+                                ? "bg-primary ring-2 ring-primary-foreground"
+                                : "bg-primary-foreground ring-2 ring-primary"
+                            )}
+                          >
+                            <span className="sr-only">{activeOrdersCount}</span>
+                          </span>
+                        )}
+                    </div>
+                    {isExpanded && (
                       <>
-                        <span className="ml-1 flex-1 text-left">{item.label}</span>
+                        <span className="ml-2 flex-1 text-left truncate">{item.label}</span>
                         {item.href.includes("live-orders") && activeOrdersCount > 0 && (
                           <span
                             className={cn(
@@ -202,11 +219,6 @@ export function DashboardShell({
                           </span>
                         )}
                       </>
-                    ) : (
-                      item.href.includes("live-orders") &&
-                      activeOrdersCount > 0 && (
-                        <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-foreground" />
-                      )
                     )}
                   </Button>
                 );
@@ -227,7 +239,7 @@ export function DashboardShell({
               className="flex flex-col gap-2 transition-all hover:opacity-95 cursor-pointer group"
             >
               {/* Mini Lieferando-style Banner Card with bottom-left logo */}
-              <div className="relative w-full aspect-[2.3/1] rounded-[16px] overflow-hidden bg-neutral-800 border border-neutral-700/60 shadow-sm">
+              <div className="relative w-full aspect-[2.3/1] rounded-[16px] overflow-hidden bg-black border border-white/15 shadow-sm">
                 {organization?.bannerFileId ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
@@ -236,11 +248,11 @@ export function DashboardShell({
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="w-full h-full bg-neutral-800" />
+                  <div className="w-full h-full bg-black" />
                 )}
 
                 {/* Bottom-left logo box */}
-                <div className="absolute bottom-2 left-2 z-10 w-10 h-10 rounded-[8px] bg-neutral-700 flex items-center justify-center overflow-hidden border border-neutral-600 shrink-0">
+                <div className="absolute bottom-2 left-2 z-10 w-10 h-10 rounded-[8px] bg-neutral-900 flex items-center justify-center overflow-hidden border border-white/20 shrink-0">
                   {organization?.logoFileId ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -249,7 +261,7 @@ export function DashboardShell({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-neutral-700" />
+                    <div className="w-full h-full bg-neutral-900" />
                   )}
                 </div>
               </div>
@@ -271,7 +283,7 @@ export function DashboardShell({
               className="flex items-center justify-center transition-all hover:opacity-90 cursor-pointer"
               title={organization?.name ?? "Settings"}
             >
-              <div className="w-10 h-10 rounded-[10px] bg-neutral-800 flex items-center justify-center overflow-hidden border border-neutral-700 shrink-0">
+              <div className="w-10 h-10 rounded-[10px] bg-black flex items-center justify-center overflow-hidden border border-white/20 shrink-0">
                 {organization?.logoFileId ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
@@ -280,7 +292,7 @@ export function DashboardShell({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-neutral-700" />
+                  <div className="w-full h-full bg-neutral-900" />
                 )}
               </div>
             </Link>

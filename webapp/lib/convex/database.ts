@@ -48,10 +48,12 @@ function toItem(doc: any): MenuItem {
 }
 
 function toOrder(doc: any): Order {
+  const time = doc.createdAt || doc._creationTime;
   return {
     ...doc,
+    createdAt: time,
     $id: doc._id,
-    $createdAt: new Date(doc._creationTime).toISOString(),
+    $createdAt: new Date(time).toISOString(),
   };
 }
 

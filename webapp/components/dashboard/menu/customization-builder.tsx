@@ -48,6 +48,7 @@ import { CSS } from "@dnd-kit/utilities";
 interface CustomizationBuilderProps {
   steps: CustomizationStep[];
   onChange: (steps: CustomizationStep[]) => void;
+  itemAvailable?: boolean;
 }
 
 function generateId() {
@@ -57,6 +58,7 @@ function generateId() {
 export function CustomizationBuilder({
   steps,
   onChange,
+  itemAvailable = true,
 }: CustomizationBuilderProps) {
   const { t } = useTranslation();
   const [autoEditStepId, setAutoEditStepId] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export function CustomizationBuilder({
       minSelections: 1,
       maxSelections: 1,
       includedCount: 1,
-      available: true,
+      available: itemAvailable,
       sortOrder: steps.length,
       options: [],
     };
@@ -105,6 +107,7 @@ export function CustomizationBuilder({
   };
 
   const updateStep = (stepId: string, updates: Partial<CustomizationStep>) => {
+    if (itemAvailable === false && updates.available === true) return;
     onChange(
       steps.map((s) => {
         if (s.id !== stepId) return s;
@@ -139,7 +142,7 @@ export function CustomizationBuilder({
       name: t("newOption"),
       nameEn: "",
       extraPrice: 0,
-      available: step.available ?? true,
+      available: itemAvailable && (step.available ?? true),
       sortOrder: step.options.length,
     };
     setAutoEditOptionId(newOptionId);
@@ -153,7 +156,11 @@ export function CustomizationBuilder({
   ) => {
     const step = steps.find((s) => s.id === stepId);
     if (!step) return;
-    if (step.available === false && updates.available === true) return;
+    if (
+      (itemAvailable === false || step.available === false) &&
+      updates.available === true
+    )
+      return;
     updateStep(stepId, {
       options: step.options.map((o) =>
         o.id === optionId ? { ...o, ...updates } : o,
@@ -193,6 +200,7 @@ export function CustomizationBuilder({
                   step={step}
                   stepIndex={index}
                   totalSteps={steps.length}
+                  itemAvailable={itemAvailable}
                   autoEditStepName={autoEditStepId === step.id}
                   autoEditOptionId={autoEditOptionId}
                   onEditStepComplete={() => setAutoEditStepId(null)}
@@ -234,6 +242,7 @@ interface StepCardProps {
   step: CustomizationStep;
   stepIndex: number;
   totalSteps: number;
+  itemAvailable?: boolean;
   autoEditStepName?: boolean;
   autoEditOptionId?: string | null;
   onEditStepComplete?: () => void;
@@ -252,6 +261,7 @@ function SortableStepCard({
   step,
   stepIndex,
   totalSteps,
+  itemAvailable = true,
   autoEditStepName = false,
   autoEditOptionId,
   onEditStepComplete,
@@ -412,6 +422,7 @@ function SortableStepCard({
           <div className="flex items-center gap-2">
             <Switch
               checked={step.available ?? true}
+              disabled={itemAvailable === false}
               onCheckedChange={(checked) => onUpdate({ available: checked })}
               className="shrink-0 data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
             />
@@ -611,7 +622,9 @@ function SortableStepCard({
                         key={option.id || `opt-${optIndex}`}
                         option={option}
                         optionIndex={optIndex}
-                        disabled={step.available === false}
+                        disabled={
+                          itemAvailable === false || step.available === false
+                        }
                         autoFocusName={autoEditOptionId === option.id}
                         onEditComplete={onEditOptionComplete}
                         onUpdate={(updates) =>
@@ -710,6 +723,9 @@ function OptionRow({
         {/* Line 2 (Mobile): Price Input right-aligned */}
         <div className="flex justify-end sm:justify-start w-full sm:w-auto">
           <div className="relative w-full sm:w-28">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-primary-foreground/60 font-semibold select-none pointer-events-none">
+              +
+            </span>
             <Input
               type="number"
               step="0.01"
@@ -728,9 +744,9 @@ function OptionRow({
                 });
               }}
               placeholder="0,00"
-              className="h-9 sm:h-8 text-sm pr-6 text-right sm:text-left bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 w-full"
+              className="h-9 sm:h-8 text-sm pl-6 pr-6 text-right sm:text-left bg-transparent border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 w-full"
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary-foreground/50">
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary-foreground/50 select-none pointer-events-none">
               €
             </span>
           </div>

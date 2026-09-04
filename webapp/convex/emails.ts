@@ -97,8 +97,8 @@ export const sendEmailOtp = internalAction({
       : "If you did not request this email, you can safely ignore it.";
 
     const footerText = isDe
-      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
-      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -118,9 +118,9 @@ export const sendEmailOtp = internalAction({
       </a>
     </div>
     <div style="padding: 40px;">
-      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #09090b; letter-spacing: -0.5px;">${title}</h1>
+      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #000000; letter-spacing: -0.5px;">${title}</h1>
       <p style="margin: 0 0 32px; font-size: 15px; color: #71717a; line-height: 1.6;">${intro}</p>
-      <div style="background-color: #09090b; border-radius: 16px; padding: 32px 24px; text-align: center; margin-bottom: 32px;">
+      <div style="background-color: #000000; border-radius: 16px; padding: 32px 24px; text-align: center; margin-bottom: 32px;">
         <p style="margin: 0; font-size: 48px; font-weight: 800; letter-spacing: 16px; color: #ffffff; padding-left: 16px;">${args.code}</p>
       </div>
       <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${hint1}</p>
@@ -168,8 +168,8 @@ export const sendPasswordResetEmail = internalAction({
       ? "Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail einfach ignorieren."
       : "If you didn't request a password reset, you can safely ignore this email.";
     const footerText = isDe
-      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
-      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -189,14 +189,14 @@ export const sendPasswordResetEmail = internalAction({
       </a>
     </div>
     <div style="padding: 40px;">
-      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #09090b; letter-spacing: -0.5px;">${subject}</h1>
+      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #000000; letter-spacing: -0.5px;">${subject}</h1>
       <p style="margin: 0 0 32px; font-size: 15px; color: #71717a; line-height: 1.6;">${greeting}</p>
       <div style="text-align: center; margin-bottom: 32px;">
-        <a href="${args.resetUrl}" target="_blank" style="display: inline-block; background-color: #09090b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
+        <a href="${args.resetUrl}" target="_blank" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
       <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
-      <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
-        <a href="${args.resetUrl}" style="color: #09090b; text-decoration: underline;">${args.resetUrl}</a>
+      <p style="margin: 0 0 24px; font-size: 14px; color: #000000; line-height: 1.6; word-break: break-all;">
+        <a href="${args.resetUrl}" style="color: #000000; text-decoration: underline;">${args.resetUrl}</a>
       </p>
       <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
     </div>
@@ -241,8 +241,8 @@ export const sendDeleteAccountEmail = internalAction({
       ? "Falls du diese Löschung nicht angefragt hast, kannst du diese E-Mail einfach ignorieren."
       : "If you didn't request this deletion, you can safely ignore this email.";
     const footerText = isDe
-      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
-      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -262,14 +262,14 @@ export const sendDeleteAccountEmail = internalAction({
       </a>
     </div>
     <div style="padding: 40px;">
-      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #09090b; letter-spacing: -0.5px;">${subject}</h1>
+      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #000000; letter-spacing: -0.5px;">${subject}</h1>
       <p style="margin: 0 0 32px; font-size: 15px; color: #71717a; line-height: 1.6;">${intro}</p>
       <div style="text-align: center; margin-bottom: 32px;">
         <a href="${args.deleteUrl}" target="_blank" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
       <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
-      <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
-        <a href="${args.deleteUrl}" style="color: #09090b; text-decoration: underline;">${args.deleteUrl}</a>
+      <p style="margin: 0 0 24px; font-size: 14px; color: #000000; line-height: 1.6; word-break: break-all;">
+        <a href="${args.deleteUrl}" style="color: #000000; text-decoration: underline;">${args.deleteUrl}</a>
       </p>
       <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
     </div>
@@ -314,8 +314,8 @@ export const sendChangeEmailLink = internalAction({
       ? "Falls du diese Änderung nicht angefragt hast, kannst du diese E-Mail einfach ignorieren."
       : "If you didn't request this change, you can safely ignore this email.";
     const footerText = isDe
-      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
-      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #09090b; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
+      ? 'Diese E-Mail wurde automatisch von <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a> gesendet.<br/>Bitte antworte nicht auf diese E-Mail.'
+      : 'This email was automatically sent by <a href="https://www.zakkig.de" style="color: #000000; text-decoration: underline; font-weight: 600;">zakkig.de</a>.<br/>Please do not reply to this email.';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -335,14 +335,14 @@ export const sendChangeEmailLink = internalAction({
       </a>
     </div>
     <div style="padding: 40px;">
-      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #09090b; letter-spacing: -0.5px;">${subject}</h1>
+      <h1 style="margin: 0 0 12px; font-size: 24px; font-weight: 800; color: #000000; letter-spacing: -0.5px;">${subject}</h1>
       <p style="margin: 0 0 32px; font-size: 15px; color: #71717a; line-height: 1.6;">${intro}</p>
       <div style="text-align: center; margin-bottom: 32px;">
-        <a href="${args.changeUrl}" target="_blank" style="display: inline-block; background-color: #09090b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
+        <a href="${args.changeUrl}" target="_blank" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 32px; border-radius: 12px;">${btnText}</a>
       </div>
       <p style="margin: 0 0 8px; font-size: 14px; color: #71717a; line-height: 1.6;">${fallback}</p>
-      <p style="margin: 0 0 24px; font-size: 14px; color: #09090b; line-height: 1.6; word-break: break-all;">
-        <a href="${args.changeUrl}" style="color: #09090b; text-decoration: underline;">${args.changeUrl}</a>
+      <p style="margin: 0 0 24px; font-size: 14px; color: #000000; line-height: 1.6; word-break: break-all;">
+        <a href="${args.changeUrl}" style="color: #000000; text-decoration: underline;">${args.changeUrl}</a>
       </p>
       <p style="margin: 0; font-size: 14px; color: #71717a; line-height: 1.6;">${ignoreHint}</p>
     </div>

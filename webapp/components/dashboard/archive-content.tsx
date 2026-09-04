@@ -69,6 +69,19 @@ function parseItems(itemsJson: string): OrderItem[] {
   }
 }
 
+function getItemCustomizations(item: OrderItem): any[] {
+  if (Array.isArray(item.customizations)) return item.customizations;
+  if (typeof (item as any).customizations === "string") {
+    try {
+      const parsed = JSON.parse((item as any).customizations);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 type SortConfig = {
   key: keyof Order | "items";
   direction: "asc" | "desc";
@@ -156,6 +169,27 @@ export function ArchiveContent({
     let aVal: any = a[sortConfig.key as keyof Order];
     let bVal: any = b[sortConfig.key as keyof Order];
 
+    if (sortConfig.key === "$createdAt") {
+      const aTime =
+        a.createdAt ||
+        (a.$createdAt ? new Date(a.$createdAt).getTime() : 0) ||
+        a._creationTime ||
+        0;
+      const bTime =
+        b.createdAt ||
+        (b.$createdAt ? new Date(b.$createdAt).getTime() : 0) ||
+        b._creationTime ||
+        0;
+
+      if (aTime !== bTime) {
+        return sortConfig.direction === "asc" ? aTime - bTime : bTime - aTime;
+      }
+
+      const aNum = parseInt(a.orderNumber, 10) || 0;
+      const bNum = parseInt(b.orderNumber, 10) || 0;
+      return sortConfig.direction === "asc" ? aNum - bNum : bNum - aNum;
+    }
+
     if (sortConfig.key === "items") {
       aVal = parseItems(a.items).length;
       bVal = parseItems(b.items).length;
@@ -163,10 +197,6 @@ export function ArchiveContent({
     if (sortConfig.key === "total") {
       aVal = Number(aVal);
       bVal = Number(bVal);
-    }
-    if (sortConfig.key === "$createdAt") {
-      aVal = new Date(aVal).getTime();
-      bVal = new Date(bVal).getTime();
     }
 
     if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -490,19 +520,57 @@ export function ArchiveContent({
                             ? `${t("toTable")} ${order.tableNumber || ""}`.trim()
                             : t("toPickUp")}
                         </TableCell>
-                        <TableCell className="text-sm min-w-[250px]">
-                          <div className="flex flex-wrap gap-x-3 gap-y-1">
-                            {items.map((item: any, index: number) => (
-                              <div
-                                key={`${item.cartItemId || item.id || item.menuItemId || item.name}-${index}`}
-                                className="whitespace-nowrap"
-                              >
-                                <span className="font-semibold">
-                                  {item.quantity}×
-                                </span>{" "}
-                                {item.name}
-                              </div>
-                            ))}
+                        <TableCell className="text-sm min-w-[280px]">
+                          <div className="flex flex-col gap-2 py-1">
+                            {items.map((item: any, index: number) => {
+                              const customizations = getItemCustomizations(item);
+                              return (
+                                <div
+                                  key={`${item.cartItemId || item.id || item.menuItemId || item.name}-${index}`}
+                                  className="flex flex-col gap-1"
+                                >
+                                  <div className="leading-snug">
+                                    <span className="font-semibold text-foreground">
+                                      {item.quantity}×
+                                    </span>{" "}
+                                    <span className="font-medium text-foreground">
+                                      {item.name}
+                                    </span>
+                                  </div>
+                                  {customizations.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pl-3.5">
+                                      {customizations.map((c: any, cIdx: number) => {
+                                        const stepName = c.stepName || c.step;
+                                        const optName =
+                                          c.optionName ||
+                                          c.choice ||
+                                          c.name ||
+                                          (typeof c === "string" ? c : "");
+                                        if (!optName || !String(optName).trim()) return null;
+                                        return (
+                                          <span
+                                            key={cIdx}
+                                            className="inline-flex items-center text-xs text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md border border-border/40"
+                                          >
+                                            {stepName ? (
+                                              <span className="font-medium mr-1 text-foreground/80">
+                                                {stepName}:
+                                              </span>
+                                            ) : null}
+                                            <span>{optName}</span>
+                                            {typeof c.extraPrice === "number" && c.extraPrice > 0 && (
+                                              <span className="ml-1 text-muted-foreground/80 font-normal">
+                                                (+{formatPrice(c.extraPrice)})
+                                              </span>
+                                            )}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-medium tabular-nums">

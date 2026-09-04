@@ -29,8 +29,20 @@ export default async function OverviewPage({
 
   if (!organization) return null;
 
-  const availabilityToken = availabilitySessions[0]?.token;
-  const orderToken = orderSessions[0]?.token;
+  let availabilityToken = availabilitySessions[0]?.token;
+  let orderToken = orderSessions[0]?.token;
+
+  if (!availabilityToken) {
+    const newSession = await createAvailabilitySession(organizationId);
+    availabilityToken = newSession.token;
+  }
+  if (!orderToken) {
+    const newSession = await createOrderSession(
+      organizationId,
+      organization.ownerId,
+    );
+    orderToken = newSession.token;
+  }
 
   const headersList = await headers();
   const host = headersList.get("host") || "";

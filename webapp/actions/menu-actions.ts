@@ -15,7 +15,7 @@ import {
 } from "@/lib/convex/database";
 import { uploadFileToConvex } from "@/lib/convex/storage";
 import { getUser, requireOwner, requireStaffOrOwner } from "@/lib/convex/auth";
-import type { CustomizationStep } from "@/lib/types";
+import type { CustomizationStep, MenuItem } from "@/lib/types";
 
 export interface MenuActionState {
   error?: string;
@@ -333,7 +333,28 @@ export async function toggleMenuItemAvailability(
 
     await requireStaffOrOwner(orgId);
 
-    await updateMenuItem(itemId, { available });
+    const updates: Partial<MenuItem> = { available };
+
+    if (item.customizations) {
+      try {
+        const steps: CustomizationStep[] = JSON.parse(item.customizations);
+        if (Array.isArray(steps)) {
+          const cascadedSteps = steps.map((step) => ({
+            ...step,
+            available,
+            options: (step.options || []).map((opt) => ({
+              ...opt,
+              available,
+            })),
+          }));
+          updates.customizations = JSON.stringify(cascadedSteps);
+        }
+      } catch {
+        // ignore parse error
+      }
+    }
+
+    await updateMenuItem(itemId, updates);
     if (orgId) {
       revalidatePath(`/dashboard/${orgId}/menu`);
       revalidatePath(`/availability/${orgId}`);

@@ -30,14 +30,13 @@ import {
 } from "@/components/ui/tooltip";
 import {
   CircleNotch,
-  FloppyDisk,
   SlidersHorizontal,
   Tag,
   Sparkle,
   ImageSquare,
   Info,
 } from "@phosphor-icons/react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, formatPrice } from "@/lib/i18n";
 import { toast } from "sonner";
 import { ImageUpload } from "./image-upload";
 import { CustomizationBuilder } from "./customization-builder";
@@ -83,7 +82,6 @@ export function ItemWorkspace({
     CustomizationStep[]
   >([]);
 
-  // Validation errors
   const [errors, setErrors] = useState<{ name?: string; price?: string }>({});
 
   // Reset or initialize state when workspace opens
@@ -250,7 +248,19 @@ export function ItemWorkspace({
                     <Switch
                       id="ws-item-available"
                       checked={available}
-                      onCheckedChange={setAvailable}
+                      onCheckedChange={(checked) => {
+                        setAvailable(checked);
+                        setCustomizationSteps((prev) =>
+                          prev.map((step) => ({
+                            ...step,
+                            available: checked,
+                            options: step.options.map((opt) => ({
+                              ...opt,
+                              available: checked,
+                            })),
+                          })),
+                        );
+                      }}
                       className="data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
                     />
                   </div>
@@ -327,10 +337,28 @@ export function ItemWorkspace({
                     <div className="flex flex-col gap-1.5">
                       <Label
                         htmlFor="ws-item-price"
-                        className={`text-sm font-semibold ${errors.price ? "text-destructive" : "text-primary-foreground"}`}
+                        className={`text-sm font-semibold flex items-center gap-1.5 ${errors.price ? "text-destructive" : "text-primary-foreground"}`}
                       >
-                        {t("price")} (€){" "}
+                        <span>
+                          {enableCustomizations ? t("basePrice") : t("price")}
+                        </span>
                         <span className="text-destructive">*</span>
+                        <TooltipProvider delay={100}>
+                          <Tooltip>
+                            <TooltipTrigger
+                              type="button"
+                              className="hidden sm:inline-flex items-center"
+                            >
+                              <Info
+                                className="w-4 h-4 text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-help"
+                                weight="fill"
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-[260px]">
+                              <p>{t("basePriceDesc")}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </Label>
                       <div className="relative">
                         <Input
@@ -402,6 +430,7 @@ export function ItemWorkspace({
                     <CustomizationBuilder
                       steps={customizationSteps}
                       onChange={setCustomizationSteps}
+                      itemAvailable={available}
                     />
                   </div>
                 )}
@@ -433,10 +462,7 @@ export function ItemWorkspace({
                   {t("saving")}
                 </>
               ) : (
-                <>
-                  <FloppyDisk className="w-5 h-5 mr-2" weight="bold" />
-                  {t("save")}
-                </>
+                t("save")
               )}
             </Button>
           </div>

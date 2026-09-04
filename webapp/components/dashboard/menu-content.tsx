@@ -48,7 +48,7 @@ import {
   Check,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, hasPaidCustomizations } from "@/lib/utils";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -511,7 +511,32 @@ export function MenuContent({
   const handleToggleAvailability = useCallback(
     (itemId: string, available: boolean) => {
       setItems((prevItems) =>
-        prevItems.map((i) => (i.$id === itemId ? { ...i, available } : i)),
+        prevItems.map((i) => {
+          if (i.$id !== itemId) return i;
+          if (i.customizations) {
+            try {
+              const steps = JSON.parse(i.customizations);
+              if (Array.isArray(steps)) {
+                const updatedSteps = steps.map((step: any) => ({
+                  ...step,
+                  available,
+                  options: (step.options || []).map((opt: any) => ({
+                    ...opt,
+                    available,
+                  })),
+                }));
+                return {
+                  ...i,
+                  available,
+                  customizations: JSON.stringify(updatedSteps),
+                };
+              }
+            } catch {
+              return { ...i, available };
+            }
+          }
+          return { ...i, available };
+        }),
       );
       startTransition(async () => {
         const res = await toggleMenuItemAvailability(
@@ -522,15 +547,11 @@ export function MenuContent({
         if (res?.error) {
           toast.error(res.error);
           // Rollback optimistic update
-          setItems((prevItems) =>
-            prevItems.map((i) =>
-              i.$id === itemId ? { ...i, available: !available } : i,
-            ),
-          );
+          setItems(initialItems);
         }
       });
     },
-    [organizationId],
+    [initialItems, organizationId],
   );
 
   return (
@@ -1116,8 +1137,12 @@ const ItemRowView = memo(function ItemRowView({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col rounded-xl border bg-background overflow-hidden touch-none shadow-sm transition-shadow hover:shadow-md",
-        isDragging ? "opacity-20 bg-muted/30 border-border/40" : "opacity-100",
+        "flex flex-col rounded-xl border overflow-hidden touch-none shadow-sm transition-all",
+        isDragging
+          ? "opacity-20 bg-muted/30 border-border/40"
+          : !item.available
+          ? "opacity-65 bg-muted/30 border-dashed border-border/70"
+          : "opacity-100 bg-background hover:shadow-md",
       )}
     >
       {/* Top Image */}
@@ -1128,85 +1153,100 @@ const ItemRowView = memo(function ItemRowView({
             alt={item.name}
             fill
             sizes="(max-width: 768px) 100vw, 500px"
-            className="object-cover"
+            className={cn(
+              "object-cover transition-all",
+              !item.available && "grayscale opacity-75",
+            )}
             unoptimized
           />
         </div>
       )}
 
       {/* Content Area */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-4">
-        {/* Left Side: Handle & Info */}
-        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-          {/* Drag Handle */}
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors shrink-0 touch-none mt-0.5 sm:mt-0"
-          >
-            <DotsSixVertical className="h-5 w-5" weight="bold" />
-          </button>
+      <div className="flex items-start p-4 gap-3">
+        {/* Drag Handle */}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors shrink-0 touch-none mt-0.5"
+          aria-label={t("reorder")}
+          title={t("reorder")}
+        >
+          <DotsSixVertical className="h-5 w-5" weight="bold" />
+        </button>
 
-          {/* Info */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-base text-foreground break-words">
+        {/* Content Column to right of handle */}
+        <div className="flex flex-col flex-1 min-w-0 gap-2">
+          {/* Row 1: Title on left, Badge & Switch on right */}
+          <div className="flex items-center justify-between gap-3">
+            <span
+              className={cn(
+                "font-semibold text-base break-words min-w-0",
+                item.available ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
               {item.name}
             </span>
-            {customizationStepCount > 0 && (
-              <Badge
-                variant="outline"
-                className="text-xs gap-1 border-primary/40 text-primary bg-primary/5"
-              >
-                <SlidersHorizontal className="w-3 h-3" weight="bold" />
-                {customizationStepCount}{" "}
-                {customizationStepCount === 1 ? "Schritt" : "Schritte"}
-              </Badge>
-            )}
+
+            <div className="flex items-center gap-2 shrink-0">
+              {customizationStepCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
+                >
+                  <SlidersHorizontal className="w-3 h-3" weight="bold" />
+                  {customizationStepCount}
+                </Badge>
+              )}
+              <Switch
+                checked={item.available}
+                onCheckedChange={(checked) => onToggleAvailability(checked)}
+                title={item.available ? t("itemAvailable") : t("itemSoldOut")}
+              />
+            </div>
           </div>
-          {item.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
-              {item.description}
-            </p>
-          )}
-          <span className="text-sm font-bold text-foreground">
-            {formatPrice(item.price)}
-          </span>
-        </div>
-      </div>
 
-      {/* Action Controls */}
-      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-border/40 pt-3 sm:pt-0 sm:border-t-0 mt-2 sm:mt-0 w-full sm:w-auto">
-        <Switch
-          checked={item.available}
-          onCheckedChange={(checked) => onToggleAvailability(checked)}
-        />
+          {/* Row 2 (unterhalb des Titels): Info on left, Actions on right (vertically centered, right-aligned) */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-1 min-w-0 flex-1">
+              {item.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
+                  {item.description}
+                </p>
+              )}
+              <span className="text-sm font-bold text-foreground">
+                {hasPaidCustomizations(item.customizations)
+                  ? t("fromPrice", { price: formatPrice(item.price) })
+                  : formatPrice(item.price)}
+              </span>
+            </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onEdit}
-            className="rounded-full text-muted-foreground hover:text-foreground"
-            title="Bearbeiten"
-          >
-            <PencilSimple className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="default"
-            onClick={onDelete}
-            className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
-            title={t("delete")}
-          >
-            <Trash className="h-4 w-4 shrink-0" weight="bold" />
-            <span>{t("delete")}</span>
-          </Button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onEdit}
+                className="rounded-full text-muted-foreground hover:text-foreground shrink-0"
+                title={t("edit")}
+              >
+                <PencilSimple className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="default"
+                onClick={onDelete}
+                className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
+                title={t("delete")}
+              >
+                <Trash className="h-4 w-4 shrink-0" weight="bold" />
+                <span>{t("delete")}</span>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 });
 

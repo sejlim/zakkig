@@ -46,16 +46,6 @@ export default async function AvailabilityPage({
   const tokenToVerify = token || cookieToken;
   const isValidSession = isOwner || Boolean(tokenToVerify && sessions.some((s) => s.token === tokenToVerify));
 
-  if (isValidSession && token && sessions.some((s) => s.token === token)) {
-    cookieStore.set(cookieName, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60,
-      path: "/",
-    });
-  }
-
   if (!isValidSession) {
     if (!tokenToVerify && !isOwner) {
       return (

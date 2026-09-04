@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogCloseButton,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check } from "@phosphor-icons/react";
+import { Check, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { formatPrice, useTranslation } from "@/lib/i18n";
+import { cn, hasPaidCustomizations } from "@/lib/utils";
 import type { MenuItem, CustomizationStep } from "@/lib/types";
 
 interface CustomizationModalProps {
@@ -32,8 +34,21 @@ export function CustomizationModal({
   const { t } = useTranslation();
   const [steps, setSteps] = useState<CustomizationStep[]>([]);
   const [selections, setSelections] = useState<Record<string, string[]>>({}); // stepName -> optionNames
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [showFooterShadow, setShowFooterShadow] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const updateScrollShadow = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const hasScrolled = el.scrollTop > 2;
+    const isNotAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight > 8;
+    setShowFooterShadow(hasScrolled && isNotAtBottom);
+  };
 
   useEffect(() => {
+    setIsDescriptionExpanded(false);
+    setShowFooterShadow(false);
     if (item && item.customizations) {
       try {
         const parsedRaw = JSON.parse(item.customizations);
@@ -146,19 +161,61 @@ export function CustomizationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{item.name}</DialogTitle>
+      <DialogContent className="max-w-md sm:max-w-lg h-[92vh] h-[92dvh] max-h-[92dvh] sm:h-[88vh] sm:max-h-[850px] flex flex-col p-0 gap-0 overflow-hidden bg-primary text-primary-foreground rounded-2xl border border-primary-foreground/15 shadow-2xl">
+        {/* Fixed Header */}
+        <DialogHeader className="p-5 pb-3.5 border-b border-primary-foreground/10 shrink-0 bg-primary space-y-1.5 text-left">
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle className="text-xl font-bold truncate min-w-0 flex-1 text-primary-foreground">
+              {item.name}
+            </DialogTitle>
+            <DialogCloseButton />
+          </div>
+          <div>
+            <span className="text-base font-bold text-primary-foreground">
+              {hasPaidCustomizations(item.customizations)
+                ? t("fromPrice", { price: formatPrice(item.price) })
+                : formatPrice(item.price)}
+            </span>
+          </div>
+          {item.description && (
+            <button
+              type="button"
+              onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+              className="text-left w-full group flex items-start justify-between gap-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm cursor-pointer"
+              aria-expanded={isDescriptionExpanded}
+            >
+              <p
+                className={cn(
+                  "text-xs text-primary-foreground/75 leading-relaxed break-words flex-1 group-hover:text-primary-foreground transition-colors",
+                  isDescriptionExpanded ? "line-clamp-none" : "line-clamp-2"
+                )}
+              >
+                {item.description}
+              </p>
+              <span className="w-7 h-5 flex items-center justify-center shrink-0 text-primary-foreground/70 group-hover:text-primary-foreground transition-colors">
+                {isDescriptionExpanded ? (
+                  <CaretUp className="w-4 h-4" weight="bold" />
+                ) : (
+                  <CaretDown className="w-4 h-4" weight="bold" />
+                )}
+              </span>
+            </button>
+          )}
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        {/* Scrollable Content (Options) */}
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollShadow}
+          className="flex-1 min-h-0 overflow-y-auto p-5 space-y-6"
+        >
           {steps.map((step) => {
             const currentSelections = selections[step.name] || [];
             return (
               <div key={step.name} className="space-y-3">
                 <div className="flex items-baseline justify-between gap-4">
-                  <h3 className="font-semibold text-lg leading-tight">{step.name}</h3>
-                  <span className="shrink-0 text-[13px] text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">
+                  <h3 className="font-semibold text-lg leading-tight text-primary-foreground">{step.name}</h3>
+                  <span className="shrink-0 text-[13px] text-primary-foreground/80 font-medium bg-primary-foreground/10 px-2 py-0.5 rounded-full">
                     {step.minSelections === step.maxSelections && step.minSelections > 0
                       ? t("chooseExactly" as any, { count: step.minSelections })
                       : step.minSelections > 0
@@ -167,7 +224,7 @@ export function CustomizationModal({
                   </span>
                 </div>
                 {step.includedCount > 0 && (
-                  <p className="text-sm text-primary font-medium mt-[-4px]">
+                  <p className="text-sm text-primary-foreground/70 font-medium mt-[-4px]">
                     {t("includedFirst" as any, { count: step.includedCount })}
                   </p>
                 )}
@@ -183,10 +240,10 @@ export function CustomizationModal({
                         disabled={isMaxReached}
                         className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all ${
                           isSelected
-                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            ? "border-primary-foreground bg-primary-foreground/15 ring-1 ring-primary-foreground text-primary-foreground"
                             : isMaxReached
-                            ? "border-border opacity-50 cursor-not-allowed bg-muted/20"
-                            : "border-border hover:bg-muted/50"
+                            ? "border-primary-foreground/10 opacity-40 cursor-not-allowed bg-primary-foreground/[0.02] text-primary-foreground/60"
+                            : "border-primary-foreground/15 bg-primary-foreground/[0.03] hover:bg-primary-foreground/10 text-primary-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -195,16 +252,16 @@ export function CustomizationModal({
                               step.maxSelections === 1 ? "rounded-full" : "rounded-[4px]"
                             } ${
                               isSelected
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-input bg-background"
+                                ? "border-primary-foreground bg-primary-foreground text-primary"
+                                : "border-primary-foreground/30 bg-transparent"
                             }`}
                           >
-                            {isSelected && <Check weight="bold" className="w-3 h-3" />}
+                            {isSelected && <Check weight="bold" className="w-3 h-3 text-primary" />}
                           </div>
                           <span className="font-medium text-left">{option.name}</span>
                         </div>
                         {getOptionPrice(option) > 0 && (
-                          <span className="text-sm text-muted-foreground pl-3">
+                          <span className="text-sm text-primary-foreground/70 pl-3">
                             +{formatPrice(getOptionPrice(option))}
                           </span>
                         )}
@@ -217,14 +274,21 @@ export function CustomizationModal({
           })}
         </div>
 
-        <div className="mt-8 pt-4 border-t sticky bottom-0 bg-background pb-safe z-10">
+        {/* Fixed Footer */}
+        <div
+          className={cn(
+            "p-4 border-t border-primary-foreground/10 shrink-0 bg-primary transition-shadow duration-200",
+            showFooterShadow && "shadow-[0_-4px_16px_rgba(0,0,0,0.5)]"
+          )}
+        >
           <Button 
             size="lg"
-            className="w-full rounded-full font-bold h-12 text-base shadow-md" 
+            className="w-full rounded-full font-bold h-12 text-base shadow-md cursor-pointer flex items-center justify-between px-5 bg-primary-foreground text-primary hover:bg-primary-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all" 
             onClick={handleAdd}
             disabled={!isValid}
           >
-            {t("addToCart" as any)} • {formatPrice(calculateTotal())}
+            <span>{t("addToCart" as any)}</span>
+            <span className="tabular-nums">{formatPrice(calculateTotal())}</span>
           </Button>
         </div>
       </DialogContent>

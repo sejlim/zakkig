@@ -120,11 +120,23 @@ export interface CreateMenuItemData {
 
 // Orders
 
+export interface OrderCustomization {
+  stepName?: string;
+  optionName?: string;
+  extraPrice?: number;
+  step?: string;
+  choice?: string;
+  name?: string;
+}
+
 export interface OrderItem {
-  menuItemId: string;
+  menuItemId?: string;
+  id?: string;
+  cartItemId?: string;
   name: string;
   price: number;
   quantity: number;
+  customizations?: OrderCustomization[];
 }
 
 export interface Order extends ConvexDocument {
@@ -135,6 +147,7 @@ export interface Order extends ConvexDocument {
   total: number; // in cents
   status: "in_progress" | "completed" | "cancelled";
   completedAt?: number;
+  createdAt?: number;
   email: string;
   orderNumber: string;
   stripePaymentId?: string;

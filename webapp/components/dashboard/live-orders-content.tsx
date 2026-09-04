@@ -19,7 +19,10 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { updateOrderStatusAction } from "@/actions/order-actions";
 import { playNewOrderSound, initAudioContext } from "@/lib/audio";
-import { KITCHEN_CLEANUP_TIMEOUT } from "@/lib/constants";
+import {
+  KITCHEN_CLEANUP_MINUTES,
+  KITCHEN_CLEANUP_TIMEOUT,
+} from "@/lib/constants";
 import type { Order, OrderItem } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
@@ -77,8 +80,12 @@ function OrderGrid({
       (order.$updatedAt ? new Date(order.$updatedAt).getTime() : 0) ||
       order._creationTime ||
       (order.$createdAt ? new Date(order.$createdAt).getTime() : Date.now());
-    const remainingMs = Math.max(0, KITCHEN_CLEANUP_TIMEOUT - (now - completedTime));
-    const remainingMins = Math.max(1, Math.ceil(remainingMs / (60 * 1000)));
+    const elapsedMs = Math.max(0, (now || Date.now()) - completedTime);
+    const remainingMs = Math.max(0, KITCHEN_CLEANUP_TIMEOUT - elapsedMs);
+    const remainingMins = Math.min(
+      KITCHEN_CLEANUP_MINUTES,
+      Math.max(1, Math.ceil(remainingMs / (60 * 1000))),
+    );
 
     return (
       <Card key={order.$id} className="flex flex-col justify-between">
@@ -113,7 +120,9 @@ function OrderGrid({
               {items.map((item: any, index: number) => (
                 <div
                   key={`${item.cartItemId || item.id || item.menuItemId || item.name}-${index}`}
-                  className="flex flex-col py-1 border-b border-border/40 last:border-b-0 pb-1.5 last:pb-0"
+                  className={`flex flex-col py-1 ${
+                    index < items.length - 1 ? "border-b border-border/40 pb-1.5" : ""
+                  }`}
                 >
                   <div className="flex justify-between items-baseline text-base gap-2">
                     <span className="font-semibold text-foreground leading-snug break-words flex-1 min-w-0">
@@ -128,15 +137,23 @@ function OrderGrid({
                   </div>
                   {Array.isArray(item.customizations) && item.customizations.length > 0 && (
                     <div className="pl-6 pt-1 flex flex-wrap gap-1">
-                      {item.customizations.map((c: any, cIdx: number) => (
-                        <span
-                          key={cIdx}
-                          className="inline-flex items-center text-xs font-medium text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md break-words"
-                        >
-                          +{c.optionName || c.name}
-                          {c.extraPrice > 0 ? ` (${formatPrice(c.extraPrice)})` : ""}
-                        </span>
-                      ))}
+                      {item.customizations.map((c: any, cIdx: number) => {
+                        const label =
+                          c.optionName ||
+                          c.choice ||
+                          c.name ||
+                          (typeof c === "string" ? c : "");
+                        if (!label || !String(label).trim()) return null;
+                        return (
+                          <span
+                            key={cIdx}
+                            className="inline-flex items-center text-xs font-medium text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md break-words"
+                          >
+                            {label}
+                            {c.extraPrice > 0 ? ` (${formatPrice(c.extraPrice)})` : ""}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -223,6 +240,11 @@ export function LiveOrdersContent({
 
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== "undefined" && window.location.search.includes("token=")) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("token");
+      window.history.replaceState({}, "", cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+    }
     const interval = setInterval(() => {
       setNow(Date.now());
     }, 10000);
@@ -312,6 +334,8 @@ export function LiveOrdersContent({
     orderId: string,
     newStatus: "in_progress" | "completed" | "cancelled"
   ) {
+    const timestamp = Date.now();
+    setNow(timestamp);
     // Optimistic UI update for instant feedback
     setLocalOrders((prev) =>
       prev.map((o) =>
@@ -319,8 +343,8 @@ export function LiveOrdersContent({
           ? {
               ...o,
               status: newStatus as any,
-              completedAt: newStatus === "completed" ? Date.now() : o.completedAt,
-              $updatedAt: new Date().toISOString(),
+              completedAt: newStatus === "completed" ? timestamp : o.completedAt,
+              $updatedAt: new Date(timestamp).toISOString(),
             }
           : o,
       ),
@@ -337,7 +361,7 @@ export function LiveOrdersContent({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => {
               initAudioContext();
               const next = !soundEnabled;
@@ -345,17 +369,16 @@ export function LiveOrdersContent({
               localStorage.setItem("zakkig_kitchen_sound", next ? "1" : "0");
               if (next) playNewOrderSound();
             }}
-            className="h-9 gap-1.5 px-3 rounded-full text-xs font-semibold shadow-xs"
           >
             {soundEnabled ? (
               <>
                 <SpeakerHigh className="w-4 h-4 text-primary" weight="fill" />
-                <span>{t("soundOn" as any)}</span>
+                <span>{t("soundOn")}</span>
               </>
             ) : (
               <>
                 <SpeakerSlash className="w-4 h-4 text-muted-foreground" />
-                <span>{t("soundOff" as any)}</span>
+                <span>{t("soundOff")}</span>
               </>
             )}
           </Button>

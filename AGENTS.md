@@ -105,3 +105,16 @@ Follow this unified, multi-layered architecture for all features and changes:
    - DO NOT use heavy, blocky background alert boxes for simple form validation errors or attempts counters.
 
 <!-- END:ui-feedback-conventions -->
+
+<!-- BEGIN:guest-ordering-ux-conventions -->
+
+# Guest Ordering UX Conventions
+
+1. **Clean Initial State:**
+   - Public guest ordering pages (`to-go`, `to-stay`) must have no bottom navigation tabs when the cart is empty.
+2. **Floating Bottom Cart Banner:**
+   - A floating cart banner appears fixed at the bottom only when `itemCount > 0`. It displays the count badge, "Zum Warenkorb", total price, and arrow. It must automatically hide when the cart is emptied.
+3. **Focused Cart View:**
+   - When viewing the cart, the merchant hero banner is suppressed. The view features a top header with an `<ArrowLeft>` back button returning to the menu, the cart title, restaurant subtitle, and order type tag.
+
+<!-- END:guest-ordering-ux-conventions -->

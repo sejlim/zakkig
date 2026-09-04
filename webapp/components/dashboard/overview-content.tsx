@@ -840,7 +840,7 @@ function QrCodeGeneratorCard({
                 ? t("deleteTableTitle")
                 : t("deleteTablesTitle")}
             </DialogTitle>
-            <DialogDescription className="text-primary-foreground/80">
+            <DialogDescription className="text-primary-foreground/80 mt-1">
               {selectedTables.length === 1
                 ? t("deleteTableDesc")
                 : t("deleteTablesDesc")}

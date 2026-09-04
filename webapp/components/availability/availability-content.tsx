@@ -13,7 +13,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CaretDown, CaretUp, SlidersHorizontal } from "@phosphor-icons/react";
-import { cn } from "@/lib/utils";
+import { cn, hasPaidCustomizations } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useTranslation, formatPrice } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/convex/client";
@@ -81,6 +81,14 @@ export function AvailabilityContent({
   );
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("token=")) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("token");
+      window.history.replaceState({}, "", cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+    }
+  }, []);
+
+  useEffect(() => {
     if (organizationId && org === null) {
       router.push("/");
     }
@@ -89,7 +97,30 @@ export function AvailabilityContent({
   const handleToggleItem = useCallback(
     (itemId: string, available: boolean) => {
       setItems((prevItems) =>
-        prevItems.map((i) => (i.$id === itemId ? { ...i, available } : i)),
+        prevItems.map((i) => {
+          if (i.$id !== itemId) return i;
+          if (i.customizations) {
+            try {
+              const steps = parseCustomizations(i.customizations);
+              const updatedSteps = steps.map((step) => ({
+                ...step,
+                available,
+                options: (step.options || []).map((opt) => ({
+                  ...opt,
+                  available,
+                })),
+              }));
+              return {
+                ...i,
+                available,
+                customizations: JSON.stringify(updatedSteps),
+              };
+            } catch {
+              return { ...i, available };
+            }
+          }
+          return { ...i, available };
+        }),
       );
       startTransition(async () => {
         const res = await toggleMenuItemAvailability(
@@ -99,15 +130,11 @@ export function AvailabilityContent({
         );
         if (!res.success) {
           // Revert on error
-          setItems((prevItems) =>
-            prevItems.map((i) =>
-              i.$id === itemId ? { ...i, available: !available } : i,
-            ),
-          );
+          setItems(initialItems);
         }
       });
     },
-    [organizationId],
+    [initialItems, organizationId],
   );
 
   const handleToggleCustomization = useCallback(
@@ -256,6 +283,7 @@ function CategorySection({
   ) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { t } = useTranslation();
 
   return (
     <Card className="transition-colors">
@@ -279,7 +307,7 @@ function CategorySection({
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
             className="rounded-full text-muted-foreground hover:text-foreground shrink-0"
-            title={isExpanded ? "Einklappen" : "Aufklappen"}
+            title={isExpanded ? t("collapse") : t("expand")}
           >
             {isExpanded ? (
               <CaretUp className="h-4 w-4" weight="bold" />
@@ -296,11 +324,11 @@ function CategorySection({
             {items.length === 0 ? (
               <div className="py-6 text-center flex flex-col items-center justify-center gap-1 border border-dashed rounded-lg bg-muted/10">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Keine Artikel in dieser Kategorie.
+                  {t("noItems")}
                 </p>
               </div>
             ) : (
-              <ItemsMasonryGrid
+              <ItemsList
                 items={items}
                 onToggleItem={onToggleItem}
                 onToggleCustomization={onToggleCustomization}
@@ -313,7 +341,7 @@ function CategorySection({
   );
 }
 
-function ItemsMasonryGrid({
+function ItemsList({
   items,
   onToggleItem,
   onToggleCustomization,
@@ -327,47 +355,17 @@ function ItemsMasonryGrid({
     available: boolean,
   ) => void;
 }) {
-  const renderCard = (item: MenuItem) => (
-    <ItemCardView
-      key={item.$id}
-      item={item}
-      onToggleItem={onToggleItem}
-      onToggleCustomization={onToggleCustomization}
-    />
-  );
-
-  const cols2: MenuItem[][] = [[], []];
-  const cols3: MenuItem[][] = [[], [], []];
-
-  items.forEach((item, i) => {
-    cols2[i % 2].push(item);
-    cols3[i % 3].push(item);
-  });
-
   return (
-    <>
-      {/* 1 Column (Mobile < md) */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {items.map(renderCard)}
-      </div>
-
-      {/* 2 Columns (Tablet md to < xl) */}
-      <div className="hidden md:grid xl:hidden grid-cols-2 gap-3 sm:gap-4 items-start">
-        <div className="flex flex-col gap-3 sm:gap-4">
-          {cols2[0].map(renderCard)}
-        </div>
-        <div className="flex flex-col gap-3 sm:gap-4">
-          {cols2[1].map(renderCard)}
-        </div>
-      </div>
-
-      {/* 3 Columns (Desktop xl+) */}
-      <div className="hidden xl:grid grid-cols-3 gap-4 items-start">
-        <div className="flex flex-col gap-4">{cols3[0].map(renderCard)}</div>
-        <div className="flex flex-col gap-4">{cols3[1].map(renderCard)}</div>
-        <div className="flex flex-col gap-4">{cols3[2].map(renderCard)}</div>
-      </div>
-    </>
+    <div className="flex flex-col gap-3">
+      {items.map((item) => (
+        <ItemCardView
+          key={item.$id}
+          item={item}
+          onToggleItem={onToggleItem}
+          onToggleCustomization={onToggleCustomization}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -414,48 +412,38 @@ function ItemCardView({
           )}
 
           <div className="flex flex-col gap-1 min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={cn(
-                  "font-semibold text-base break-words",
-                  item.available
-                    ? "text-foreground"
-                    : "text-muted-foreground line-through decoration-muted-foreground/50"
-                )}
-              >
-                {item.name}
-              </span>
-              {!item.available && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] px-1.5 py-0 font-bold uppercase tracking-wider bg-muted text-muted-foreground border shrink-0"
-                >
-                  {t("itemSoldOut" as any)}
-                </Badge>
+            <span
+              className={cn(
+                "font-semibold text-base break-words",
+                item.available ? "text-foreground" : "text-muted-foreground"
               )}
-              {steps.length > 0 && (
-                <Badge
-                  variant="outline"
-                  className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
-                >
-                  <SlidersHorizontal className="w-3 h-3" weight="bold" />
-                  {steps.length} {steps.length === 1 ? "Schritt" : "Schritte"}
-                </Badge>
-              )}
-            </div>
+            >
+              {item.name}
+            </span>
             {item.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                 {item.description}
               </p>
             )}
             <span className="text-sm font-bold text-foreground whitespace-nowrap">
-              {formatPrice(item.price)}
+              {hasPaidCustomizations(item.customizations)
+                ? t("fromPrice", { price: formatPrice(item.price) })
+                : formatPrice(item.price)}
             </span>
           </div>
         </div>
 
-        {/* Main Item Switch */}
-        <div className="flex items-center shrink-0 pt-0.5">
+        {/* Main Item Switch & Customization Badge */}
+        <div className="flex items-center gap-2 shrink-0 pt-0.5">
+          {steps.length > 0 && (
+            <Badge
+              variant="outline"
+              className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
+            >
+              <SlidersHorizontal className="w-3 h-3" weight="bold" />
+              {steps.length}
+            </Badge>
+          )}
           <Switch
             checked={item.available}
             onCheckedChange={(checked) => onToggleItem(item.$id, checked)}
@@ -484,7 +472,7 @@ function ItemCardView({
             <div className="mt-2 space-y-3">
               {steps.map((step, sIdx) => {
                 const stepId = step.id || (step as any).$id || `step-${sIdx}`;
-                const stepAvailable = step.available !== false;
+                const stepAvailable = item.available && step.available !== false;
                 return (
                   <div key={stepId} className="space-y-2">
                     {/* Step Header Row */}
@@ -495,6 +483,7 @@ function ItemCardView({
                       <div className="flex items-center shrink-0">
                         <Switch
                           checked={stepAvailable}
+                          disabled={!item.available}
                           onCheckedChange={(checked) =>
                             onToggleCustomization(
                               item.$id,
@@ -520,7 +509,7 @@ function ItemCardView({
                             ? (opt as any).price
                             : 0;
                         const optAvailable =
-                          opt.available !== false && stepAvailable;
+                          item.available && stepAvailable && opt.available !== false;
                         return (
                           <div
                             key={optId}
@@ -535,7 +524,7 @@ function ItemCardView({
                                   "font-medium truncate",
                                   optAvailable
                                     ? "text-foreground"
-                                    : "text-muted-foreground line-through"
+                                    : "text-muted-foreground"
                                 )}
                               >
                                 {opt.name}
@@ -549,8 +538,8 @@ function ItemCardView({
 
                             <div className="flex items-center shrink-0">
                               <Switch
-                                checked={opt.available !== false}
-                                disabled={!stepAvailable}
+                                checked={optAvailable}
+                                disabled={!item.available || !stepAvailable}
                                 onCheckedChange={(checked) =>
                                   onToggleCustomization(
                                     item.$id,

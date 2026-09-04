@@ -18,14 +18,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogCloseButton,
 } from "@/components/ui/dialog";
 import { ReactQRCode } from "@lglab/react-qr-code";
 import { generateAvailabilitySessionAction } from "@/actions/availability-actions";
 import { generateOrderSessionAction } from "@/actions/order-actions";
 
 export function SessionsOverviewCard({
-  availabilityToken,
-  orderToken,
+  availabilityToken: initialAvailabilityToken,
+  orderToken: initialOrderToken,
   organizationId,
   baseUrl,
 }: {
@@ -36,6 +37,11 @@ export function SessionsOverviewCard({
 }) {
   const { t } = useTranslation();
   const [isPending, startTransition] = useTransition();
+
+  const [availabilityToken, setAvailabilityToken] = useState(
+    initialAvailabilityToken,
+  );
+  const [orderToken, setOrderToken] = useState(initialOrderToken);
 
   const [availabilityQrOpen, setAvailabilityQrOpen] = useState(false);
   const [orderQrOpen, setOrderQrOpen] = useState(false);
@@ -56,6 +62,7 @@ export function SessionsOverviewCard({
     startTransition(async () => {
       const result = await generateAvailabilitySessionAction(organizationId);
       if (result.success && result.session) {
+        setAvailabilityToken(result.session.token);
         toast.success(t("regeneratedAvailability"));
       } else if (result.error) {
         toast.error(result.error);
@@ -68,6 +75,7 @@ export function SessionsOverviewCard({
     startTransition(async () => {
       const result = await generateOrderSessionAction(organizationId);
       if (result.success && result.session) {
+        setOrderToken(result.session.token);
         toast.success(t("regeneratedOrder"));
       } else if (result.error) {
         toast.error(result.error);
@@ -101,10 +109,11 @@ export function SessionsOverviewCard({
                 <QrCode className="h-4 w-4" />
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px] bg-primary text-primary-foreground border-border/20">
-                <DialogHeader>
+                <DialogHeader className="flex flex-row items-center justify-between">
                   <DialogTitle className="text-primary-foreground text-lg font-bold">
                     {t("availabilitySessions")}
                   </DialogTitle>
+                  <DialogCloseButton />
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-6 p-6">
                   <a
@@ -197,10 +206,11 @@ export function SessionsOverviewCard({
                 <QrCode className="h-4 w-4" />
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px] bg-primary text-primary-foreground border-border/20">
-                <DialogHeader>
+                <DialogHeader className="flex flex-row items-center justify-between">
                   <DialogTitle className="text-primary-foreground text-lg font-bold">
                     {t("liveOrderSessions")}
                   </DialogTitle>
+                  <DialogCloseButton />
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-6 p-6">
                   <a
@@ -281,7 +291,7 @@ export function SessionsOverviewCard({
         <DialogContent className="bg-primary text-primary-foreground border-border/20">
           <DialogHeader>
             <DialogTitle>{t("regenerateAvailabilityTitle")}</DialogTitle>
-            <DialogDescription className="text-primary-foreground/80">
+            <DialogDescription className="text-primary-foreground/80 mt-1">
               {t("regenerateAvailabilityDesc")}
             </DialogDescription>
           </DialogHeader>
@@ -310,7 +320,7 @@ export function SessionsOverviewCard({
         <DialogContent className="bg-primary text-primary-foreground border-border/20">
           <DialogHeader>
             <DialogTitle>{t("regenerateOrderTitle")}</DialogTitle>
-            <DialogDescription className="text-primary-foreground/80">
+            <DialogDescription className="text-primary-foreground/80 mt-1">
               {t("regenerateOrderDesc")}
             </DialogDescription>
           </DialogHeader>

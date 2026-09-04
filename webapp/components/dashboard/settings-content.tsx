@@ -9,6 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { WarningCircle, UploadSimple, X, SpinnerGap, PencilSimple, Trash, Plus } from "@phosphor-icons/react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/convex/client";
 import { cn } from "@/lib/utils";
@@ -40,6 +46,13 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const addressTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustAddressHeight = (textarea: HTMLTextAreaElement | null) => {
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.max(textarea.scrollHeight, 32)}px`;
+  };
 
   const [logoPreview, setLogoPreview] = useState<string | null>(
     organization.logoFileId
@@ -79,6 +92,17 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessState]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (addressTextareaRef.current) {
+        adjustAddressHeight(addressTextareaRef.current);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [organization.address]);
 
   const handleLogoFile = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
@@ -130,80 +154,79 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
-        {/* Business Settings */}
-        <Card className="flex flex-col h-full">
-            <CardHeader className="flex-col items-start pb-4">
-              <h3 className="text-lg font-semibold">{t("businessSettings")}</h3>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <form
-                action={businessAction}
-                noValidate
-                className="flex flex-col gap-4 flex-1"
-              >
-                <input
-                  type="hidden"
-                  name="organizationId"
-                  value={organization.$id}
-                />
-                <input
-                  type="hidden"
-                  name="existingLogoId"
-                  value={organization.logoFileId || ""}
-                />
-                <input
-                  type="hidden"
-                  name="removeLogo"
-                  value={removeLogo ? "true" : "false"}
-                />
-                <input
-                  type="hidden"
-                  name="existingBannerId"
-                  value={organization.bannerFileId || ""}
-                />
-                <input
-                  type="hidden"
-                  name="removeBanner"
-                  value={removeBanner ? "true" : "false"}
-                />
-                <input
-                  ref={logoInputRef}
-                  id="business-logo"
-                  name="logo"
-                  type="file"
-                  accept="image/png, image/jpeg, image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleLogoFile(file);
-                  }}
-                />
-                <input
-                  ref={bannerInputRef}
-                  id="business-banner"
-                  name="banner"
-                  type="file"
-                  accept="image/png, image/jpeg, image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleBannerFile(file);
-                  }}
-                />
+      <div className="flex flex-col gap-6 w-full">
+        {/* Business & Stripe Settings */}
+        <Card className="w-full flex flex-col">
+          <CardHeader className="flex-col items-start pb-4">
+            <h3 className="text-lg font-semibold">{t("businessSettings")}</h3>
+            <p className="text-sm text-muted-foreground">
+              {t("businessSettingsDescription" as any)}
+            </p>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col">
+            <form
+              action={businessAction}
+              noValidate
+              className="flex flex-col gap-6 flex-1"
+            >
+              <input
+                type="hidden"
+                name="organizationId"
+                value={organization.$id}
+              />
+              <input
+                type="hidden"
+                name="existingLogoId"
+                value={organization.logoFileId || ""}
+              />
+              <input
+                type="hidden"
+                name="removeLogo"
+                value={removeLogo ? "true" : "false"}
+              />
+              <input
+                type="hidden"
+                name="existingBannerId"
+                value={organization.bannerFileId || ""}
+              />
+              <input
+                type="hidden"
+                name="removeBanner"
+                value={removeBanner ? "true" : "false"}
+              />
+              <input
+                ref={logoInputRef}
+                id="business-logo"
+                name="logo"
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleLogoFile(file);
+                }}
+              />
+              <input
+                ref={bannerInputRef}
+                id="business-banner"
+                name="banner"
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleBannerFile(file);
+                }}
+              />
 
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="business-email" className="text-sm font-medium">
-                    {t("email")}
-                  </label>
-                  <Input id="business-email" value={user.email} disabled />
-                </div>
+              {/* Form Fields: 2 Columns on md+, 1 Column on mobile */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="business-name"
                     className="text-sm font-medium"
                   >
-                    {t("restaurantName")}
+                    {t("restaurantName")} <span className="text-destructive">*</span>
                   </label>
                   <Input
                     id="business-name"
@@ -215,7 +238,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="business-user-name" className="text-sm font-medium">
-                    {t("name")}
+                    {t("name")} <span className="text-destructive">*</span>
                   </label>
                   <Input
                     id="business-user-name"
@@ -233,15 +256,46 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                     {t("address")}
                   </label>
                   <TextArea
+                    ref={addressTextareaRef}
                     id="business-address"
                     name="address"
                     defaultValue={organization.address}
-                    rows={2}
+                    rows={1}
                     maxLength={300}
+                    onInput={(e) => adjustAddressHeight(e.currentTarget)}
+                    className="min-h-8 py-1 resize-none overflow-hidden leading-5 md:text-sm transition-[height] duration-75"
                   />
                 </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="business-email" className="text-sm font-medium">
+                    {t("email")}{" "}
+                    <span className="text-destructive">*</span>
+                  </label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <div className="w-full cursor-not-allowed" />
+                        }
+                      >
+                        <Input
+                          id="business-email"
+                          value={user.email}
+                          disabled
+                          className="pointer-events-none"
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {t("changeEmailTooltip" as any)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
 
-                {/* Unified Lieferando-style Banner & Logo Canvas */}
+              {/* Visual Media & Stripe Integration: 2 Columns on xl+, 1 Column on mobile/tablet */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Brand Media Column */}
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">{t("brandMedia")}</label>
@@ -401,138 +455,150 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                     {t("brandMediaDesc")}
                   </span>
                 </div>
-                {businessState.error && (
-                  <p className="text-sm text-destructive font-medium">
-                    {businessState.error}
-                  </p>
-                )}
-                <div className="pt-2 flex justify-end mt-auto">
-                  <Button
-                    type="submit"
-                    disabled={isBusinessPending}
-                    variant="outline"
-                    className="w-full font-semibold px-8"
-                  >
-                    {t("save")}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        {/* Stripe Settings */}
-        <Card className="flex flex-col h-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <h3 className="text-lg font-semibold">{t("stripeSettings")}</h3>
-              {organization.stripeOnboardingComplete ? (
-                <Badge variant="default" className="bg-primary text-primary-foreground font-semibold px-3 py-1 rounded-full text-xs">
-                  {t("stripeConnected")}
-                </Badge>
-              ) : organization.stripeAccountId ? (
-                <Badge variant="outline" className="font-semibold px-3 py-1 rounded-full text-foreground border-border text-xs">
-                  {t("stripeOnboardingIncomplete" as any)}
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="font-semibold px-3 py-1 rounded-full text-xs">
-                  {t("stripeNotConnected")}
-                </Badge>
-              )}
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 flex-1">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {organization.stripeOnboardingComplete
-                  ? t("stripeConnectedDesc" as any)
-                  : t("stripeDescription" as any)}
-              </p>
 
-              {organization.stripeAccountId && (
-                <div className="bg-muted/40 p-3 rounded-lg border text-xs flex flex-col gap-1">
-                  <span className="font-medium text-foreground">{t("stripeAccountIdLabel" as any)}</span>
-                  <code className="font-mono text-muted-foreground select-all break-all">
-                    {organization.stripeAccountId}
-                  </code>
+                {/* Stripe Settings Column / Panel */}
+                <div className="flex flex-col justify-between gap-4 p-4 sm:p-5 border border-border rounded-[22px] sm:rounded-[26px] bg-muted/20">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-medium text-foreground">
+                          {t("stripeSettings")}{" "}
+                          <span className="text-destructive">*</span>
+                        </h4>
+                        {organization.stripeOnboardingComplete ? (
+                          <Badge variant="default" className="bg-primary text-secondary font-semibold px-2.5 py-0.5 rounded-full text-xs">
+                            {t("stripeConnected")}
+                          </Badge>
+                        ) : organization.stripeAccountId ? (
+                          <Badge variant="outline" className="font-semibold px-2.5 py-0.5 rounded-full text-foreground border-border text-xs">
+                            {t("stripeOnboardingIncomplete" as any)}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="font-semibold px-2.5 py-0.5 rounded-full text-xs">
+                            {t("stripeNotConnected")}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-muted-foreground">
+                        {organization.stripeOnboardingComplete
+                          ? t("stripeConnectedDesc" as any)
+                          : t("stripeDescription" as any)}
+                      </p>
+                    </div>
+
+                    {organization.stripeAccountId && (
+                      <div className="bg-background/80 p-2.5 rounded-lg border text-xs flex flex-col gap-1">
+                        <span className="font-medium text-foreground">{t("stripeAccountIdLabel" as any)}</span>
+                        <code className="font-mono text-muted-foreground select-all break-all text-[11px]">
+                          {organization.stripeAccountId}
+                        </code>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2 pt-2 mt-auto">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isStripeLoading}
+                      onClick={async () => {
+                        const newTab = window.open("about:blank", "_blank");
+                        setIsStripeLoading(true);
+                        try {
+                          if (organization.stripeOnboardingComplete) {
+                            const res = await createStripeDashboardLinkAction(organization.$id);
+                            if (res.url) {
+                              if (newTab) {
+                                newTab.location.href = res.url;
+                              } else {
+                                window.open(res.url, "_blank");
+                              }
+                            } else {
+                              if (newTab) newTab.close();
+                              toast.error(res.error || t("error"));
+                            }
+                          } else {
+                            const res = await connectStripeAction(organization.$id);
+                            if (res.url) {
+                              if (newTab) {
+                                newTab.location.href = res.url;
+                              } else {
+                                window.open(res.url, "_blank");
+                              }
+                            } else {
+                              if (newTab) newTab.close();
+                              toast.error(res.error || t("error"));
+                            }
+                          }
+                        } catch (err: any) {
+                          if (newTab) newTab.close();
+                          toast.error(err?.message || t("error"));
+                        } finally {
+                          setIsStripeLoading(false);
+                        }
+                      }}
+                      className="w-full font-semibold"
+                    >
+                      {isStripeLoading ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
+                      {organization.stripeOnboardingComplete
+                        ? t("openStripeDashboard" as any)
+                        : organization.stripeAccountId
+                        ? t("continueOnboarding" as any)
+                        : t("connectStripeWithIban" as any)}
+                    </Button>
+
+                    {process.env.NODE_ENV === "development" && !organization.stripeOnboardingComplete && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        disabled={isStripeLoading}
+                        onClick={async () => {
+                          setIsStripeLoading(true);
+                          try {
+                            const res = await completeTestStripeOnboardingAction(organization.$id);
+                            if (res.success) {
+                              toast.success(t("stripeConnectedSuccessfully" as any));
+                            } else {
+                              toast.error(res.error || t("error"));
+                            }
+                          } finally {
+                            setIsStripeLoading(false);
+                          }
+                        }}
+                      >
+                        {t("testOnboardingHelper" as any)}
+                      </Button>
+                    )}
+                  </div>
                 </div>
+              </div>
+
+              {businessState.error && (
+                <p className="text-sm text-destructive font-medium">
+                  {businessState.error}
+                </p>
               )}
 
-              <div className="mt-auto pt-2 flex flex-col gap-2">
+              <div className="pt-2 w-full">
                 <Button
+                  type="submit"
+                  disabled={isBusinessPending}
                   variant="outline"
-                  disabled={isStripeLoading}
-                  onClick={async () => {
-                    const newTab = window.open("about:blank", "_blank");
-                    setIsStripeLoading(true);
-                    try {
-                      if (organization.stripeOnboardingComplete) {
-                        const res = await createStripeDashboardLinkAction(organization.$id);
-                        if (res.url) {
-                          if (newTab) {
-                            newTab.location.href = res.url;
-                          } else {
-                            window.open(res.url, "_blank");
-                          }
-                        } else {
-                          if (newTab) newTab.close();
-                          toast.error(res.error || t("error"));
-                        }
-                      } else {
-                        const res = await connectStripeAction(organization.$id);
-                        if (res.url) {
-                          if (newTab) {
-                            newTab.location.href = res.url;
-                          } else {
-                            window.open(res.url, "_blank");
-                          }
-                        } else {
-                          if (newTab) newTab.close();
-                          toast.error(res.error || t("error"));
-                        }
-                      }
-                    } catch (err: any) {
-                      if (newTab) newTab.close();
-                      toast.error(err?.message || t("error"));
-                    } finally {
-                      setIsStripeLoading(false);
-                    }
-                  }}
                   className="w-full font-semibold"
                 >
-                  {isStripeLoading ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
-                  {organization.stripeOnboardingComplete
-                    ? t("openStripeDashboard" as any)
-                    : organization.stripeAccountId
-                    ? t("continueOnboarding" as any)
-                    : t("connectStripeWithIban" as any)}
+                  {isBusinessPending ? <SpinnerGap className="mr-2 animate-spin" weight="bold" /> : null}
+                  {t("save")}
                 </Button>
-
-                {process.env.NODE_ENV === "development" && !organization.stripeOnboardingComplete && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                    disabled={isStripeLoading}
-                    onClick={async () => {
-                      setIsStripeLoading(true);
-                      try {
-                        const res = await completeTestStripeOnboardingAction(organization.$id);
-                        if (res.success) {
-                          toast.success(t("stripeConnectedSuccessfully" as any));
-                        } else {
-                          toast.error(res.error || t("error"));
-                        }
-                      } finally {
-                        setIsStripeLoading(false);
-                      }
-                    }}
-                  >
-                    {t("testOnboardingHelper" as any)}
-                  </Button>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Danger Zone */}
-        <Card className="col-span-1 xl:col-span-2 flex flex-col border-destructive/50 border">
+        <Card className="w-full flex flex-col border-destructive/50 border">
             <CardHeader className="flex-col items-start pb-4">
               <h3 className="text-lg font-semibold text-destructive">
                 {t("dangerZone" as any)}

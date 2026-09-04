@@ -357,13 +357,13 @@ export const seedDemoData = internalMutation({
 
 export const seedDemoProfile = internalMutation({
   args: {
-    logoStorageId: v.id("_storage"),
-    bannerStorageId: v.id("_storage"),
-    margheritaStorageId: v.id("_storage"),
-    tartufoStorageId: v.id("_storage"),
-    carbonaraStorageId: v.id("_storage"),
-    tiramisuStorageId: v.id("_storage"),
-    limonataStorageId: v.id("_storage"),
+    logoStorageId: v.optional(v.id("_storage")),
+    bannerStorageId: v.optional(v.id("_storage")),
+    margheritaStorageId: v.optional(v.id("_storage")),
+    tartufoStorageId: v.optional(v.id("_storage")),
+    carbonaraStorageId: v.optional(v.id("_storage")),
+    tiramisuStorageId: v.optional(v.id("_storage")),
+    limonataStorageId: v.optional(v.id("_storage")),
   },
   returns: v.object({
     organizationId: v.id("organizations"),
@@ -443,13 +443,39 @@ export const seedDemoProfile = internalMutation({
       .first();
 
     let orgId = org?._id;
+
+    // Preserve existing storage IDs if not passed in args
+    const existingItems = orgId
+      ? await ctx.db
+          .query("menuItems")
+          .withIndex("by_organizationId", (q) => q.eq("organizationId", orgId!))
+          .collect()
+      : [];
+
+    const getExistingImage = (name: string) =>
+      existingItems.find((i) => i.name === name)?.imageStorageId;
+
+    const logoStorageId = args.logoStorageId ?? org?.logoStorageId;
+    const bannerStorageId = args.bannerStorageId ?? org?.bannerStorageId;
+    const margheritaStorageId =
+      args.margheritaStorageId ?? getExistingImage("Pizza Margherita");
+    const tartufoStorageId =
+      args.tartufoStorageId ?? getExistingImage("Pizza Tartufo & Funghi");
+    const carbonaraStorageId =
+      args.carbonaraStorageId ?? getExistingImage("Spaghetti alla Carbonara");
+    const tiramisuStorageId =
+      args.tiramisuStorageId ?? getExistingImage("Tiramisù Tradizionale");
+    const limonataStorageId =
+      args.limonataStorageId ??
+      getExistingImage("Hausgemachte Blutorangen-Limonade");
+
     const orgData = {
       name: "Napoletana Craft & Gusto",
       legalName: "Napoletana Gastronomie GmbH",
       address: "Musterstraße 42, 10115 Berlin",
       ownerId: userId!,
-      logoStorageId: args.logoStorageId,
-      bannerStorageId: args.bannerStorageId,
+      logoStorageId,
+      bannerStorageId,
       stripeAccountId: "acct_test_napoletana",
       stripeOnboardingComplete: true,
       isToGoEnabled: true,
@@ -524,7 +550,7 @@ export const seedDemoProfile = internalMutation({
       taxRate: 7,
       available: true,
       sortOrder: 0,
-      imageStorageId: args.margheritaStorageId,
+      imageStorageId: margheritaStorageId,
       customizations: JSON.stringify([
         {
           id: "step_toppings",
@@ -563,7 +589,7 @@ export const seedDemoProfile = internalMutation({
       taxRate: 7,
       available: true,
       sortOrder: 1,
-      imageStorageId: args.tartufoStorageId,
+      imageStorageId: tartufoStorageId,
       customizations: JSON.stringify([
         {
           id: "step_truffle",
@@ -588,7 +614,7 @@ export const seedDemoProfile = internalMutation({
       taxRate: 7,
       available: true,
       sortOrder: 0,
-      imageStorageId: args.carbonaraStorageId,
+      imageStorageId: carbonaraStorageId,
       customizations: JSON.stringify([
         {
           id: "step_portion",
@@ -625,7 +651,7 @@ export const seedDemoProfile = internalMutation({
       taxRate: 7,
       available: true,
       sortOrder: 0,
-      imageStorageId: args.tiramisuStorageId,
+      imageStorageId: tiramisuStorageId,
       customizations: "[]",
     });
 
@@ -639,7 +665,7 @@ export const seedDemoProfile = internalMutation({
       taxRate: 19,
       available: true,
       sortOrder: 0,
-      imageStorageId: args.limonataStorageId,
+      imageStorageId: limonataStorageId,
       customizations: JSON.stringify([
         {
           id: "step_size",
@@ -665,6 +691,7 @@ export const seedDemoProfile = internalMutation({
       type: "dine-in",
       orderNumber: "042",
       status: "in_progress",
+      createdAt: now - 1 * 60 * 1000,
       total: 1640,
       email: "tisch4@gast.de",
       items: JSON.stringify([
@@ -672,13 +699,27 @@ export const seedDemoProfile = internalMutation({
           name: "Pizza Margherita",
           price: 1150,
           quantity: 1,
-          customizations: [{ step: "Kruste", choice: "Klassisch neapolitanisch" }],
+          customizations: [
+            {
+              stepName: "Kruste",
+              optionName: "Klassisch neapolitanisch",
+              choice: "Klassisch neapolitanisch",
+              extraPrice: 0,
+            },
+          ],
         },
         {
           name: "Hausgemachte Blutorangen-Limonade",
           price: 490,
           quantity: 1,
-          customizations: [{ step: "Größe", choice: "0,33l Glas" }],
+          customizations: [
+            {
+              stepName: "Größe",
+              optionName: "0,33l Glas",
+              choice: "0,33l Glas",
+              extraPrice: 0,
+            },
+          ],
         },
       ]),
       zakkigFee: 16,
@@ -693,6 +734,7 @@ export const seedDemoProfile = internalMutation({
       type: "takeaway",
       orderNumber: "043",
       status: "in_progress",
+      createdAt: now,
       total: 3790,
       email: "abholung@gast.de",
       items: JSON.stringify([
@@ -707,8 +749,18 @@ export const seedDemoProfile = internalMutation({
           price: 1450,
           quantity: 1,
           customizations: [
-            { step: "Portion", choice: "Normal (ca. 180g)" },
-            { step: "Käse", choice: "Original Pecorino Romano DOP (würzig)" },
+            {
+              stepName: "Portion",
+              optionName: "Normal (ca. 180g)",
+              choice: "Normal (ca. 180g)",
+              extraPrice: 0,
+            },
+            {
+              stepName: "Käse",
+              optionName: "Original Pecorino Romano DOP (würzig)",
+              choice: "Original Pecorino Romano DOP (würzig)",
+              extraPrice: 0,
+            },
           ],
         },
         {
@@ -731,6 +783,7 @@ export const seedDemoProfile = internalMutation({
       type: "dine-in",
       orderNumber: "041",
       status: "completed",
+      createdAt: now - 15 * 60 * 1000,
       completedAt: now - 5 * 60 * 1000,
       total: 2790,
       email: "gast.tisch2@example.com",
@@ -739,7 +792,14 @@ export const seedDemoProfile = internalMutation({
           name: "Pizza Margherita",
           price: 1400,
           quantity: 1,
-          customizations: [{ step: "Wunschbeläge", choice: "Büffelmozzarella DOP" }],
+          customizations: [
+            {
+              stepName: "Wunschbeläge",
+              optionName: "Büffelmozzarella DOP",
+              choice: "Büffelmozzarella DOP",
+              extraPrice: 250,
+            },
+          ],
         },
         {
           name: "Spaghetti alla Carbonara",
@@ -760,6 +820,7 @@ export const seedDemoProfile = internalMutation({
       type: "takeaway",
       orderNumber: "040",
       status: "completed",
+      createdAt: now - 25 * 60 * 1000,
       completedAt: now - 11 * 60 * 1000,
       total: 1150,
       email: "takeaway.gast@example.com",
@@ -784,6 +845,7 @@ export const seedDemoProfile = internalMutation({
       type: "dine-in",
       orderNumber: "039",
       status: "completed",
+      createdAt: now - 2 * 60 * 60 * 1000 - 15 * 60 * 1000,
       completedAt: now - 2 * 60 * 60 * 1000,
       total: 4280,
       email: "dinner@example.com",
@@ -792,13 +854,27 @@ export const seedDemoProfile = internalMutation({
           name: "Pizza Tartufo & Funghi",
           price: 2000,
           quantity: 1,
-          customizations: [{ step: "Trüffel-Upgrade", choice: "Extra Portion frischer schwarzer Trüffel" }],
+          customizations: [
+            {
+              stepName: "Trüffel-Upgrade",
+              optionName: "Extra Portion frischer schwarzer Trüffel",
+              choice: "Extra Portion frischer schwarzer Trüffel",
+              extraPrice: 350,
+            },
+          ],
         },
         {
           name: "Spaghetti alla Carbonara",
           price: 1750,
           quantity: 1,
-          customizations: [{ step: "Portion", choice: "Große Portion (+80g)" }],
+          customizations: [
+            {
+              stepName: "Portion",
+              optionName: "Große Portion (+80g)",
+              choice: "Große Portion (+80g)",
+              extraPrice: 300,
+            },
+          ],
         },
         {
           name: "Hausgemachte Blutorangen-Limonade",
@@ -819,6 +895,7 @@ export const seedDemoProfile = internalMutation({
       type: "takeaway",
       orderNumber: "038",
       status: "completed",
+      createdAt: now - 24 * 60 * 60 * 1000 - 20 * 60 * 1000,
       completedAt: now - 24 * 60 * 60 * 1000,
       total: 3290,
       email: "yesterday@example.com",

@@ -188,7 +188,7 @@ export const translations = {
     inProgressSubline:
       "Alle aktiven Bestellungen, die zurzeit bearbeitet werden.",
     completedSubline:
-      "Fertige Bestellungen zum Abholen oder Tischservice. Sind nach 15 Minuten nur noch im Archiv auffindbar.",
+      "Fertige Bestellungen zum Abholen oder Tischservice.",
     completeAction: "Abschließen",
     cancelOrder: "Stornieren",
     cancelOrderTitle: 'Bestellung "{orderNumber}" wirklich stornieren?',
@@ -333,6 +333,8 @@ export const translations = {
     // Settings
     accountSettings: "Kontoeinstellungen",
     businessSettings: "Betriebsdaten",
+    businessSettingsDescription:
+      "Stammdaten, Restaurant-Branding und Zahlungsabwicklung deines Betriebs.",
     stripeSettings: "Zahlungsanbieter",
     address: "Adresse",
     logo: "Logo",
@@ -364,6 +366,8 @@ export const translations = {
     dangerZone: "Gefahrenzone",
     dangerZoneDescription: "Sensible Aktionen an deinem Konto.",
     changeEmailAddress: "Email-Adresse ändern",
+    changeEmailTooltip:
+      "Die E-Mail-Adresse kann unten in der Gefahrenzone geändert werden.",
     changedMind: "Umentschieden?",
     changeEmailDescription:
       "Ändere die E-Mail-Adresse, die mit diesem Konto verknüpft ist. Wir senden dir eine E-Mail mit einem Bestätigungslink, der 30 Minuten gültig ist.",
@@ -405,6 +409,10 @@ export const translations = {
     includedFirst: "{count} inklusive (günstigste)",
     removeFromCart: "Entfernen",
     cart: "Warenkorb",
+    viewCart: "Zum Warenkorb",
+    backToMenu: "Zurück zur Speisekarte",
+    itemsInCart: "{count} Artikel",
+    itemInCart: "1 Artikel",
     emptyCart: "Dein Warenkorb ist leer.",
     checkout: "Zur Kasse",
     orderTotal: "Gesamtsumme (inkl. MwSt.)",
@@ -481,7 +489,19 @@ export const translations = {
     deletionRequestSent:
       "Eine E-Mail zur Bestätigung wurde versandt. Der Link ist 30 Minuten gültig. Bitte überprüfe dein Postfach.",
     otpValidDuration: "Code ist 30 Minuten gültig",
-    autoArchiveRemaining: "Auto-Archiv in {time}",
+    autoArchiveRemaining: "archiviert in {time}",
+    fromPrice: "ab {price}",
+    basePrice: "Grundpreis",
+    basePriceDesc:
+      "Der Grundpreis ist der Basispreis des Artikels. Bei aktivierter Zusammenstellung dient er als Startpreis, zu dem eventuelle Aufpreise ausgewählter Optionen hinzugerechnet werden.",
+    basePriceFrom: "Grundpreis (ab)",
+    priceFromHint: "Wird im Menü als „ab {price}“ angezeigt.",
+    stepSingular: "Schritt",
+    stepPlural: "Schritte",
+    extraCharge: "Aufpreis",
+    edit: "Bearbeiten",
+    collapse: "Einklappen",
+    expand: "Aufklappen",
     trackingActiveRemaining: "Tracking-Link aktiv für noch {time}",
     trackingMinutes: "{count} Min.",
     accountDataInfo:
@@ -706,7 +726,7 @@ export const translations = {
     inProgressDesc: "Your order is being freshly prepared in the kitchen.",
     inProgressSubline: "All active orders currently being processed.",
     completedSubline:
-      "Finished orders for pickup or table service. Can only be found in the archive after 15 minutes.",
+      "Finished orders for pickup or table service.",
     completeAction: "Complete",
     cancelOrder: "Cancel",
     cancelOrderTitle: 'Really cancel order "{orderNumber}"?',
@@ -848,6 +868,8 @@ export const translations = {
     // Settings
     accountSettings: "Account Settings",
     businessSettings: "Business Details",
+    businessSettingsDescription:
+      "Master data, restaurant branding, and payment processing for your business.",
     stripeSettings: "Payment Provider",
     address: "Address",
     logo: "Logo",
@@ -879,6 +901,8 @@ export const translations = {
     dangerZone: "Danger Zone",
     dangerZoneDescription: "Sensitive actions on your account.",
     changeEmailAddress: "Change Email Address",
+    changeEmailTooltip:
+      "The email address can be changed below in the Danger Zone.",
     changedMind: "Changed your mind?",
     changeEmailDescription:
       "Change the email address associated with this account. We will send you an email with a confirmation link valid for 30 minutes.",
@@ -920,6 +944,10 @@ export const translations = {
     includedFirst: "{count} included (cheapest)",
     removeFromCart: "Remove",
     cart: "Cart",
+    viewCart: "View Cart",
+    backToMenu: "Back to Menu",
+    itemsInCart: "{count} items",
+    itemInCart: "1 item",
     emptyCart: "Your cart is empty.",
     checkout: "Checkout",
     orderTotal: "Order Total (incl. VAT)",
@@ -987,7 +1015,19 @@ export const translations = {
     deletionRequestSent:
       "A confirmation email has been sent. The link is valid for 30 minutes. Please check your inbox.",
     otpValidDuration: "Code is valid for 30 minutes",
-    autoArchiveRemaining: "Auto-archives in {time}",
+    autoArchiveRemaining: "archived in {time}",
+    fromPrice: "from {price}",
+    basePrice: "Base price",
+    basePriceDesc:
+      "The base price is the starting price of the item. When customizations are enabled, it serves as the base amount to which any extra charges for selected options are added.",
+    basePriceFrom: "Base price (from)",
+    priceFromHint: "Displayed in the menu as 'from {price}'.",
+    stepSingular: "step",
+    stepPlural: "steps",
+    extraCharge: "Surcharge",
+    edit: "Edit",
+    collapse: "Collapse",
+    expand: "Expand",
     trackingActiveRemaining: "Tracking link active for {time}",
     trackingMinutes: "{count} min.",
     accountDataInfo:
