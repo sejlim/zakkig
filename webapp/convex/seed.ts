@@ -776,7 +776,7 @@ export const seedDemoProfile = internalMutation({
       currency: "EUR",
     });
 
-    // Completed Order 1 (completed 5 min ago, in 15min auto-archive window)
+    // Completed Order 1 (completed 5 min ago, in 30min auto-archive window)
     await ctx.db.insert("orders", {
       organizationId: orgId!,
       tableNumber: "2",
@@ -814,7 +814,7 @@ export const seedDemoProfile = internalMutation({
       currency: "EUR",
     });
 
-    // Completed Order 2 (completed 11 min ago, in 15min auto-archive window)
+    // Completed Order 2 (completed 11 min ago, in 30min auto-archive window)
     await ctx.db.insert("orders", {
       organizationId: orgId!,
       type: "takeaway",

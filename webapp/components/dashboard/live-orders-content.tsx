@@ -91,24 +91,24 @@ function OrderGrid({
       <Card key={order.$id} className="flex flex-col justify-between">
         <div>
           <CardHeader className="p-4 pb-2">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-baseline gap-2 min-w-0">
+            <div className="flex items-start justify-between gap-2 w-full">
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
                 <h4 className="text-3xl font-black text-foreground tracking-tight tabular-nums shrink-0">
                   {order.orderNumber}
                 </h4>
                 {order.status === "completed" ? (
-                  <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                    <Clock className="w-3 h-3 text-primary" />
+                  <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0">
+                    <Clock className="w-3 h-3 text-primary shrink-0" />
                     {t("autoArchiveRemaining", { time: `${remainingMins} Min.` })}
                   </span>
                 ) : timeLabel ? (
-                  <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                    <Clock className="w-3 h-3" />
+                  <span className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0">
+                    <Clock className="w-3 h-3 shrink-0" />
                     {timeLabel}
                   </span>
                 ) : null}
               </div>
-              <span className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight text-right truncate ml-2">
+              <span className="text-base sm:text-lg font-extrabold text-foreground tracking-tight text-right shrink-0 whitespace-nowrap pt-0.5">
                 {order.type === "dine-in" || order.tableNumber
                   ? `${t("toTable")} ${order.tableNumber || ""}`.trim()
                   : t("toPickUp")}
@@ -182,7 +182,7 @@ function OrderGrid({
           <div
             className={`p-4 pt-0 grid gap-2 w-full ${
               onComplete && onCancel
-                ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-1"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-1"
                 : "grid-cols-1"
             }`}
           >
@@ -213,13 +213,13 @@ function OrderGrid({
 
   return (
     <>
-      {/* < md and xl-to-2xl: Single column layout preserving natural order */}
-      <div className="flex flex-col gap-4 w-full md:hidden xl:flex 2xl:hidden">
+      {/* Single column layout preserving natural order */}
+      <div className="flex flex-col gap-4 w-full 2xl:hidden">
         {orders.map(renderOrderCard)}
       </div>
 
-      {/* md-to-xl and >= 2xl: Two-column masonry layout where cards always take 50% width */}
-      <div className="hidden md:grid xl:hidden 2xl:grid grid-cols-2 gap-4 items-start w-full">
+      {/* >= 2xl: Two-column masonry layout where cards always take 50% width on ultra-wide screens */}
+      <div className="hidden 2xl:grid grid-cols-2 gap-4 items-start w-full">
         <div className="flex flex-col gap-4 w-full min-w-0">
           {leftOrders.map(renderOrderCard)}
         </div>
@@ -373,8 +373,9 @@ export function LiveOrdersContent({
         </div>
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="default"
             size="default"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => {
               initAudioContext();
               const next = !soundEnabled;
@@ -385,12 +386,12 @@ export function LiveOrdersContent({
           >
             {soundEnabled ? (
               <>
-                <SpeakerHigh className="w-4 h-4 text-primary" weight="fill" />
+                <SpeakerHigh className="w-4 h-4 text-primary-foreground" weight="fill" />
                 <span>{t("soundOn")}</span>
               </>
             ) : (
               <>
-                <SpeakerSlash className="w-4 h-4 text-muted-foreground" />
+                <SpeakerSlash className="w-4 h-4 text-primary-foreground/70" />
                 <span>{t("soundOff")}</span>
               </>
             )}
@@ -399,7 +400,7 @@ export function LiveOrdersContent({
       </div>
 
       {/* Side-by-Side Large Section Cards (Überkacheln) */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Section 1: In Bearbeitung (In Progress) Big Card */}
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-start justify-between pb-2 gap-4">
@@ -415,7 +416,7 @@ export function LiveOrdersContent({
               {inProgressOrders.length}
             </Badge>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-4 xl:p-6">
             {inProgressOrders.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground font-medium border border-dashed rounded-lg">
                 {t("noInProgressOrders")}
@@ -447,7 +448,7 @@ export function LiveOrdersContent({
               {completedOrders.length}
             </Badge>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-4 xl:p-6">
             {completedOrders.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground font-medium border border-dashed rounded-lg">
                 {t("noCompletedRecentOrders")}

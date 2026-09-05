@@ -39,12 +39,12 @@ export const getLiveOrders = query({
         q.eq("organizationId", args.organizationId).eq("status", "completed")
       )
       .order("desc")
-      .take(20);
+      .take(50);
 
-    const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
+    const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
     const activeCompleted = recentCompleted.filter((o) => {
       const timestamp = o.completedAt || o._creationTime;
-      return timestamp > fifteenMinutesAgo;
+      return timestamp > thirtyMinutesAgo;
     });
 
     return [...inProgress, ...activeCompleted];

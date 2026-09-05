@@ -115,6 +115,17 @@ export default async function ToGoPage({
     ownerId: "",
   };
 
+  const sanitizedInitialOrder =
+    initialOrder && initialOrder.organizationId === organizationId
+      ? {
+          ...initialOrder,
+          stripePaymentId: undefined,
+          zakkigFee: 0,
+          stripeFee: 0,
+          netAmount: 0,
+        }
+      : null;
+
   return (
     <GuestFrontend
       organization={structuredClone(publicOrganization)}
@@ -122,7 +133,7 @@ export default async function ToGoPage({
       items={structuredClone(items)}
       type="takeaway"
       orderId={order}
-      initialOrder={initialOrder ? structuredClone(initialOrder) : null}
+      initialOrder={sanitizedInitialOrder ? structuredClone(sanitizedInitialOrder) : null}
     />
   );
 }

@@ -81,7 +81,7 @@ Follow this unified, multi-layered architecture for all features and changes:
    - **Auth, OTPs & Security Links:** Strictly 30 minutes (`30 * 60 * 1000` ms).
    - **Brute-Force Lockout:** OTP codes must track failed attempts and permanently delete the code after 5 failures.
    - **Unverified Accounts:** Delete unverified registrations automatically after 30 minutes via the Convex scheduler.
-   - **Kitchen Board Auto-Archive:** 15 minutes for completed orders.
+   - **Kitchen Board Auto-Archive:** 30 minutes for completed orders.
    - **Guest Takeaway Tracker:** 10 minutes active countdown once ready for pickup.
 
 7. **Terminal Session Persistence:**

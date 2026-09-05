@@ -10,11 +10,13 @@ import {
   deleteMenuItem,
   getMenuItems,
   getMenuItem,
+  getMenuCategories,
   updateCategorySortOrders,
   updateItemSortOrders,
 } from "@/lib/convex/database";
 import { uploadFileToConvex } from "@/lib/convex/storage";
 import { getUser, requireOwner, requireStaffOrOwner } from "@/lib/convex/auth";
+import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
 import type { CustomizationStep, MenuItem } from "@/lib/types";
 
 export interface MenuActionState {
@@ -74,6 +76,11 @@ export async function updateCategoryAction(
   try {
     await requireOwner(organizationId);
 
+    const categories = await getMenuCategories(organizationId);
+    if (!categories.some((c) => c.$id === categoryId)) {
+      return { error: "Kategorie nicht gefunden oder unberechtigt." };
+    }
+
     await updateMenuCategory(categoryId, {
       name,
       ...(isNaN(sortOrder) ? {} : { sortOrder }),
@@ -96,6 +103,11 @@ export async function deleteCategoryAction(
 ) {
   try {
     await requireOwner(organizationId);
+
+    const categories = await getMenuCategories(organizationId);
+    if (!categories.some((c) => c.$id === categoryId)) {
+      return { error: "Kategorie nicht gefunden oder unberechtigt." };
+    }
 
     await deleteMenuCategory(categoryId);
     revalidatePath(`/dashboard/${organizationId}/menu`);
@@ -207,8 +219,22 @@ export async function createMenuItemAction(
     return { error: "Der Preis ist ungültig." };
   }
 
+  if (imageFile && imageFile.size > 0) {
+    if (imageFile.size > MAX_IMAGE_SIZE_BYTES) {
+      return { error: "Das Bild darf maximal 10 MB groß sein." };
+    }
+    if (!imageFile.type.startsWith("image/")) {
+      return { error: "Ungültiges Dateiformat. Bitte laden Sie ein Bild hoch." };
+    }
+  }
+
   try {
     const { user } = await requireOwner(organizationId);
+
+    const categories = await getMenuCategories(organizationId);
+    if (!categories.some((c) => c.$id === categoryId)) {
+      return { error: "Kategorie nicht gefunden oder unberechtigt." };
+    }
 
     let imageStorageId: string | undefined = undefined;
     if (imageFile && imageFile.size > 0) {
@@ -270,8 +296,22 @@ export async function updateMenuItemAction(
     return { error: "Der Preis ist ungültig." };
   }
 
+  if (imageFile && imageFile.size > 0) {
+    if (imageFile.size > MAX_IMAGE_SIZE_BYTES) {
+      return { error: "Das Bild darf maximal 10 MB groß sein." };
+    }
+    if (!imageFile.type.startsWith("image/")) {
+      return { error: "Ungültiges Dateiformat. Bitte laden Sie ein Bild hoch." };
+    }
+  }
+
   try {
     await requireOwner(organizationId);
+
+    const existingItem = await getMenuItem(itemId);
+    if (!existingItem || existingItem.organizationId !== organizationId) {
+      return { error: "Artikel nicht gefunden oder unberechtigt." };
+    }
 
     let imageStorageId: string | undefined = existingImageId || undefined;
 
@@ -312,6 +352,11 @@ export async function deleteMenuItemAction(
   try {
     await requireOwner(organizationId);
 
+    const existingItem = await getMenuItem(itemId);
+    if (!existingItem || existingItem.organizationId !== organizationId) {
+      return { error: "Artikel nicht gefunden oder unberechtigt." };
+    }
+
     await deleteMenuItem(itemId);
     revalidatePath(`/dashboard/${organizationId}/menu`);
     return { success: true };
@@ -332,7 +377,10 @@ export async function toggleMenuItemAvailability(
   try {
     const item = await getMenuItem(itemId);
     if (!item) return { error: "Artikel nicht gefunden." };
-    const orgId = organizationId || item.organizationId;
+    if (organizationId && item.organizationId !== organizationId) {
+      return { error: "Nicht berechtigt." };
+    }
+    const orgId = item.organizationId;
 
     await requireStaffOrOwner(orgId);
 
@@ -382,7 +430,10 @@ export async function toggleCustomizationAvailabilityAction(
   try {
     const item = await getMenuItem(itemId);
     if (!item) return { error: "Artikel nicht gefunden." };
-    const orgId = organizationId || item.organizationId;
+    if (organizationId && item.organizationId !== organizationId) {
+      return { error: "Nicht berechtigt." };
+    }
+    const orgId = item.organizationId;
 
     await requireStaffOrOwner(orgId);
 

@@ -18,6 +18,7 @@ import {
 import { useTranslation } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/convex/client";
 import { cn } from "@/lib/utils";
+import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
 import {
   updateBusinessAction,
   requestAccountDeletionAction,
@@ -105,7 +106,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   }, [organization.address]);
 
   const handleLogoFile = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
       toast.error(t("imageTooLarge"));
       return;
     }
@@ -126,7 +127,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   };
 
   const handleBannerFile = (file: File) => {
-    if (file.size > 8 * 1024 * 1024) {
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
       toast.error(t("imageTooLarge"));
       return;
     }

@@ -118,8 +118,16 @@ export const create = mutation({
     if (args.address && args.address.length > 200) {
       throw new Error("Address too long");
     }
-    if (args.tables && args.tables.length > 100) {
-      throw new Error("Too many tables");
+    if (args.tables) {
+      if (args.tables.length > 100) {
+        throw new Error("Too many tables");
+      }
+      for (const table of args.tables) {
+        const trimmed = table.trim();
+        if (trimmed.length < 1 || trimmed.length > 10) {
+          throw new Error("Table name must be between 1 and 10 characters");
+        }
+      }
     }
 
     const orgId = await ctx.db.insert("organizations", {
@@ -175,8 +183,16 @@ export const update = mutation({
     if (patchData.address !== undefined && patchData.address.length > 200) {
       throw new Error("Address too long");
     }
-    if (patchData.tables !== undefined && patchData.tables.length > 100) {
-      throw new Error("Too many tables");
+    if (patchData.tables !== undefined) {
+      if (patchData.tables.length > 100) {
+        throw new Error("Too many tables");
+      }
+      for (const table of patchData.tables) {
+        const trimmed = table.trim();
+        if (trimmed.length < 1 || trimmed.length > 10) {
+          throw new Error("Table name must be between 1 and 10 characters");
+        }
+      }
     }
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Organization not found");

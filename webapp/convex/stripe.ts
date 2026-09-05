@@ -163,7 +163,7 @@ export const completeTestStripeOnboarding = action({
 
       const stripe = getStripeClient();
       let accountId = org.stripeAccountId;
-      if (!accountId || accountId === "acct_test_123") {
+      if (!accountId || accountId.startsWith("acct_test_")) {
         const account = await stripe.accounts.create({
           type: "express",
           country: "DE",
@@ -322,16 +322,22 @@ export const createPaymentIntent = action({
       };
       packItemsIntoMetadata(args.items, metadata);
 
+      const isTestSecret = process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_");
+      const isMockAccountId = !org.stripeAccountId || org.stripeAccountId.startsWith("acct_test_");
+
       const paymentIntentParams: any = {
         amount: Math.round(args.total),
         currency: curr,
         automatic_payment_methods: { enabled: true },
-        transfer_data: {
-          destination: org.stripeAccountId,
-          amount: transferAmount,
-        },
         metadata,
       };
+
+      if (!isMockAccountId || !isTestSecret) {
+        paymentIntentParams.transfer_data = {
+          destination: org.stripeAccountId,
+          amount: transferAmount,
+        };
+      }
 
       let paymentIntent;
       try {
@@ -339,8 +345,11 @@ export const createPaymentIntent = action({
       } catch (err: any) {
         if (
           (err.code === "insufficient_capabilities_for_transfer" ||
-            err.message?.includes("capabilities")) &&
-          process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")
+            err.code === "resource_missing" ||
+            err.message?.includes("capabilities") ||
+            err.message?.includes("destination") ||
+            err.message?.includes("No such destination")) &&
+          isTestSecret
         ) {
           delete paymentIntentParams.transfer_data;
           paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);

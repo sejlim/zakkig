@@ -66,48 +66,47 @@ Convex synchronisiert Änderungen automatisch und ohne manuelle WebSocket-Verwal
 
 ## Ablaufzeiten & Lifecycle-Management (TTL & Timeouts)
 
-Um höchste Sicherheit, Speicher-Hygiene und transparente Nutzererfahrung zu gewährleisten, folgt die Plattform strikten und einheitlichen Ablaufzeiten:
+Um höchste Sicherheit, Speicher-Hygiene und eine transparente Nutzererfahrung zu gewährleisten, folgt die Plattform strikten und einheitlichen Ablaufzeiten:
 
-1. **Einheitlicher 30-Minuten-Sicherheitsstandard (Auth & Account):**
-   - **Login-OTP:** Der 6-stellige Einmalcode per E-Mail ist 30 Minuten gültig.
-   - **Vorläufige Registrierung & automatische Bereinigung:** Bei der Registrierung wird der Account nach Prüfung aller Daten zunächst als vorläufig unbestätigt angelegt und der 30-Minuten-OTP versandt. Trägt der Nutzer den Code innerhalb der 30 Minuten ein, wird der Account dauerhaft und vollständig verifiziert (`emailVerificationTime`). Erfolgt keine Bestätigung innerhalb von 30 Minuten, löscht der integrierte Convex Scheduler (`cleanupUnverifiedUser`) den unbestätigten Account restlos aus der Datenbank, sodass die E-Mail-Adresse wieder frei ist.
-   - **Passwort zurücksetzen:** Der Wiederherstellungslink per E-Mail ist 30 Minuten gültig.
-   - **Konto löschen & E-Mail-Adresse ändern:** Die Bestätigungslinks per E-Mail sind jeweils 30 Minuten gültig.
-   - **Klare Visualisierung:** Auf allen Eingabebildschirmen und in allen E-Mail-Vorlagen wird die 30-Minuten-Frist klar und transparent ausgewiesen.
-
-2. **Operative Echtzeit-Timer:**
-   - **Küchen-Board & Live-Orders (15 Minuten):** Fertige Bestellungen verbleiben 15 Minuten in der „Abgeschlossen“-Spalte und tragen ein diskretes Countdown-Badge (`Auto-Archiv in X Min.`), bevor sie automatisch ins Archiv verschoben werden.
-   - **Gast Takeaway Order-Tracker (10 Minuten):** Sobald die Bestellung auf „Abholbereit“ springt, wird dem Gast ein Live-Countdown (`Tracking-Link aktiv für noch X:XX Min.`) angezeigt. Nach 10 Minuten wird der Link ungültig und der Gast erhält einen sauberen Ablauf-Screen mit der Option, erneut zu bestellen.
-
-
----
-
-## Zahlungsabwicklung mit Stripe Connect
-
-Zakkig verwendet **Stripe Connect Express** mit **Destination Charges**:
-
-1. **Gastronomen-Onboarding:**
-   - Restaurant-Inhaber verbinden im Dashboard unter `/settings` ihr Stripe-Konto über standardisierte Stripe Connect Onboarding Links (`convex/stripe.ts:createStripeConnectAccount`).
-   - Sobald das Onboarding abgeschlossen ist, wird `stripeOnboardingComplete: true` in der Organisation hinterlegt.
-2. **Checkout & Destination Charges:**
-   - Gäste bestellen über `/to-go/[orgId]` (Abholung) oder `/to-stay/[orgId]?table=X` (am Tisch).
-   - Beim Öffnen des Checkouts ruft der Client `createPaymentIntent` auf. Die Convex Action berechnet den Betrag, reserviert die 1% Plattform-Gebühr für Zakkig (`application_fee_amount`) und routet den Hauptbetrag per `transfer_data.destination` an das Restaurant.
-   - Der Gast bezahlt direkt auf der Seite über das Stripe Payment Element.
-3. **Stripe Webhook (`convex/http.ts`):**
-   - Stripe sendet das Event `payment_intent.succeeded` an den HTTP-Endpunkt `POST /stripe/webhook`.
-   - Die Signatur wird serverseitig via `stripe.webhooks.constructEvent` verifiziert.
-   - Bei gültiger Zahlung wird die Bestellung über `api.orders.createPaidOrderFromWebhook` in Convex angelegt und die nächste fortlaufende 3-stellige Tagesnummer vergeben.
+| Komponente / Vorgang | Gültigkeit / Timeout | Verhalten nach Ablauf | Sicherheitsfunktion |
+| :--- | :--- | :--- | :--- |
+| **Auth OTP (Login & Registrierung)** | 30 Minuten | Code verfällt und wird serverseitig abgelehnt | Schutz vor Replay- und Brute-Force-Angriffen |
+| **Brute-Force Lockout (OTP)** | 5 Fehlversuche | Sofortige Löschung des Codes | Verhindert systematisches Durchprobieren von Einmalcodes |
+| **Unverifizierte Accounts** | 30 Minuten | Vollständige Bereinigung via Convex Scheduler (`cleanupUnverifiedUser`) | Gibt die E-Mail-Adresse wieder frei, verhindert Ghost-Accounts |
+| **Passwort-Reset Link** | 30 Minuten | Token wird ungültig, Neuanforderung erforderlich | Schutz vor missbräuchlicher Passwortänderung über alte Links |
+| **Account-Löschung & E-Mail-Änderung** | 30 Minuten | Signierter Bestätigungslink verfällt | Schutz vor verspäteter Token-Ausnutzung |
+| **Kitchen Board Auto-Archivierung** | 30 Minuten | Bestellung wird automatisch ins Archiv verschoben (`KITCHEN_CLEANUP_MINUTES = 30`) | Hält die Küchenansicht aufgeräumt und fokussiert |
+| **Takeaway Live-Tracker (Gast)** | 10 Minuten | Tracker schaltet auf Abschluss-Screen um (`TRACKING_EXPIRY_MINUTES = 10`) | Datenschutz und Vermeidung verwaister Live-Links |
+| **Terminal Pairing-Tokens** | Dauerhaft (Widerrufbar) | Gespeichert in sicheren HttpOnly SameSite=lax Cookies (`order_session_*`) | Sicherer Tablet-Betrieb ohne XSS-Gefährdung |
 
 ---
 
-## Dateispeicher (Convex Storage)
+## Dateispeicher & Upload-Limits (Convex Storage)
 
-Logos und Produktbilder werden im nativen Convex File Storage gespeichert:
-- Serverseitig: `convex/storage.ts` generiert signierte Upload-URLs (`generateUploadUrl`) und löscht veraltete Dateien (`deleteFile`).
-- Clientseitig: `lib/convex/storage.ts` (`uploadFileToConvex`) lädt Bilder direkt via POST-Request in den Storage hoch und speichert die resultierende Storage-ID im Dokument.
-- Bildauslieferung: `getImagePreviewUrl` wandelt Storage-IDs in öffentliche CDN-URLs (`${CONVEX_URL}/api/storage/${storageId}`) um.
+Logos, Restaurant-Banner und Speisekarten-Bilder werden im nativen Convex File Storage gespeichert und unterliegen strengen Sicherheits- und Größenbegrenzungen:
+
+- **Maximale Dateigröße:** Einheitlich 10 MB pro Datei (`MAX_IMAGE_SIZE_MB = 10`, `MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024`).
+- **Erlaubte Dateitypen:** JPG, PNG, WebP (`image/jpeg`, `image/png`, `image/webp`).
+- **Clientseitige Validierung:** Sofortiges Feedback bei Überschreiten von 10 MB via Toast-Meldung ("Das Bild darf maximal 10 MB groß sein.") und transparente Kennzeichnung im UI ("JPG, PNG bis 10 MB", "max. 10 MB").
+- **Serverseitige Enforcierung (Defense-in-Depth):**
+  - Vor dem Upload in Convex File Storage validiert `lib/convex/storage.ts` (`uploadFileToConvex`) die Dateigröße.
+  - Alle Server Actions (`createMenuItemAction`, `updateMenuItemAction`, `updateBusinessAction`) prüfen Dateigröße und Dateityp (`file.type.startsWith("image/")`) serverseitig ab, bevor eine Speicheroperation angestoßen wird.
+- **Speicherbereinigung:** Beim Aktualisieren oder Löschen von Artikeln und Logos werden alte Dateien automatisch über `ctx.storage.delete` aus dem Speicher entfernt.
 
 ---
+
+## Sicherheit & Mandantentrennung (Defense-in-Depth)
+
+1. **Strikte Mandanten-Isolation:** Jede Server Action, die Betriebsdaten liest oder modifiziert, autorisiert den Aufruf über `requireOwner(organizationId)` oder `requireStaffOrOwner(organizationId)`.
+2. **Anti-IDOR Schutz (Insecure Direct Object Reference):**
+   - Beim Bearbeiten oder Löschen von Kategorien (`updateCategoryAction`, `deleteCategoryAction`) wird validiert, dass die Kategorie tatsächlich zur autorisierten `organizationId` gehört.
+   - Beim Bearbeiten, Löschen oder Umschalten der Verfügbarkeit von Speisen (`updateMenuItemAction`, `deleteMenuItemAction`, `toggleMenuItemAvailability`) wird geprüft, dass der Artikel zur autorisierten Organisation gehört.
+   - Beim Aktualisieren des Bestellstatus auf dem Küchenboard (`updateOrderStatusAction`) wird geprüft, dass die Bestellung der autorisierten Organisation zugeordnet ist.
+3. **Zero Data Leakage an Gast-Schnittstellen:**
+   - Auf öffentlichen Gast-Seiten (`/to-go/[orgId]`, `/to-stay/[orgId]`) werden sensible Betreiberdaten (`stripeAccountId`, `taxId`, `ownerId`) vor der Serialisierung in den React Server Component Payload unkenntlich gemacht bzw. genullt.
+   - Bei der Bestellverfolgung werden Plattform- und Zahlungsgebühren (`zakkigFee`, `stripeFee`, `netAmount`, `stripePaymentId`) serverseitig auf 0 gesetzt, sodass Gäste ausschließlich für sie relevante Bestelldaten einsehen können.
+4. **Serverseitige Preis- und Integritätsprüfung:**
+   - Gast-Warenkörbe werden im Checkout niemals ungeprüft akzeptiert. Die Convex Action `createPaymentIntent` liest alle Artikelpreise direkt aus der Datenbank und rechnet die Gesamtsumme centgenau nach.
 
 ## Routing & Verzeichnisstruktur
 

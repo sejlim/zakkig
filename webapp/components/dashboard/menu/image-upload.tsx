@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/convex/client";
 import { toast } from "sonner";
+import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
 
 interface ImageUploadProps {
   existingImageId?: string;
@@ -49,7 +50,7 @@ export function ImageUpload({
     (file: File | null) => {
       if (preview) URL.revokeObjectURL(preview);
       if (file) {
-        if (file.size > 5 * 1024 * 1024) {
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
           toast.error(t("imageTooLarge"));
           return;
         }
@@ -102,7 +103,7 @@ export function ImageUpload({
             ? "border-primary-foreground bg-primary-foreground/10"
             : hasImage
               ? "border-transparent"
-              : "border-primary-foreground/20 hover:border-primary-foreground/40 bg-primary-foreground/5",
+              : "border-primary-foreground/20 hover:border-primary-foreground/40 bg-black",
         )}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {

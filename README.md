@@ -81,7 +81,7 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
 
 - **Aufbau:** Ansicht mit den Status "In Bearbeitung", "Abgeschlossen" und "Storniert". Aktualisiert sich reaktiv in Echtzeit.
 - **Ablauf:** Eingehende Bestellungen erscheinen als Kacheln in historischer Reihenfolge. Ein Klick markiert die Bestellung als abgeschlossen und verschiebt sie.
-- **Cleanup & Auto-Archivierung:** Abgeschlossene Kacheln bleiben für 15 Minuten auf dem Kitchen Board sichtbar und zeigen einen Live-Timer an ("Auto-Archiv in X Min."). Anschließend werden sie automatisch ausgeblendet und sind im Archiv auffindbar.
+- **Cleanup & Auto-Archivierung:** Abgeschlossene Kacheln bleiben für 30 Minuten auf dem Kitchen Board sichtbar und zeigen einen Live-Timer an ("Auto-Archiv in X Min."). Anschließend werden sie automatisch ausgeblendet und sind im Archiv auffindbar.
 
 ### 2.4 Core Features: Gast-Frontend (To-Stay & To-Go)
 
@@ -98,11 +98,27 @@ Zugriff ausschließlich über Parameter, ohne Registrierung.
 
 ### 2.5 Lifecycle & Ablaufzeiten (Sicherheitsstandard & Auto-Cleanup)
 
-- **Einheitliche 30-Minuten-Regel:** Alle sicherheitsrelevanten Verifizierungscodes und temporären Bestätigungslinks (Login-OTP, Passwort-Reset, Account-Löschung, E-Mail-Änderung) sind einheitlich **30 Minuten** gültig.
-- **Vorläufige Registrierung & Auto-Cleanup:** Bei der Registrierung wird der Account nach Datenprüfung zunächst als vorläufig unbestätigt angelegt. Wird der per E-Mail zugesandte OTP nicht innerhalb der 30 Minuten eingetragen, löscht das System den vorläufigen Account automatisch restlos aus der Datenbank, sodass die E-Mail-Adresse wieder frei ist. Erst bei korrekter Bestätigung des Codes wird der Account final verifiziert.
+Das Gesamtsystem erzwingt standardisierte Ablaufzeiten für maximale Datensparsamkeit, Sicherheit und konsistente Betriebsabläufe:
 
+| Komponente / Vorgang | Gültigkeit / Timeout | Verhalten nach Ablauf | Sicherheitsfunktion |
+| :--- | :--- | :--- | :--- |
+| **Auth OTP (Login & Registrierung)** | 30 Minuten | Code verfällt und wird serverseitig abgelehnt | Schutz vor Replay- und Brute-Force-Angriffen |
+| **Brute-Force Lockout (OTP)** | 5 Fehlversuche | Sofortige Löschung des Codes | Verhindert systematisches Durchprobieren von Einmalcodes |
+| **Unverifizierte Accounts** | 30 Minuten | Vollständige Bereinigung via Convex Scheduler | Gibt die E-Mail-Adresse wieder frei, verhindert Ghost-Accounts |
+| **Passwort-Reset Link** | 30 Minuten | Token wird ungültig, Neuanforderung erforderlich | Schutz vor missbräuchlicher Passwortänderung über alte Links |
+| **Account-Löschung & E-Mail-Änderung** | 30 Minuten | Signierter Bestätigungslink verfällt | Schutz vor verspäteter Token-Ausnutzung |
+| **Kitchen Board Auto-Archivierung** | 30 Minuten | Bestellung wird automatisch ins Archiv verschoben | Hält die Küchenansicht aufgeräumt und fokussiert |
+| **Takeaway Live-Tracker (Gast)** | 10 Minuten | Tracker schaltet auf Abschluss-Screen um | Datenschutz und Vermeidung verwaister Live-Links |
+| **Terminal Pairing-Tokens** | Dauerhaft (Widerrufbar) | HttpOnly SameSite=lax Cookie (`order_session_*`) | Sicherer Tablet-Betrieb ohne XSS-Gefährdung |
 
----
+### 2.6 Dateispeicher & Upload-Limits (Defense-in-Depth)
+
+Für alle visuellen Medien (Restaurant-Logo, Restaurant-Banner, Speisen- und Getränkebilder) gilt ein einheitlicher, serverseitig geschützter Standard:
+- **Maximale Dateigröße:** 10 MB pro Datei (`MAX_IMAGE_SIZE_MB = 10`).
+- **Unterstützte Formate:** JPG, PNG, WebP (`image/*`).
+- **Clientseitige Validierung:** Sofortige Prüfung im Browser (Drag-and-Drop sowie Dateidialog) mit benutzerfreundlichen Hinweisen ("JPG, PNG bis 10 MB").
+- **Serverseitige Enforcierung:** Prüfung von Dateigröße und MIME-Type in den Server Actions (`createMenuItemAction`, `updateMenuItemAction`, `updateBusinessAction`) sowie vor Übertragung in den Convex Storage (`uploadFileToConvex`).
+- **Anti-IDOR Schutz:** Strikte Überprüfung der Organisationszugehörigkeit vor dem Speichern oder Überschreiben von Bildern.
 
 ## TEIL 3: RECHTLICHE & STEUERLICHE COMPLIANCE
 

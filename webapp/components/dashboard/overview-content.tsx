@@ -460,28 +460,35 @@ function QrCodeGeneratorCard({
   };
 
   const handleAddTable = (val: string) => {
-    if (!val) {
+    const trimmed = val.trim();
+    if (!trimmed) {
       setIsAddingTable(false);
+      setNewTableInput("");
+      return;
+    }
+    if (trimmed.length > 10) {
+      toast.error(t("tableTooLong"));
       return;
     }
     const currentTables = tables;
-    if (currentTables.includes(val)) {
+    if (currentTables.includes(trimmed)) {
       toast.error(t("tableExists"));
       setIsAddingTable(false);
+      setNewTableInput("");
       return;
     }
     setNewTableInput("");
     setIsAddingTable(false);
-    const updatedTables = [...currentTables, val];
+    const updatedTables = [...currentTables, trimmed];
     setTables(updatedTables);
     startTransition(async () => {
       const result = await updateTablesAction(organization.$id, updatedTables);
       if (result.error) {
         toast.error(result.error as string);
         setTables(currentTables);
-        setNewTableInput(val);
+        setNewTableInput(trimmed);
       } else {
-        setSelectedTables((prev) => [...prev, val]);
+        setSelectedTables((prev) => [...prev, trimmed]);
       }
     });
   };
@@ -521,7 +528,7 @@ function QrCodeGeneratorCard({
   const qrUrl =
     qrType === "to-go"
       ? `${baseUrl}/to-go/${organization.$id}`
-      : `${baseUrl}/to-stay/${organization.$id}?table=${selectedTables[0] || "1"}`;
+      : `${baseUrl}/to-stay/${organization.$id}?table=${encodeURIComponent(selectedTables[0] || "1")}`;
 
   const isActive = qrType === "to-go" ? isToGoEnabled : isToStayEnabled;
 
@@ -687,7 +694,7 @@ function QrCodeGeneratorCard({
                   )}
                 </div>
 
-                <ScrollArea className="w-full h-[295px] pr-2">
+                <ScrollArea className="w-full h-[345px]">
                   <DndContext
                     id="tables-dnd-context"
                     sensors={sensors}
@@ -699,7 +706,7 @@ function QrCodeGeneratorCard({
                       strategy={rectSortingStrategy}
                     >
                       {tables.length === 0 && !isAddingTable && (
-                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border border-dashed rounded-xl">
+                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border border-dashed rounded-xl mb-3">
                           <p className="mb-4">{t("noTablesAdded")}</p>
                         </div>
                       )}
@@ -715,50 +722,49 @@ function QrCodeGeneratorCard({
                             />
                           ));
                         })()}
+                        <div className="col-span-1">
+                          {isAddingTable ? (
+                            <Input
+                              autoFocus
+                              placeholder={t("tableNr")}
+                              value={newTableInput}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.length <= 10) setNewTableInput(val);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handleAddTable(newTableInput);
+                                } else if (e.key === "Escape") {
+                                  setIsAddingTable(false);
+                                  setNewTableInput("");
+                                }
+                              }}
+                              onBlur={() => {
+                                if (newTableInput) {
+                                  handleAddTable(newTableInput);
+                                } else {
+                                  setIsAddingTable(false);
+                                }
+                              }}
+                              maxLength={10}
+                              className="w-full h-11 text-center text-sm font-medium border border-dashed border-primary rounded-xl focus-visible:ring-0"
+                            />
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => setIsAddingTable(true)}
+                              className="w-full h-11 border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors rounded-xl"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" weight="bold" />
+                              <span className="truncate">{t("addTableFull")}</span>
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </SortableContext>
                   </DndContext>
-
-                  <div className="w-full pb-4 pt-1">
-                    {isAddingTable ? (
-                      <Input
-                        autoFocus
-                        placeholder={t("tableNr")}
-                        value={newTableInput}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "");
-                          if (val.length <= 4) setNewTableInput(val);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleAddTable(newTableInput);
-                          } else if (e.key === "Escape") {
-                            setIsAddingTable(false);
-                            setNewTableInput("");
-                          }
-                        }}
-                        onBlur={() => {
-                          if (newTableInput) {
-                            handleAddTable(newTableInput);
-                          } else {
-                            setIsAddingTable(false);
-                          }
-                        }}
-                        maxLength={4}
-                        className="w-full h-8 text-center text-sm font-medium border border-dashed border-primary rounded-lg focus-visible:ring-0"
-                      />
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setIsAddingTable(true)}
-                        className="w-full border border-dashed border-muted-foreground/40 hover:border-primary font-semibold text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2 transition-colors"
-                      >
-                        <Plus className="h-4 w-4 shrink-0" weight="bold" />
-                        <span>{t("addTableFull")}</span>
-                      </Button>
-                    )}
-                  </div>
                 </ScrollArea>
               </div>
             )}
@@ -769,7 +775,7 @@ function QrCodeGeneratorCard({
       <div className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none print:static print:opacity-100 print:pointer-events-auto print:grid print:grid-cols-2 print:gap-y-4 print:gap-x-4 bg-white print:content-start">
         {qrType === "to-stay" ? (
           selectedTables.map((tNum) => {
-            const tableQrUrl = `${baseUrl}/to-stay/${organization.$id}?table=${tNum}`;
+            const tableQrUrl = `${baseUrl}/to-stay/${organization.$id}?table=${encodeURIComponent(tNum)}`;
             return (
               <div
                 key={tNum}

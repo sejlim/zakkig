@@ -5,6 +5,7 @@ import {
   createOrder,
   updateOrderStatus,
   getOrders,
+  getOrder,
   createOrderSession,
   deleteOrderSession,
   getOrderSessions,
@@ -116,6 +117,11 @@ export async function updateOrderStatusAction(
 ) {
   try {
     await requireKitchenOrOwner(organizationId);
+
+    const order = await getOrder(orderId);
+    if (!order || order.organizationId !== organizationId) {
+      return { error: "Bestellung nicht gefunden oder unberechtigt." };
+    }
 
     await updateOrderStatus(orderId, status);
     revalidatePath(`/dashboard/${organizationId}/live-orders`);

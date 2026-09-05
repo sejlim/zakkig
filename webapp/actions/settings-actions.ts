@@ -14,7 +14,7 @@ import {
   sendChangeEmailLink,
   sendEmailOtp,
 } from "@/lib/email";
-import { SESSION_COOKIE_NAME } from "@/lib/constants";
+import { SESSION_COOKIE_NAME, MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
 
 export interface SettingsActionState {
   error?: string;
@@ -34,21 +34,39 @@ export async function updateBusinessAction(
 
   try {
     const { user } = await requireOwner(organizationId);
-  const organizationName = formData.get("organizationName") as string;
-  const userName = formData.get("userName") as string;
-  const address = formData.get("address") as string;
-  const logoFile = formData.get("logo") as File | null;
-  const existingLogoId = formData.get("existingLogoId") as string;
-  const removeLogo = formData.get("removeLogo") === "true";
-  const bannerFile = formData.get("banner") as File | null;
-  const existingBannerId = formData.get("existingBannerId") as string;
-  const removeBanner = formData.get("removeBanner") === "true";
+    const organizationName = formData.get("organizationName") as string;
+    const userName = formData.get("userName") as string;
+    const address = formData.get("address") as string;
+    const logoFile = formData.get("logo") as File | null;
+    const existingLogoId = formData.get("existingLogoId") as string;
+    const removeLogo = formData.get("removeLogo") === "true";
+    const bannerFile = formData.get("banner") as File | null;
+    const existingBannerId = formData.get("existingBannerId") as string;
+    const removeBanner = formData.get("removeBanner") === "true";
 
-  if (!organizationName) return { error: "Name des Betriebs ist erforderlich." };
-  if (organizationName.length > 100) return { error: "Der Name des Betriebs darf maximal 100 Zeichen lang sein." };
-  if (!userName) return { error: "Vertretername ist erforderlich." };
-  if (userName.length > 100) return { error: "Der Name darf maximal 100 Zeichen lang sein." };
-  if (address && address.length > 200) return { error: "Die Adresse darf maximal 200 Zeichen lang sein." };
+    if (!organizationName) return { error: "Name des Betriebs ist erforderlich." };
+    if (organizationName.length > 100) return { error: "Der Name des Betriebs darf maximal 100 Zeichen lang sein." };
+    if (!userName) return { error: "Vertretername ist erforderlich." };
+    if (userName.length > 100) return { error: "Der Name darf maximal 100 Zeichen lang sein." };
+    if (address && address.length > 200) return { error: "Die Adresse darf maximal 200 Zeichen lang sein." };
+
+    if (logoFile && logoFile.size > 0) {
+      if (logoFile.size > MAX_IMAGE_SIZE_BYTES) {
+        return { error: "Das Logo darf maximal 10 MB groß sein." };
+      }
+      if (!logoFile.type.startsWith("image/")) {
+        return { error: "Ungültiges Dateiformat für das Logo." };
+      }
+    }
+
+    if (bannerFile && bannerFile.size > 0) {
+      if (bannerFile.size > MAX_IMAGE_SIZE_BYTES) {
+        return { error: "Das Banner darf maximal 10 MB groß sein." };
+      }
+      if (!bannerFile.type.startsWith("image/")) {
+        return { error: "Ungültiges Dateiformat für das Banner." };
+      }
+    }
 
   const client = await getAuthenticatedConvexClient();
     try {
@@ -310,14 +328,20 @@ export async function updateTablesAction(
   try {
     await requireOwner(organizationId);
 
-    // Validate tables array: max 100 tables, each max 20 chars
+    // Validate tables array: max 100 tables, each between 1 and 10 characters
     if (!Array.isArray(tables) || tables.length > 100) {
       return { error: "Ungültige Tischanzahl (maximal 100 Tische)." };
     }
-    const cleanTables = tables
-      .map((t) => String(t).trim())
-      .filter(Boolean)
-      .map((t) => t.slice(0, 20));
+    const cleanTables: string[] = [];
+    for (const t of tables) {
+      const trimmed = String(t).trim();
+      if (trimmed.length < 1 || trimmed.length > 10) {
+        return {
+          error: "Tischnummern müssen zwischen 1 und 10 Zeichen lang sein.",
+        };
+      }
+      cleanTables.push(trimmed);
+    }
 
     await updateOrganization(organizationId, { tables: cleanTables });
     revalidatePath(`/dashboard/${organizationId}/overview`);
