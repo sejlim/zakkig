@@ -432,6 +432,10 @@ export const translations = {
     paymentDisclaimer:
       "Die technische Bestell- und Zahlungsabwicklung erfolgt über zakkig als Vermittler.",
     agreeToTerms: "Ich stimme den AGB und der Datenschutzerklärung zu.",
+    agreeToTermsPrefix: "Mit Klick auf „Weiter zur Zahlung“ stimmst du den ",
+    termsGtc: "AGB",
+    agreeToTermsMiddle: " und der ",
+    agreeToTermsSuffix: " zu.",
     orderPlaced: "Bestellung aufgegeben!",
     yourOrderNumber: "Deine Bestellnummer",
     waitAtTable:
@@ -531,9 +535,9 @@ export const translations = {
     backHome: "Zurück zur Anmeldung",
     backToDashboard: "Zurück zum Dashboard",
     userFallback: "Benutzer",
-    homepageUrl: "https://www.zakkig.de",
-    termsUrl: "https://www.zakkig.de/agb",
-    privacyUrl: "https://www.zakkig.de/datenschutz",
+    homepageUrl: "https://zakkig.de",
+    termsUrl: "https://zakkig.de/agb",
+    privacyUrl: "https://zakkig.de/datenschutz",
 
     // Delete Account
     deleteAccountConfirmTitle: "Konto endgültig löschen",
@@ -964,7 +968,11 @@ export const translations = {
     buyingFrom: "You are buying from:",
     paymentDisclaimer:
       "The technical order and payment processing is handled by zakkig as an intermediary.",
-    agreeToTerms: "I agree to the Terms and Privacy Policy.",
+    agreeToTerms: "I agree to the GTC and Privacy Policy.",
+    agreeToTermsPrefix: "By clicking \"Continue to Payment\", you agree to the ",
+    termsGtc: "GTC",
+    agreeToTermsMiddle: " and ",
+    agreeToTermsSuffix: ".",
     orderPlaced: "Order placed!",
     yourOrderNumber: "Your order number",
     waitAtTable:
@@ -1061,9 +1069,9 @@ export const translations = {
     backHome: "Back to sign in",
     backToDashboard: "Back to Dashboard",
     userFallback: "User",
-    homepageUrl: "https://www.zakkig.de/en",
-    termsUrl: "https://www.zakkig.de/en/terms",
-    privacyUrl: "https://www.zakkig.de/en/privacy",
+    homepageUrl: "https://zakkig.de/en",
+    termsUrl: "https://zakkig.de/en/gtc",
+    privacyUrl: "https://zakkig.de/en/privacy",
 
     // Delete Account
     deleteAccountConfirmTitle: "Permanently delete account",
