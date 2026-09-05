@@ -52,9 +52,9 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={cn("light antialiased", "font-sans", poppins.variable)}
+      className={cn("light antialiased overflow-x-clip", "font-sans", poppins.variable)}
     >
-      <body className="bg-background text-foreground">
+      <body className="bg-background text-foreground overflow-x-clip min-h-screen">
         <ConvexClientProvider>
           {children}
         </ConvexClientProvider>

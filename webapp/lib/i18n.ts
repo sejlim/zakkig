@@ -16,8 +16,9 @@ export function useTranslation() {
 
   const t = useCallback(
     (key: TranslationKeys, params?: Record<string, string | number>): string => {
+      const dict = translations[locale] || translations.de;
       let text: string =
-        (translations[locale] as Record<string, string>)[key] ||
+        (dict as Record<string, string>)[key] ||
         (key as string);
       if (params) {
         Object.entries(params).forEach(([paramKey, paramValue]) => {

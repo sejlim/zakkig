@@ -209,7 +209,7 @@ export function DashboardShell({
                         {item.href.includes("live-orders") && activeOrdersCount > 0 && (
                           <span
                             className={cn(
-                              "text-[11px] font-black px-2 py-0.5 rounded-full shrink-0 tabular-nums",
+                              "w-5 h-5 min-w-5 aspect-square rounded-full p-0 flex items-center justify-center text-[11px] font-black shrink-0 tabular-nums leading-none shadow-xs",
                               isActive
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-primary-foreground text-primary"

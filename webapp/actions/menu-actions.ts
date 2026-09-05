@@ -149,6 +149,9 @@ export async function reorderItemsAction(
     });
     await updateItemSortOrders(updates);
     revalidatePath(`/dashboard/${organizationId}/menu`);
+    revalidatePath(`/to-go/${organizationId}`);
+    revalidatePath(`/to-stay/${organizationId}`);
+    revalidatePath(`/availability/${organizationId}`);
     return { success: true };
   } catch (error: unknown) {
     const message =

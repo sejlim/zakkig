@@ -1,5 +1,3 @@
-"use client";
-
 export type Locale = "de" | "en";
 
 export const translations = {
@@ -147,7 +145,7 @@ export const translations = {
     qrCodeSublineToGo:
       "Nach Abschluss der Bezahlung wirst du auf eine Warteseite weitergeleitet, auf der du sehen kannst ob deine Bestellung abholbereit ist.",
     qrCodeAdminDescToGo:
-      "Ermöglicht Kunden die kontaktlose Bestellung & Bezahlung zum Mitnehmen inklusive Bestellnummer und Live-Status für die Abholung.",
+      "Ermöglicht Kunden die kontaktlose Bestellung & Bezahlung zum Abholen inklusive Bestellnummer und Live-Status für die Abholung.",
     qrCodeAdminDescToStay:
       "Ermöglicht Kunden das direkte Bestellen & Bezahlen am Tisch, damit alle Speisen und Getränke direkt an den Tisch serviert werden können.",
 
@@ -400,8 +398,9 @@ export const translations = {
     newOrder: "Neue Bestellung.",
     menuTab: "Menü",
     cartTab: "Warenkorb",
-    titleToGo: "Bestellen zum Abholen",
-    titleToStay: "Bestellen an Tisch",
+    titleToGo: "Bestellen zum Abholen bei",
+    titleToStay: "Bestellen an Tisch {table} bei",
+    titleToStayNoTable: "Bestellen am Tisch bei",
     addToCart: "Hinzufügen",
     chooseExactly: "Wähle {count}",
     chooseBetween: "Wähle {min} bis {max}",
@@ -410,7 +409,7 @@ export const translations = {
     removeFromCart: "Entfernen",
     cart: "Warenkorb",
     viewCart: "Zum Warenkorb",
-    backToMenu: "Zurück zur Speisekarte",
+    backToMenu: "Zurück zum Menü",
     itemsInCart: "{count} Artikel",
     itemInCart: "1 Artikel",
     emptyCart: "Dein Warenkorb ist leer.",
@@ -543,6 +542,9 @@ export const translations = {
     accountDeletedSuccess: "Konto erfolgreich gelöscht.",
     accountDeletedDesc: "Dein Konto und alle zugehörigen Daten wurden unwiderruflich gelöscht.",
     deletingAccount: "Wird gelöscht...",
+    paymentSuccessful: "Zahlung erfolgreich",
+    authentication: "Authentifizierung",
+    setNewPassword: "Neues Passwort festlegen",
   },
   en: {
     // Auth
@@ -686,7 +688,7 @@ export const translations = {
     qrCodeSublineToGo:
       "After payment, you will be redirected to a waiting page where you can see whether your order is ready for pickup.",
     qrCodeAdminDescToGo:
-      "Enables customers to order & pay contactless for takeaway, including an order number and live status for pickup.",
+      "Enables customers to order & pay contactless for pickup, including an order number and live status for pickup.",
     qrCodeAdminDescToStay:
       "Enables customers to order & pay directly at their table, ensuring all food and drinks can be served straight to their table.",
 
@@ -935,8 +937,9 @@ export const translations = {
     newOrder: "New order.",
     menuTab: "Menu",
     cartTab: "Cart",
-    titleToGo: "Order for pickup",
-    titleToStay: "Order to table",
+    titleToGo: "Order for pickup at",
+    titleToStay: "Order to table {table} at",
+    titleToStayNoTable: "Order to table at",
     addToCart: "Add",
     chooseExactly: "Choose {count}",
     chooseBetween: "Choose {min} to {max}",
@@ -1069,6 +1072,9 @@ export const translations = {
     accountDeletedSuccess: "Account successfully deleted.",
     accountDeletedDesc: "Your account and all associated data have been permanently deleted.",
     deletingAccount: "Deleting...",
+    paymentSuccessful: "Payment successful",
+    authentication: "Authentication",
+    setNewPassword: "Set New Password",
   },
 } as const;
 

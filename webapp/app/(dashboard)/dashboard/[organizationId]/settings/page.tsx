@@ -2,7 +2,17 @@ import { getOrganization } from "@/lib/convex/database";
 import { getUser } from "@/lib/convex/auth";
 import { SettingsContent } from "@/components/dashboard/settings-content";
 
-export const metadata = { title: "Einstellungen" };
+import { cookies } from "next/headers";
+import { translations, Locale } from "@/lib/translations";
+
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "de";
+  const dict = translations[locale] || translations.de;
+  return {
+    title: dict.settings,
+  };
+}
 
 export default async function SettingsPage({
   params,

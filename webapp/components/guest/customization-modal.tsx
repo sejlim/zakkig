@@ -52,12 +52,23 @@ export function CustomizationModal({
     if (item && item.customizations) {
       try {
         const parsedRaw = JSON.parse(item.customizations);
-        const parsed: CustomizationStep[] = parsedRaw.map((step: any) => ({
-          ...step,
-          minSelections: step.minSelections ?? (step.type === "singleChoice" ? 1 : 0),
-          maxSelections: step.maxSelections ?? (step.type === "singleChoice" ? 1 : 99),
-          includedCount: step.includedCount ?? 0,
-        }));
+        const parsed: CustomizationStep[] = parsedRaw.map((step: any) => {
+          const min =
+            step.minSelections ??
+            step.minSelect ??
+            (step.required ? 1 : step.type === "singleChoice" ? 1 : 0);
+          const max =
+            step.maxSelections ??
+            step.maxSelect ??
+            (step.type === "singleChoice" ? 1 : step.required && min === 1 && !step.maxSelect ? 1 : 99);
+
+          return {
+            ...step,
+            minSelections: Number(min),
+            maxSelections: Number(max),
+            includedCount: step.includedCount ?? 0,
+          };
+        });
         
         setSteps(parsed);
         
@@ -161,7 +172,7 @@ export function CustomizationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md sm:max-w-lg h-[92vh] h-[92dvh] max-h-[92dvh] sm:h-[88vh] sm:max-h-[850px] flex flex-col p-0 gap-0 overflow-hidden bg-primary text-primary-foreground rounded-2xl border border-primary-foreground/15 shadow-2xl">
+      <DialogContent className="max-w-[500px] h-[92vh] h-[92dvh] max-h-[92dvh] sm:h-[88vh] sm:max-h-[850px] flex flex-col p-0 gap-0 overflow-hidden bg-primary text-primary-foreground rounded-2xl border border-primary-foreground/15 shadow-2xl">
         {/* Fixed Header */}
         <DialogHeader className="p-5 pb-3.5 border-b border-primary-foreground/10 shrink-0 bg-primary space-y-1.5 text-left">
           <div className="flex items-center justify-between gap-3">
@@ -215,8 +226,13 @@ export function CustomizationModal({
               <div key={step.name} className="space-y-3">
                 <div className="flex items-baseline justify-between gap-4">
                   <h3 className="font-semibold text-lg leading-tight text-primary-foreground">{step.name}</h3>
-                  <span className="shrink-0 text-[13px] text-primary-foreground/80 font-medium bg-primary-foreground/10 px-2 py-0.5 rounded-full">
-                    {step.minSelections === step.maxSelections && step.minSelections > 0
+                  <span className="shrink-0 text-[13px] text-primary-foreground/80 font-medium bg-primary-foreground/10 px-2.5 py-0.5 rounded-full">
+                    {step.minSelections === 0 &&
+                    (!step.maxSelections ||
+                      step.maxSelections >= 99 ||
+                      step.maxSelections >= step.options.length)
+                      ? t("optional")
+                      : step.minSelections === step.maxSelections && step.minSelections > 0
                       ? t("chooseExactly" as any, { count: step.minSelections })
                       : step.minSelections > 0
                       ? t("chooseBetween" as any, { min: step.minSelections, max: step.maxSelections })
@@ -238,7 +254,7 @@ export function CustomizationModal({
                         key={option.name}
                         onClick={() => handleSelect(step.name, option.name)}
                         disabled={isMaxReached}
-                        className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all ${
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-[14px] border transition-all text-left cursor-pointer ${
                           isSelected
                             ? "border-primary-foreground bg-primary-foreground/15 ring-1 ring-primary-foreground text-primary-foreground"
                             : isMaxReached
@@ -246,11 +262,9 @@ export function CustomizationModal({
                             : "border-primary-foreground/15 bg-primary-foreground/[0.03] hover:bg-primary-foreground/10 text-primary-foreground"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                           <div
-                            className={`w-5 h-5 flex items-center justify-center border ${
-                              step.maxSelections === 1 ? "rounded-full" : "rounded-[4px]"
-                            } ${
+                            className={`w-5 h-5 flex items-center justify-center rounded-full border shrink-0 transition-colors ${
                               isSelected
                                 ? "border-primary-foreground bg-primary-foreground text-primary"
                                 : "border-primary-foreground/30 bg-transparent"
@@ -258,10 +272,12 @@ export function CustomizationModal({
                           >
                             {isSelected && <Check weight="bold" className="w-3 h-3 text-primary" />}
                           </div>
-                          <span className="font-medium text-left">{option.name}</span>
+                          <span className="font-medium text-sm sm:text-base text-left leading-snug break-words">
+                            {option.name}
+                          </span>
                         </div>
                         {getOptionPrice(option) > 0 && (
-                          <span className="text-sm text-primary-foreground/70 pl-3">
+                          <span className="text-sm font-semibold tabular-nums text-primary-foreground/90 shrink-0 whitespace-nowrap text-right">
                             +{formatPrice(getOptionPrice(option))}
                           </span>
                         )}

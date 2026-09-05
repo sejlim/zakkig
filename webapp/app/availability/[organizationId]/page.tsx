@@ -8,8 +8,16 @@ import { getUser } from "@/lib/convex/auth";
 import { AvailabilityContent } from "@/components/availability/availability-content";
 import { cookies } from "next/headers";
 import { LocalizedText } from "@/components/ui/localized-text";
+import { translations, Locale } from "@/lib/translations";
 
-export const metadata = { title: "Verfügbarkeit" };
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "de";
+  const dict = translations[locale] || translations.de;
+  return {
+    title: dict.availability,
+  };
+}
 
 export default async function AvailabilityPage({
   params,

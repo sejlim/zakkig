@@ -9,9 +9,17 @@ import {
 import { getUser } from "@/lib/convex/auth";
 import { OverviewContent } from "@/components/dashboard/overview-content";
 import { SessionsOverviewCard } from "@/components/dashboard/sessions-overview-card";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { translations, Locale } from "@/lib/translations";
 
-export const metadata = { title: "Übersicht" };
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "de";
+  const dict = translations[locale] || translations.de;
+  return {
+    title: dict.overview,
+  };
+}
 
 export default async function OverviewPage({
   params,

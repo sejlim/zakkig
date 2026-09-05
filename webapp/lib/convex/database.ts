@@ -200,7 +200,9 @@ export async function getMenuItems(
   const docs = await convexServer.query(api.menu.getItems, {
     organizationId: organizationId as Id<"organizations">,
   });
-  return docs.map(toItem);
+  return docs
+    .map(toItem)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 }
 
 export async function getMenuItem(id: string): Promise<MenuItem | null> {
@@ -220,7 +222,9 @@ export async function getAvailableMenuItems(
   const docs = await convexServer.query(api.menu.getAvailableItems, {
     organizationId: organizationId as Id<"organizations">,
   });
-  return docs.map(toItem);
+  return docs
+    .map(toItem)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 }
 
 export async function createMenuItem(

@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { cookies } from "next/headers";
+import { translations, Locale } from "@/lib/translations";
 
-export const metadata: Metadata = {
-  title: "Authentifizierung",
-  description: "Anmelden, registrieren oder Passwort zurücksetzen.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "de";
+  const dict = translations[locale] || translations.de;
+  const isEn = locale === "en";
+  return {
+    title: {
+      default: dict.authentication,
+      template: "zakkig: %s",
+    },
+    description: isEn
+      ? "Sign in, register or reset your password."
+      : "Anmelden, registrieren oder Passwort zurücksetzen.",
+  };
+}
 
 export default function AuthLayout({
   children,

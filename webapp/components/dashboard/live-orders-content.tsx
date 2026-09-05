@@ -136,8 +136,9 @@ function OrderGrid({
                     </span>
                   </div>
                   {Array.isArray(item.customizations) && item.customizations.length > 0 && (
-                    <div className="pl-6 pt-1 flex flex-wrap gap-1">
+                    <div className="pl-6 pt-1 flex flex-col items-start gap-1">
                       {item.customizations.map((c: any, cIdx: number) => {
+                        const stepName = c.stepName || c.step;
                         const label =
                           c.optionName ||
                           c.choice ||
@@ -147,10 +148,22 @@ function OrderGrid({
                         return (
                           <span
                             key={cIdx}
-                            className="inline-flex items-center text-xs font-medium text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md break-words"
+                            className="inline-block max-w-full text-xs font-medium text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md break-words"
                           >
-                            {label}
-                            {c.extraPrice > 0 ? ` (${formatPrice(c.extraPrice)})` : ""}
+                            {stepName ? (
+                              <span className="font-semibold text-foreground/80">
+                                {stepName}:{" "}
+                              </span>
+                            ) : null}
+                            <span>{label}</span>
+                            {typeof c.extraPrice === "number" && c.extraPrice > 0 ? (
+                              <>
+                                {" "}
+                                <span className="text-muted-foreground/80 font-normal whitespace-nowrap">
+                                  (+{formatPrice(c.extraPrice)})
+                                </span>
+                              </>
+                            ) : ""}
                           </span>
                         );
                       })}
@@ -398,7 +411,7 @@ export function LiveOrdersContent({
                 {t("inProgressSubline")}
               </p>
             </div>
-            <Badge className="bg-primary text-secondary font-semibold text-xs px-2.5 py-0.5 shrink-0">
+            <Badge className="w-6 h-6 min-w-6 aspect-square rounded-full p-0 flex items-center justify-center bg-primary text-secondary font-bold text-xs shrink-0 tabular-nums leading-none">
               {inProgressOrders.length}
             </Badge>
           </CardHeader>
@@ -430,7 +443,7 @@ export function LiveOrdersContent({
                 {t("completedSubline")}
               </p>
             </div>
-            <Badge className="bg-primary text-secondary font-semibold text-xs px-2.5 py-0.5 shrink-0">
+            <Badge className="w-6 h-6 min-w-6 aspect-square rounded-full p-0 flex items-center justify-center bg-primary text-secondary font-bold text-xs shrink-0 tabular-nums leading-none">
               {completedOrders.length}
             </Badge>
           </CardHeader>

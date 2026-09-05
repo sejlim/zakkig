@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, ShoppingCart, ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useTranslation, formatPrice } from "@/lib/i18n";
@@ -9,7 +9,6 @@ import { useCartStore } from "@/store/cart-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { CartSheet } from "@/components/guest/cart-sheet";
 import { OrderTracker } from "@/components/guest/order-tracker";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -39,14 +38,16 @@ function GuestHeader({
   tableNumber?: string;
 }) {
   const { t } = useTranslation();
-  const orderingBadgeText =
+  const orderingSubtitle =
     type === "takeaway"
-      ? t("titleToGo" as any)
-      : `${t("titleToStay" as any)} ${tableNumber || ""}`;
+      ? t("titleToGo")
+      : tableNumber
+      ? t("titleToStay", { table: tableNumber })
+      : t("titleToStayNoTable");
 
   return (
     <header className="bg-primary text-primary-foreground relative z-20 flex flex-col items-center px-4 pt-4 pb-6 shrink-0">
-      <div className="max-w-md w-full flex flex-col items-stretch">
+      <div className="max-w-[500px] w-full flex flex-col items-stretch">
         {/* Lieferando-style Hero Banner Box with Bottom-Left Logo Box */}
         <div className="relative w-full aspect-[2.3/1] rounded-[22px] sm:rounded-[26px] overflow-hidden bg-black border border-white/15 shadow-sm">
           {organization.bannerFileId ? (
@@ -60,38 +61,37 @@ function GuestHeader({
             <div className="w-full h-full bg-black" />
           )}
 
-          {/* Bottom-Left Logo Box */}
-          <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-10 w-16 h-16 sm:w-20 sm:h-20 bg-neutral-900 rounded-[10px] sm:rounded-[12px] border border-white/20 flex items-center justify-center overflow-hidden shrink-0">
-            {organization.logoFileId ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={getImagePreviewUrl(organization.logoFileId)}
-                alt={organization.name}
-                className="w-full h-full object-cover"
+          {/* Bottom Row: Logo Box (Left), Language Switcher (Right) */}
+          <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 z-10 flex items-end justify-between gap-2">
+            {/* Left: Logo Box */}
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-neutral-900 rounded-[10px] sm:rounded-[12px] border border-white/20 flex items-center justify-center overflow-hidden shrink-0">
+              {organization.logoFileId ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={getImagePreviewUrl(organization.logoFileId)}
+                  alt={organization.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-neutral-900" />
+              )}
+            </div>
+
+            {/* Right: Language Switcher */}
+            <div className="shrink-0 flex items-center justify-end">
+              <LanguageSwitcher
+                variant="default"
+                className="h-9 text-xs font-semibold tracking-wide uppercase bg-primary text-primary-foreground flex items-center justify-center gap-1.5 px-3.5 rounded-full border border-primary-foreground/20 hover:bg-neutral-800 hover:text-primary-foreground shrink-0 shadow-sm transition-colors cursor-pointer"
               />
-            ) : (
-              <div className="w-full h-full bg-neutral-900" />
-            )}
-          </div>
-
-          {/* Bottom-Right Mode Tag */}
-          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
-            <span className="text-xs font-semibold tracking-wide uppercase bg-primary-foreground text-primary shadow-sm flex items-center justify-center px-3 py-2 rounded-full whitespace-nowrap">
-              <span>{orderingBadgeText}</span>
-            </span>
-          </div>
-
-          {/* Top-Right Language Switcher */}
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-            <LanguageSwitcher
-              variant="ghost"
-              className="h-auto text-xs font-semibold tracking-wide uppercase bg-primary text-primary-foreground flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full border border-primary-foreground/20 hover:opacity-95 shrink-0 shadow-sm"
-            />
+            </div>
           </div>
         </div>
 
         {/* Restaurant Info */}
         <div id="header-text" className="w-full mt-3.5 flex flex-col">
+          <p className="text-sm sm:text-base font-semibold text-primary-foreground leading-snug mb-1">
+            {orderingSubtitle}
+          </p>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-primary-foreground leading-tight">
             {organization.name}
           </h1>
@@ -116,10 +116,10 @@ function GuestOrderSuccess({
   const { t } = useTranslation();
   return (
     <div className="flex flex-col min-h-screen bg-primary">
-      <header className="p-6 text-center text-primary-foreground shrink-0">
+      <header className="p-6 text-center text-primary-foreground shrink-0 max-w-[500px] mx-auto w-full">
         <h2 className="text-xl font-bold tracking-tight">zakkig</h2>
       </header>
-      <div className="flex-1 bg-background text-foreground rounded-t-[2rem] md:rounded-[2rem] shadow-2xl flex flex-col items-center justify-center p-6 text-center space-y-6 md:my-4 md:max-w-md md:mx-auto w-full border-t md:border border-primary-foreground/10">
+      <div className="flex-1 bg-background text-foreground rounded-t-[2rem] md:rounded-[2rem] shadow-2xl flex flex-col items-center justify-center p-6 text-center space-y-6 md:my-4 max-w-[500px] mx-auto w-full border-t md:border border-primary-foreground/10">
         <div className="h-24 w-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
           <CheckCircle className="h-12 w-12" />
         </div>
@@ -151,20 +151,33 @@ function GuestOrderSuccess({
 function GuestMenu({
   categories,
   items,
-  isSticky,
 }: {
   categories: MenuCategory[];
   items: MenuItem[];
-  isSticky: boolean;
 }) {
   const { t } = useTranslation();
   const { items: cartItems, addItem, updateQuantity } = useCartStore();
   const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.$id || "");
   const [customizationItem, setCustomizationItem] = useState<MenuItem | null>(null);
 
+  const [isSticky, setIsSticky] = useState(false);
+
   const isClickScrolling = useRef(false);
   const clickScrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const categoryNavRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSticky(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -182,7 +195,7 @@ function GuestMenu({
         const el = document.getElementById(category.$id);
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 130) {
+          if (rect.top <= 90) {
             currentActiveId = category.$id;
           }
         }
@@ -219,7 +232,8 @@ function GuestMenu({
 
     const el = document.getElementById(id);
     if (el) {
-      const y = el.getBoundingClientRect().top + window.scrollY - 70;
+      const offset = 75;
+      const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - offset);
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
@@ -241,30 +255,36 @@ function GuestMenu({
 
   return (
     <>
+      <div ref={sentinelRef} className="h-px w-full pointer-events-none -mb-px" />
       <div 
         id="category-nav"
-        ref={categoryNavRef}
         className={cn(
-          "sticky top-0 z-30 bg-background border-b border-border px-4 md:px-6 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-150",
-          isSticky ? "rounded-none pt-3.5 pb-3.5" : "rounded-t-[2.5rem] pt-7 pb-4"
+          "sticky top-0 z-30 w-full bg-background border-b border-border shadow-xs overflow-hidden transition-all duration-150",
+          isSticky ? "rounded-none" : "rounded-t-[1.5rem]"
         )}
       >
-        <div className="flex gap-2 min-w-max">
-          {categories.map((c) => (
-            <button
-              key={c.$id}
-              data-category-id={c.$id}
-              onClick={() => scrollToCategory(c.$id)}
-              className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-colors border",
-                activeCategory === c.$id
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                  : "bg-background text-foreground border-border hover:bg-muted"
-              )}
-            >
-              {c.name}
-            </button>
-          ))}
+        <div
+          ref={categoryNavRef}
+          className="overflow-x-auto no-scrollbar overscroll-x-contain px-4 py-3 sm:py-3.5"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <div className="flex gap-2 min-w-max">
+            {categories.map((c) => (
+              <button
+                key={c.$id}
+                data-category-id={c.$id}
+                onClick={() => scrollToCategory(c.$id)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-colors border cursor-pointer",
+                  activeCategory === c.$id
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                )}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       
@@ -274,7 +294,7 @@ function GuestMenu({
           if (categoryItems.length === 0) return null;
 
           return (
-            <div key={category.$id} id={category.$id} className="space-y-4 scroll-m-24">
+            <div key={category.$id} id={category.$id} className="space-y-4 scroll-mt-20">
               <h2 className="text-2xl font-bold">{category.name}</h2>
               <div className="space-y-4">
                 {categoryItems.map((item) => {
@@ -308,30 +328,39 @@ function GuestMenu({
                             </p>
                           )}
                         </div>
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex flex-col">
-                            <span className="font-bold">
+                        <div className="mt-4 relative">
+                          <Button
+                            size="lg"
+                            className="w-full rounded-full h-11 sm:h-12 px-4 sm:px-5 flex items-center justify-between font-bold text-sm sm:text-base cursor-pointer shadow-xs transition-all active:scale-[0.98]"
+                            onClick={() => handleAddClick(item)}
+                          >
+                            <div className="flex items-center justify-center shrink-0">
+                              <Plus weight="bold" className="h-[18px] w-[18px]" />
+                            </div>
+
+                            <span className="font-bold text-sm sm:text-base truncate text-center flex-1 px-3">
+                              {t("addToCart")}
+                            </span>
+
+                            <span className="font-bold text-sm sm:text-base tabular-nums shrink-0">
                               {hasPaidCustomizations(item.customizations)
                                 ? t("fromPrice", { price: formatPrice(item.price) })
                                 : formatPrice(item.price)}
                             </span>
-                          </div>
-
-                          <Button
-                            size="sm"
-                            className="rounded-full px-4"
-                            onClick={() => handleAddClick(item)}
-                          >
-                            <Plus weight="bold" className="mr-1" /> {t("addToCart")}
-                            {totalQuantity > 0 && (
-                              <Badge
-                                variant="secondary"
-                                className="ml-2 px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center bg-primary-foreground text-primary border-none font-bold shadow-sm rounded-full"
-                              >
-                                {totalQuantity}
-                              </Badge>
-                            )}
                           </Button>
+
+                          {totalQuantity > 0 && (
+                            <span
+                              className={cn(
+                                "absolute -top-1.5 -right-1 h-5 rounded-full bg-primary text-primary-foreground border-2 border-background text-[11px] font-extrabold flex items-center justify-center leading-none shadow-md tabular-nums pointer-events-none",
+                                totalQuantity > 9
+                                  ? "min-w-5 px-1.5"
+                                  : "w-5 aspect-square p-0"
+                              )}
+                            >
+                              {totalQuantity}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -354,52 +383,34 @@ function GuestMenu({
 }
 
 function CartHeader({
-  organization,
-  type,
-  tableNumber,
   onBack,
 }: {
-  organization: Organization;
-  type: "dine-in" | "takeaway";
-  tableNumber?: string;
   onBack: () => void;
 }) {
   const { t } = useTranslation();
 
   return (
-    <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
-      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-3">
+    <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border shrink-0">
+      <div className="max-w-[500px] mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Button
-            variant="ghost"
             size="icon"
             onClick={onBack}
-            className="h-9 w-9 rounded-full -ml-1 sm:-ml-2 hover:bg-muted shrink-0"
+            className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-neutral-800 shadow-sm transition-colors shrink-0 cursor-pointer"
             aria-label={t("backToMenu")}
           >
             <ArrowLeft weight="bold" className="h-5 w-5" />
           </Button>
-          <div className="flex flex-col">
-            <h1 className="font-bold text-base sm:text-lg leading-tight">
-              {t("cart")}
-            </h1>
-            <span className="text-xs text-muted-foreground leading-none mt-0.5 truncate max-w-[140px] sm:max-w-xs">
-              {organization.name}
-            </span>
-          </div>
+          <h1 className="text-2xl font-bold">
+            {t("cart")}
+          </h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-muted text-muted-foreground uppercase tracking-wide">
-            {type === "takeaway"
-              ? t("toGo")
-              : `${t("toStay")} ${tableNumber || ""}`}
-          </span>
-          <LanguageSwitcher
-            variant="ghost"
-            className="h-8 text-xs font-semibold tracking-wide uppercase bg-primary text-primary-foreground px-3 rounded-full border border-primary-foreground/20 hover:opacity-95 shadow-sm"
-          />
-        </div>
+        <LanguageSwitcher
+          variant="default"
+          size="lg"
+          className="h-9 px-3.5 text-xs font-bold tracking-wide uppercase bg-primary text-primary-foreground rounded-full hover:bg-neutral-800 hover:text-primary-foreground shadow-sm transition-colors cursor-pointer border-0 shrink-0"
+        />
       </div>
     </header>
   );
@@ -407,102 +418,97 @@ function CartHeader({
 
 function GuestCart({
   setActiveTab,
-  setCheckoutOpen,
 }: {
   setActiveTab: (tab: "menu" | "cart") => void;
-  setCheckoutOpen: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const { items: cartItems, updateQuantity, total } = useCartStore();
+  const { items: cartItems, updateQuantity } = useCartStore();
 
   return (
     <div className="space-y-6">
       {cartItems.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground space-y-4">
-          <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground/40">
-            <ShoppingCart className="h-8 w-8" />
-          </div>
-          <p className="font-semibold text-foreground text-base">
+        <div className="text-center py-20 flex flex-col items-center justify-center space-y-4">
+          <ShoppingCart weight="bold" className="h-12 w-12 text-foreground" />
+          <p className="font-semibold text-foreground text-base sm:text-lg">
             {t("emptyCart")}
           </p>
           <Button
-            className="mt-2 rounded-full font-semibold px-6"
-            variant="outline"
+            size="lg"
+            className="mt-2 rounded-full font-bold h-12 px-8 text-base shadow-md bg-primary text-primary-foreground hover:bg-neutral-800 active:scale-[0.98] transition-all cursor-pointer inline-flex items-center justify-center"
             onClick={() => {
               setActiveTab("menu");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           >
-            <ArrowLeft weight="bold" className="mr-2 h-4 w-4" />
-            {t("backToMenu")}
+            <ArrowLeft weight="bold" className="mr-2.5 h-5 w-5" />
+            <span>{t("backToMenu")}</span>
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="divide-y divide-border">
-            {cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="py-4 flex items-center justify-between gap-4"
-              >
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm truncate">{item.name}</h3>
-                  {item.customizations && item.customizations.length > 0 && (
-                    <p className="text-xs text-muted-foreground leading-relaxed break-words mt-0.5">
-                      {item.customizations
-                        .map((c) => `${c.stepName}: ${c.optionName}`)
-                        .join(", ")}
-                    </p>
-                  )}
-                  <p className="text-sm font-bold mt-1 text-primary">
-                    {formatPrice(item.price * item.quantity)}
-                  </p>
-                </div>
+        <div className="divide-y divide-border">
+          {cartItems.map((item) => (
+            <div
+              key={item.id}
+              className="py-4 flex items-start justify-between gap-4"
+            >
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm leading-snug break-words">{item.name}</h3>
+                {item.customizations && item.customizations.length > 0 && (
+                  <div className="flex flex-col items-start gap-1 mt-1.5">
+                    {item.customizations.map((c, cIdx) => (
+                      <span
+                        key={cIdx}
+                        className="inline-block max-w-full text-xs leading-normal text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md border border-border/40 break-words"
+                      >
+                        {c.stepName ? (
+                          <span className="font-medium text-foreground/80">
+                            {c.stepName}:{" "}
+                          </span>
+                        ) : null}
+                        <span>{c.optionName}</span>
+                        {typeof c.extraPrice === "number" && c.extraPrice > 0 && (
+                          <>
+                            {" "}
+                            <span className="text-muted-foreground/80 font-normal whitespace-nowrap">
+                              (+{formatPrice(c.extraPrice)})
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-full border shrink-0">
+              <div className="shrink-0 flex flex-col items-end gap-2">
+                <span className="text-sm font-bold text-primary tabular-nums text-right leading-snug">
+                  {formatPrice(item.price * item.quantity)}
+                </span>
+
+                <div className="flex items-center gap-1 bg-muted/80 p-1 h-9 rounded-full border border-border/60 shrink-0">
                   <Button
-                    size="icon"
+                    size="icon-sm"
                     variant="ghost"
-                    className="h-7 w-7 rounded-full"
+                    className="rounded-full cursor-pointer hover:bg-background"
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
                   >
-                    <Minus className="h-3.5 w-3.5" />
+                    <Minus weight="bold" className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="text-xs font-bold w-4 text-center">
+                  <span className="text-xs font-bold tabular-nums min-w-[14px] text-center px-0.5">
                     {item.quantity}
                   </span>
                   <Button
-                    size="icon"
+                    size="icon-sm"
                     variant="ghost"
-                    className="h-7 w-7 rounded-full"
+                    className="rounded-full cursor-pointer hover:bg-background"
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus weight="bold" className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <Separator className="my-6" />
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-base font-bold">
-              <span>{t("total")}</span>
-              <span>{formatPrice(total())}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t("taxNote")}
-            </p>
-          </div>
-
-          <Button
-            size="lg"
-            className="w-full mt-6 rounded-full font-bold h-12 text-base shadow-md"
-            onClick={() => setCheckoutOpen(true)}
-          >
-            {t("checkout")}
-          </Button>
+          ))}
         </div>
       )}
     </div>
@@ -525,29 +531,31 @@ function LieferandoCartBanner({
   return (
     <aside
       aria-label={t("cart")}
-      className="fixed bottom-4 left-4 right-4 z-40 flex items-center justify-center pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200"
+      className="fixed bottom-4 left-0 right-0 z-40 flex items-center justify-center pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200"
     >
-      <button
-        type="button"
-        id="floating-cart-banner"
-        onClick={onOpenCart}
-        className="pointer-events-auto w-full max-w-md h-12 bg-primary text-primary-foreground rounded-full shadow-2xl border border-primary-foreground/20 px-5 flex items-center justify-between hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer select-none"
-      >
-        <div className="relative flex items-center justify-center shrink-0">
-          <ShoppingCart weight="bold" className="h-[18px] w-[18px]" />
-          <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] px-0.5 rounded-full bg-primary-foreground text-primary text-[10px] font-extrabold flex items-center justify-center leading-none shadow-sm tabular-nums">
-            {count}
+      <div className="w-full max-w-[500px] px-4 flex justify-center">
+        <button
+          type="button"
+          id="floating-cart-banner"
+          onClick={onOpenCart}
+          className="pointer-events-auto w-full h-12 bg-primary text-primary-foreground rounded-full shadow-2xl border border-primary-foreground/20 px-5 flex items-center justify-between hover:bg-neutral-800 hover:text-primary-foreground active:scale-[0.98] transition-all cursor-pointer select-none"
+        >
+          <div className="relative flex items-center justify-center shrink-0">
+            <ShoppingCart weight="bold" className="h-[18px] w-[18px]" />
+            <span className="absolute -top-1.5 -right-2 w-4 h-4 min-w-4 aspect-square rounded-full bg-primary-foreground text-primary text-[10px] font-extrabold flex items-center justify-center leading-none shadow-sm tabular-nums p-0">
+              {count}
+            </span>
+          </div>
+
+          <span className="font-bold text-base truncate text-center flex-1 px-3">
+            {t("viewCart")}
           </span>
-        </div>
 
-        <span className="font-bold text-base truncate text-center flex-1 px-3">
-          {t("viewCart")}
-        </span>
-
-        <span className="font-bold text-base tabular-nums shrink-0">
-          {formatPrice(total())}
-        </span>
-      </button>
+          <span className="font-bold text-base tabular-nums shrink-0">
+            {formatPrice(total())}
+          </span>
+        </button>
+      </div>
     </aside>
   );
 }
@@ -562,27 +570,60 @@ export function GuestFrontend({
   initialOrder,
 }: GuestFrontendProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const { items: cartItems, total } = useCartStore();
 
   const [activeTab, setActiveTab] = useState<"menu" | "cart">("menu");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [dineInSuccess, setDineInSuccess] = useState<{
     orderNumber: string;
   } | null>(null);
-  const [isSticky, setIsSticky] = useState(false);
+
+  const cartScrollRef = useRef<HTMLElement>(null);
+  const [hasScrollBelow, setHasScrollBelow] = useState(false);
+
+  const checkCartScroll = useCallback(() => {
+    const el = cartScrollRef.current;
+    if (!el) return;
+    const hasOverflow = el.scrollHeight > el.clientHeight + 2;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 4;
+    setHasScrollBelow(hasOverflow && !isAtBottom);
+  }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const headerEl = document.getElementById("header-text");
-      if (headerEl) {
-        const rect = headerEl.getBoundingClientRect();
-        setIsSticky(rect.bottom <= 0);
-      }
+    if (activeTab !== "cart") return;
+
+    checkCartScroll();
+    const timeout = setTimeout(checkCartScroll, 60);
+
+    const el = cartScrollRef.current;
+    if (!el) return () => clearTimeout(timeout);
+
+    const resizeObserver = new ResizeObserver(() => {
+      checkCartScroll();
+    });
+    resizeObserver.observe(el);
+
+    return () => {
+      clearTimeout(timeout);
+      resizeObserver.disconnect();
     };
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [activeTab, cartItems, checkCartScroll]);
+
+  useEffect(() => {
+    const orgName = organization.name;
+    if (orderId && type === "takeaway") {
+      document.title = `zakkig: ${t("orderStatus")} - ${orgName}`;
+      return;
+    }
+    const prefix =
+      type === "takeaway"
+        ? t("titleToGo")
+        : tableNumber
+        ? t("titleToStay", { table: tableNumber })
+        : t("titleToStayNoTable");
+    document.title = `zakkig: ${prefix} ${orgName}`;
+  }, [locale, organization.name, type, tableNumber, orderId, t]);
 
   if (orderId && type === "takeaway") {
     return (
@@ -606,26 +647,60 @@ export function GuestFrontend({
   return (
     <>
       {activeTab === "cart" ? (
-        <div className="min-h-screen bg-background text-foreground flex flex-col">
-          <CartHeader
-            organization={organization}
-            type={type}
-            tableNumber={tableNumber}
-            onBack={() => {
-              setActiveTab("menu");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          />
-
-          <main className="flex-1 max-w-2xl mx-auto w-full px-4 md:px-6 py-6 pb-24">
-            <GuestCart
-              setActiveTab={setActiveTab}
-              setCheckoutOpen={setCheckoutOpen}
+        <div className="h-dvh bg-primary text-foreground flex flex-col items-center overflow-hidden">
+          <div className="w-full max-w-[500px] bg-background h-full flex flex-col shadow-2xl overflow-hidden">
+            <CartHeader
+              onBack={() => {
+                setActiveTab("menu");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             />
-          </main>
+
+            <main
+              ref={cartScrollRef}
+              onScroll={checkCartScroll}
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 md:px-6 py-4"
+            >
+              <GuestCart
+                setActiveTab={setActiveTab}
+              />
+            </main>
+
+            {cartItems.length > 0 && (
+              <footer
+                className={cn(
+                  "shrink-0 border-t border-border bg-background px-4 md:px-6 py-4 pb-6 transition-shadow duration-200",
+                  hasScrollBelow
+                    ? "shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
+                    : "shadow-none"
+                )}
+              >
+                <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-base sm:text-lg font-bold">
+                      {t("total")}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-normal">
+                      {t("taxNote")}
+                    </span>
+                  </div>
+                  <span className="text-base sm:text-lg font-bold tabular-nums">
+                    {formatPrice(total())}
+                  </span>
+                </div>
+                <Button
+                  size="lg"
+                  className="w-full mt-3 rounded-full font-bold h-12 text-base shadow-md bg-primary text-primary-foreground hover:bg-neutral-800 active:scale-[0.98] transition-all cursor-pointer"
+                  onClick={() => setCheckoutOpen(true)}
+                >
+                  {t("checkout")}
+                </Button>
+              </footer>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="flex flex-col min-h-screen bg-primary">
+        <div className="flex flex-col min-h-screen bg-primary overflow-x-clip">
           <GuestHeader
             organization={organization}
             type={type}
@@ -633,16 +708,10 @@ export function GuestFrontend({
           />
 
           {/* Main Section as rounded white Card inside dark canvas */}
-          <div
-            className={cn(
-              "flex-1 bg-background text-foreground shadow-2xl flex flex-col md:max-w-2xl md:mx-auto w-full transition-all duration-150",
-              isSticky ? "rounded-none" : "rounded-t-[2.5rem]"
-            )}
-          >
+          <div className="flex-1 bg-background text-foreground shadow-2xl flex flex-col max-w-[500px] mx-auto w-full rounded-t-[1.5rem]">
             <GuestMenu
               categories={categories}
               items={items}
-              isSticky={isSticky}
             />
           </div>
 

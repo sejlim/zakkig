@@ -7,14 +7,38 @@ import { GuestFrontend } from "@/components/guest/guest-frontend";
 import { Storefront } from "@phosphor-icons/react/dist/ssr";
 import { LocalizedText } from "@/components/ui/localized-text";
 
+import { cookies } from "next/headers";
+import { translations, Locale } from "@/lib/translations";
+
 export async function generateMetadata({
+  params,
   searchParams,
 }: {
-  searchParams: Promise<{ table?: string }>;
+  params: Promise<{ organizationId: string }>;
+  searchParams: Promise<{ table?: string; order?: string }>;
 }) {
-  const { table } = await searchParams;
+  const [{ organizationId }, { table, order }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "de";
+  const dict = translations[locale] || translations.de;
+  const organization = await getOrganization(organizationId);
+  const orgName = organization?.name || "";
+
+  if (order) {
+    return {
+      title: orgName ? `${dict.orderStatus} - ${orgName}` : dict.orderStatus,
+    };
+  }
+
+  const prefix = table
+    ? dict.titleToStay.replace("{table}", table)
+    : dict.titleToStayNoTable;
+
   return {
-    title: table ? `Bestellen an Tisch ${table}` : "Bestellen an Tisch",
+    title: orgName ? `${prefix} ${orgName}` : prefix,
   };
 }
 

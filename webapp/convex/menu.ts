@@ -49,6 +49,8 @@ export const getItems = query({
       )
       .collect();
 
+    items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
     return await Promise.all(
       items.map(async (item) => {
         let imageUrl: string | null = null;
@@ -90,6 +92,8 @@ export const getAvailableItems = query({
         q.eq("organizationId", args.organizationId).eq("available", true)
       )
       .collect();
+
+    items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
     return await Promise.all(
       items.map(async (item) => {

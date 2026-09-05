@@ -296,7 +296,7 @@ function CategorySection({
           >
             {category.name}
           </button>
-          <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0">
+          <Badge className="w-6 h-6 min-w-6 aspect-square rounded-full p-0 flex items-center justify-center bg-primary text-secondary font-bold text-xs shrink-0 tabular-nums leading-none">
             {items.length}
           </Badge>
         </div>
@@ -387,70 +387,81 @@ function ItemCardView({
   const [showOptions, setShowOptions] = useState(false);
   const { t } = useTranslation();
 
+  const imageUrl = useMemo(
+    () => item.imageUrl || (item.imageId ? getImagePreviewUrl(item.imageId) : null),
+    [item.imageUrl, item.imageId]
+  );
+
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border p-3 gap-3 transition-all duration-200",
+        "flex flex-col rounded-xl border overflow-hidden transition-all duration-200 shadow-xs",
         item.available
-          ? "bg-background border-border shadow-xs"
+          ? "bg-background border-border"
           : "bg-muted/40 border-dashed border-border/70 opacity-65"
       )}
     >
-      {/* Main Content Area */}
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          {item.imageId && (
-            <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-border/40 shrink-0 bg-muted flex items-center justify-center shadow-xs">
-              <Image
-                src={getImagePreviewUrl(item.imageId)}
-                alt={item.name}
-                fill
-                sizes="48px"
-                className={cn("object-cover", !item.available && "grayscale")}
-              />
-            </div>
-          )}
+      {/* Top Image Banner matching menu & ordering page */}
+      {imageUrl && (
+        <div className="relative w-full h-40 sm:h-48 bg-muted border-b border-border/40">
+          <Image
+            src={imageUrl}
+            alt={item.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 500px"
+            className={cn(
+              "object-cover transition-all",
+              !item.available && "grayscale opacity-75"
+            )}
+            unoptimized
+          />
+        </div>
+      )}
 
+      {/* Main Content Area */}
+      <div className="flex flex-col p-3.5 sm:p-4 gap-3">
+        <div className="flex items-start justify-between gap-3 min-w-0">
           <div className="flex flex-col gap-1 min-w-0 flex-1">
             <span
               className={cn(
                 "font-semibold text-base break-words",
-                item.available ? "text-foreground" : "text-muted-foreground"
+                item.available
+                  ? "text-foreground"
+                  : "text-muted-foreground line-through decoration-muted-foreground/50"
               )}
             >
               {item.name}
             </span>
             {item.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
                 {item.description}
               </p>
             )}
-            <span className="text-sm font-bold text-foreground whitespace-nowrap">
+            <span className="text-sm font-bold text-foreground whitespace-nowrap mt-0.5">
               {hasPaidCustomizations(item.customizations)
                 ? t("fromPrice", { price: formatPrice(item.price) })
                 : formatPrice(item.price)}
             </span>
           </div>
-        </div>
 
-        {/* Main Item Switch & Customization Badge */}
-        <div className="flex items-center gap-2 shrink-0 pt-0.5">
-          {steps.length > 0 && (
-            <Badge
-              variant="outline"
-              className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
-            >
-              <SlidersHorizontal className="w-3 h-3" weight="bold" />
-              {steps.length}
-            </Badge>
-          )}
-          <Switch
-            checked={item.available}
-            onCheckedChange={(checked) => onToggleItem(item.$id, checked)}
-            title={item.available ? t("itemAvailable") : t("itemSoldOut")}
-          />
+          {/* Main Item Switch & Customization Badge */}
+          <div className="flex items-center gap-2 shrink-0 pt-0.5">
+            {steps.length > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
+              >
+                <SlidersHorizontal className="w-3 h-3" weight="bold" />
+                {steps.length}
+              </Badge>
+            )}
+            <Switch
+              checked={item.available}
+              onCheckedChange={(checked) => onToggleItem(item.$id, checked)}
+              title={item.available ? t("itemAvailable") : t("itemSoldOut")}
+            />
+          </div>
         </div>
-      </div>
 
       {/* Customizations Section */}
       {steps.length > 0 && (
@@ -562,6 +573,7 @@ function ItemCardView({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

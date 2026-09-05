@@ -98,22 +98,50 @@ function useIsDesktop() {
 }
 
 const customItemCollisionDetection: CollisionDetection = (args) => {
-  // Use pointerWithin so collisions ONLY trigger when pointer enters a specific item's box.
-  // This eliminates cascade movement / twitching on unrelated items below.
-  const pointerCollisions = pointerWithin(args);
-  const itemCollision = pointerCollisions.find(
-    (c) => c.data?.current?.type === "item",
-  );
-
-  if (itemCollision) {
-    return [itemCollision];
+  // If dragging a category, only collide with other categories using closestCenter
+  if (args.active.data.current?.type === "category") {
+    const categoryContainers = args.droppableContainers.filter(
+      (c) => c.data?.current?.type === "category",
+    );
+    return closestCenter({ ...args, droppableContainers: categoryContainers });
   }
 
-  const categoryCollision = pointerCollisions.find(
-    (c) => c.data?.current?.type === "category",
+  // If dragging an item:
+  // 1. If pointer is within a category card, prioritize items in that category using closestCenter
+  const pointerCollisions = pointerWithin(args);
+  const overCategory = pointerCollisions.find((c) => {
+    const container = args.droppableContainers.find((dc) => dc.id === c.id);
+    return container?.data?.current?.type === "category";
+  });
+
+  if (overCategory) {
+    const categoryContainer = args.droppableContainers.find(
+      (dc) => dc.id === overCategory.id,
+    );
+    const categoryId = (categoryContainer?.data?.current?.category?.$id ||
+      overCategory.id) as string;
+    const categoryItemContainers = args.droppableContainers.filter(
+      (c) =>
+        c.data?.current?.type === "item" &&
+        c.data?.current?.item?.categoryId === categoryId,
+    );
+    if (categoryItemContainers.length > 0) {
+      const closest = closestCenter({
+        ...args,
+        droppableContainers: categoryItemContainers,
+      });
+      if (closest.length > 0) return closest;
+    }
+    return [overCategory];
+  }
+
+  // 2. Fallback to closestCenter on all items
+  const itemContainers = args.droppableContainers.filter(
+    (c) => c.data?.current?.type === "item",
   );
-  if (categoryCollision) {
-    return [categoryCollision];
+  if (itemContainers.length > 0) {
+    const closest = closestCenter({ ...args, droppableContainers: itemContainers });
+    if (closest.length > 0) return closest;
   }
 
   return rectIntersection(args);
@@ -129,17 +157,44 @@ export function MenuContent({
   const isDesktop = useIsDesktop();
 
   // Persistent client state for categories and items to eliminate drag & drop flickering
-  const [categories, setCategories] = useState<MenuCategory[]>(() => 
-    Array.from(new Map(initialCategories.map(c => [c.$id, c])).values())
+  const [categories, setCategories] = useState<MenuCategory[]>(() =>
+    Array.from(
+      new Map(
+        [...initialCategories]
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((c) => [c.$id, c]),
+      ).values(),
+    ),
   );
   const [items, setItems] = useState<MenuItem[]>(() =>
-    Array.from(new Map(initialItems.map(i => [i.$id, i])).values())
+    Array.from(
+      new Map(
+        [...initialItems]
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((i) => [i.$id, i]),
+      ).values(),
+    ),
   );
 
-
   useEffect(() => {
-    setCategories(Array.from(new Map(initialCategories.map(c => [c.$id, c])).values()));
-    setItems(Array.from(new Map(initialItems.map(i => [i.$id, i])).values()));
+    setCategories(
+      Array.from(
+        new Map(
+          [...initialCategories]
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+            .map((c) => [c.$id, c]),
+        ).values(),
+      ),
+    );
+    setItems(
+      Array.from(
+        new Map(
+          [...initialItems]
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+            .map((i) => [i.$id, i]),
+        ).values(),
+      ),
+    );
   }, [initialCategories, initialItems]);
 
   // Dialog & Sheet states
@@ -272,11 +327,8 @@ export function MenuContent({
         return arrayMove(updated, activeIdx, overIdx);
       }
 
-      // Intra-category sorting: update items array live so SortableContext smoothly animates position swap
-      if (activeIdx !== overIdx) {
-        return arrayMove(prevItems, activeIdx, overIdx);
-      }
-
+      // Intra-category sorting: do NOT modify items state during drag.
+      // SortableContext handles CSS transform animations cleanly.
       return prevItems;
     });
   };
@@ -321,27 +373,45 @@ export function MenuContent({
       const overType = over.data.current?.type;
       const overCategoryId =
         overType === "category"
-          ? over.data.current?.category?.$id || overId
-          : undefined;
+          ? (over.data.current?.category?.$id || overId)
+          : over.data.current?.item?.categoryId;
 
       let currentItems = [...items];
+      const activeIdx = currentItems.findIndex((i) => i.$id === activeId);
+      if (activeIdx === -1) return;
+
+      const previousItems = [...items];
+      const initialItem = initialItemsRef.current.find(
+        (i) => i.$id === activeId,
+      );
+      const initialCatId = initialItem?.categoryId;
 
       // 1. Intra-category item drop or inter-item drop
-      if (overType === "item" && activeId !== overId) {
-        const oldIndex = currentItems.findIndex((i) => i.$id === activeId);
-        const newIndex = currentItems.findIndex((i) => i.$id === overId);
-        if (oldIndex !== -1 && newIndex !== -1) {
-          currentItems = arrayMove(currentItems, oldIndex, newIndex);
-          setItems(currentItems);
+      if (overType === "item") {
+        if (initialCatId === overCategoryId) {
+          // Intra-category: items state was not mutated during drag. Apply arrayMove now.
+          if (activeId !== overId) {
+            const overIdx = currentItems.findIndex((i) => i.$id === overId);
+            if (overIdx !== -1) {
+              currentItems = arrayMove(currentItems, activeIdx, overIdx);
+            }
+          }
+        } else {
+          // Cross-category: ensure target categoryId is updated on active item
+          if (
+            overCategoryId &&
+            currentItems[activeIdx].categoryId !== overCategoryId
+          ) {
+            currentItems[activeIdx] = {
+              ...currentItems[activeIdx],
+              categoryId: overCategoryId,
+            };
+          }
         }
       }
       // 2. Drop onto category card directly (e.g. collapsed or empty category)
       else if (overType === "category" && overCategoryId) {
-        const activeIdx = currentItems.findIndex((i) => i.$id === activeId);
-        if (
-          activeIdx !== -1 &&
-          currentItems[activeIdx].categoryId !== overCategoryId
-        ) {
+        if (currentItems[activeIdx].categoryId !== overCategoryId) {
           const catItems = currentItems.filter(
             (i) => i.categoryId === overCategoryId,
           );
@@ -355,8 +425,11 @@ export function MenuContent({
             ...currentItems[activeIdx],
             categoryId: overCategoryId,
           };
-          currentItems = arrayMove(currentItems, activeIdx, overIdx);
-          setItems(currentItems);
+          currentItems = arrayMove(
+            currentItems,
+            activeIdx,
+            Math.min(overIdx, currentItems.length - 1),
+          );
         }
       }
 
@@ -373,11 +446,20 @@ export function MenuContent({
         });
       });
 
+      currentItems = currentItems.map((item) => {
+        const u = updates.find((x) => x.id === item.$id);
+        return u
+          ? { ...item, sortOrder: u.sortOrder, categoryId: u.categoryId }
+          : item;
+      });
+      setItems(currentItems);
+
       if (updates.length > 0) {
         startTransition(async () => {
           const res = await reorderItemsAction(organizationId, updates);
           if (res?.error) {
             toast.error(res.error);
+            setItems(previousItems);
           }
         });
       }
@@ -589,6 +671,7 @@ export function MenuContent({
           id="menu-dnd-context"
           sensors={sensors}
           collisionDetection={customItemCollisionDetection}
+          autoScroll={{ threshold: { x: 0.05, y: 0.05 }, acceleration: 5 }}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
@@ -729,7 +812,7 @@ export function MenuContent({
                     <div className="text-lg font-semibold text-foreground text-left bg-transparent border-0 p-0 min-w-0 flex-1 break-words">
                       {activeCategory.name}
                     </div>
-                    <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0 ml-auto sm:ml-0">
+                    <Badge className="w-6 h-6 min-w-6 aspect-square rounded-full p-0 flex items-center justify-center bg-primary text-secondary font-bold text-xs shrink-0 ml-auto sm:ml-0 tabular-nums leading-none">
                       {itemsByCategory[activeCategory.$id]?.length || 0}
                     </Badge>
                   </div>
@@ -1000,7 +1083,7 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
               </button>
             )}
             {!isEditingName && (
-              <Badge className="bg-primary text-secondary font-semibold text-xs shrink-0 ml-auto sm:ml-0">
+              <Badge className="w-6 h-6 min-w-6 aspect-square rounded-full p-0 flex items-center justify-center bg-primary text-secondary font-bold text-xs shrink-0 ml-auto sm:ml-0 tabular-nums leading-none">
                 {categoryItems.length}
               </Badge>
             )}
@@ -1273,11 +1356,11 @@ const SortableItemRow = memo(function SortableItemRow(
   });
 
   const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform) || "translate3d(0, 0, 0)",
+    transform: CSS.Translate.toString(transform),
     transition: isDragging
       ? undefined
       : transition || "transform 200ms cubic-bezier(0.2, 0, 0, 1)",
-    zIndex: isDragging ? 50 : 0,
+    zIndex: isDragging ? 50 : undefined,
   };
 
   const handleEdit = useCallback(

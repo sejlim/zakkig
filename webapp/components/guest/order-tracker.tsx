@@ -116,7 +116,7 @@ export function OrderTracker({
   if (order.status === "cancelled") {
     return (
       <div className="flex flex-col min-h-screen bg-muted/10 items-center justify-center p-6">
-        <Card className="max-w-md w-full p-6 text-center space-y-4 border-destructive/20 bg-destructive/5">
+        <Card className="max-w-[500px] w-full p-6 text-center space-y-4 border-destructive/20 bg-destructive/5">
           <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
             <X className="w-6 h-6" weight="bold" />
           </div>
@@ -134,8 +134,8 @@ export function OrderTracker({
   const currentStepIndex = order.status === "completed" ? 1 : 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-primary">
-      <header className="bg-primary text-primary-foreground px-6 py-4 flex items-center justify-between shrink-0">
+    <div className="flex flex-col min-h-screen bg-primary overflow-x-clip">
+      <header className="bg-primary text-primary-foreground px-6 py-4 flex items-center justify-between shrink-0 max-w-[500px] mx-auto w-full">
         <div className="w-10" />
         <h1 className="text-lg font-bold flex-1 text-center">
           {organization.name}
@@ -147,7 +147,7 @@ export function OrderTracker({
       </header>
 
       {/* Main Content Card */}
-      <div className="flex-1 bg-background text-foreground rounded-t-[2rem] md:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:my-4 md:max-w-md md:mx-auto w-full border-t md:border border-primary-foreground/10">
+      <div className="flex-1 bg-background text-foreground rounded-t-[2rem] md:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:my-4 max-w-[500px] mx-auto w-full border-t md:border border-primary-foreground/10">
         <main className="flex-1 p-6 md:p-8 flex flex-col items-center justify-center space-y-8">
           <div className="text-center space-y-2">
             <p className="text-sm font-medium text-muted-foreground">{t("yourOrderNumber")}</p>

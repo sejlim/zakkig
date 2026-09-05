@@ -90,7 +90,7 @@ export function CartSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="h-[90vh] sm:h-auto rounded-t-xl px-4 sm:max-w-md mx-auto"
+        className="h-[90vh] sm:h-auto rounded-t-xl px-4 max-w-[500px] mx-auto"
       >
         <SheetHeader className="text-left mb-6">
           <SheetTitle>{t("checkout")}</SheetTitle>

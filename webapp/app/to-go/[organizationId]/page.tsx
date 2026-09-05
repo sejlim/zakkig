@@ -8,14 +8,34 @@ import { GuestFrontend } from "@/components/guest/guest-frontend";
 import { Storefront } from "@phosphor-icons/react/dist/ssr";
 import { LocalizedText } from "@/components/ui/localized-text";
 
+import { cookies } from "next/headers";
+import { translations, Locale } from "@/lib/translations";
+
 export async function generateMetadata({
+  params,
   searchParams,
 }: {
+  params: Promise<{ organizationId: string }>;
   searchParams: Promise<{ order?: string }>;
 }) {
-  const { order } = await searchParams;
+  const [{ organizationId }, { order }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "de";
+  const dict = translations[locale] || translations.de;
+  const organization = await getOrganization(organizationId);
+  const orgName = organization?.name || "";
+
+  if (order) {
+    return {
+      title: orgName ? `${dict.orderStatus} - ${orgName}` : dict.orderStatus,
+    };
+  }
+
   return {
-    title: order ? "Bestell-Status" : "Bestellen zum Abholen",
+    title: orgName ? `${dict.titleToGo} ${orgName}` : dict.titleToGo,
   };
 }
 

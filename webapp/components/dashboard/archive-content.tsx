@@ -538,7 +538,7 @@ export function ArchiveContent({
                                     </span>
                                   </div>
                                   {customizations.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 pl-3.5">
+                                    <div className="flex flex-col items-start gap-1 mt-1 pl-3.5">
                                       {customizations.map((c: any, cIdx: number) => {
                                         const stepName = c.stepName || c.step;
                                         const optName =
@@ -550,18 +550,21 @@ export function ArchiveContent({
                                         return (
                                           <span
                                             key={cIdx}
-                                            className="inline-flex items-center text-xs text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md border border-border/40"
+                                            className="inline-block max-w-full text-xs leading-normal text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md border border-border/40 break-words"
                                           >
                                             {stepName ? (
-                                              <span className="font-medium mr-1 text-foreground/80">
-                                                {stepName}:
+                                              <span className="font-medium text-foreground/80">
+                                                {stepName}:{" "}
                                               </span>
                                             ) : null}
                                             <span>{optName}</span>
                                             {typeof c.extraPrice === "number" && c.extraPrice > 0 && (
-                                              <span className="ml-1 text-muted-foreground/80 font-normal">
-                                                (+{formatPrice(c.extraPrice)})
-                                              </span>
+                                              <>
+                                                {" "}
+                                                <span className="text-muted-foreground/80 font-normal whitespace-nowrap">
+                                                  (+{formatPrice(c.extraPrice)})
+                                                </span>
+                                              </>
                                             )}
                                           </span>
                                         );
