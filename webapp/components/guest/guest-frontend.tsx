@@ -342,7 +342,7 @@ function GuestMenu({
                               {t("addToCart")}
                             </span>
 
-                            <span className="font-bold text-sm sm:text-base tabular-nums shrink-0">
+                            <span className="font-bold text-sm sm:text-base tabular-nums shrink-0 mr-2 sm:mr-2.5">
                               {hasPaidCustomizations(item.customizations)
                                 ? t("fromPrice", { price: formatPrice(item.price) })
                                 : formatPrice(item.price)}
@@ -352,10 +352,10 @@ function GuestMenu({
                           {totalQuantity > 0 && (
                             <span
                               className={cn(
-                                "absolute -top-1.5 -right-1 h-5 rounded-full bg-primary text-primary-foreground border-2 border-background text-[11px] font-extrabold flex items-center justify-center leading-none shadow-md tabular-nums pointer-events-none",
+                                "absolute -top-1.5 -right-1 h-6 rounded-full bg-background text-primary border border-border text-xs font-extrabold flex items-center justify-center leading-none shadow-sm tabular-nums pointer-events-none",
                                 totalQuantity > 9
-                                  ? "min-w-5 px-1.5"
-                                  : "w-5 aspect-square p-0"
+                                  ? "min-w-6 px-1.5"
+                                  : "w-6 aspect-square p-0"
                               )}
                             >
                               {totalQuantity}
@@ -534,27 +534,37 @@ function LieferandoCartBanner({
       className="fixed bottom-4 left-0 right-0 z-40 flex items-center justify-center pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200"
     >
       <div className="w-full max-w-[500px] px-4 flex justify-center">
-        <button
-          type="button"
-          id="floating-cart-banner"
-          onClick={onOpenCart}
-          className="pointer-events-auto w-full h-12 bg-primary text-primary-foreground rounded-full shadow-2xl border border-primary-foreground/20 px-5 flex items-center justify-between hover:bg-neutral-800 hover:text-primary-foreground active:scale-[0.98] transition-all cursor-pointer select-none"
-        >
-          <div className="relative flex items-center justify-center shrink-0">
-            <ShoppingCart weight="bold" className="h-[18px] w-[18px]" />
-            <span className="absolute -top-1.5 -right-2 w-4 h-4 min-w-4 aspect-square rounded-full bg-primary-foreground text-primary text-[10px] font-extrabold flex items-center justify-center leading-none shadow-sm tabular-nums p-0">
-              {count}
+        <div className="relative w-full">
+          <button
+            type="button"
+            id="floating-cart-banner"
+            onClick={onOpenCart}
+            className="pointer-events-auto w-full h-12 bg-primary text-primary-foreground rounded-full shadow-2xl border border-primary-foreground/20 px-5 flex items-center justify-between hover:bg-neutral-800 hover:text-primary-foreground active:scale-[0.98] transition-all cursor-pointer select-none"
+          >
+            <div className="flex items-center justify-center shrink-0">
+              <ShoppingCart weight="bold" className="h-[18px] w-[18px]" />
+            </div>
+
+            <span className="font-bold text-base truncate text-center flex-1 px-3">
+              {t("viewCart")}
             </span>
-          </div>
 
-          <span className="font-bold text-base truncate text-center flex-1 px-3">
-            {t("viewCart")}
-          </span>
+            <span className="font-bold text-base tabular-nums shrink-0 mr-1 sm:mr-1.5">
+              {formatPrice(total())}
+            </span>
+          </button>
 
-          <span className="font-bold text-base tabular-nums shrink-0">
-            {formatPrice(total())}
+          <span
+            className={cn(
+              "absolute -top-1.5 -right-1 h-6 rounded-full bg-background text-primary border border-border text-xs font-extrabold flex items-center justify-center leading-none shadow-sm tabular-nums pointer-events-none",
+              count > 9
+                ? "min-w-6 px-1.5"
+                : "w-6 aspect-square p-0"
+            )}
+          >
+            {count}
           </span>
-        </button>
+        </div>
       </div>
     </aside>
   );
