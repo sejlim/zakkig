@@ -14,7 +14,7 @@ import {
   sendChangeEmailLink,
   sendEmailOtp,
 } from "@/lib/email";
-import { SESSION_COOKIE_NAME, MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
+import { SESSION_COOKIE_NAME, MAX_IMAGE_SIZE_BYTES, isAllowedImageFile } from "@/lib/constants";
 
 export interface SettingsActionState {
   error?: string;
@@ -51,20 +51,20 @@ export async function updateBusinessAction(
     if (address && address.length > 200) return { error: "Die Adresse darf maximal 200 Zeichen lang sein." };
 
     if (logoFile && logoFile.size > 0) {
+      if (!isAllowedImageFile(logoFile)) {
+        return { error: "Nur Bilder im JPG- oder PNG-Format sind für das Logo erlaubt." };
+      }
       if (logoFile.size > MAX_IMAGE_SIZE_BYTES) {
         return { error: "Das Logo darf maximal 10 MB groß sein." };
-      }
-      if (!logoFile.type.startsWith("image/")) {
-        return { error: "Ungültiges Dateiformat für das Logo." };
       }
     }
 
     if (bannerFile && bannerFile.size > 0) {
+      if (!isAllowedImageFile(bannerFile)) {
+        return { error: "Nur Bilder im JPG- oder PNG-Format sind für das Banner erlaubt." };
+      }
       if (bannerFile.size > MAX_IMAGE_SIZE_BYTES) {
         return { error: "Das Banner darf maximal 10 MB groß sein." };
-      }
-      if (!bannerFile.type.startsWith("image/")) {
-        return { error: "Ungültiges Dateiformat für das Banner." };
       }
     }
 

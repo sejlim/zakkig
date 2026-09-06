@@ -33,4 +33,14 @@ export const KITCHEN_CLEANUP_TIMEOUT = KITCHEN_CLEANUP_MINUTES * 60 * 1000; // 3
 // File Upload Limits
 export const MAX_IMAGE_SIZE_MB = 10;
 export const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024; // 10 MB
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"] as const;
+export const ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"] as const;
+
+export function isAllowedImageFile(file: File): boolean {
+  if (file.type && (file.type === "image/jpeg" || file.type === "image/png")) {
+    return true;
+  }
+  const name = (file.name || "").toLowerCase();
+  return ALLOWED_IMAGE_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
 

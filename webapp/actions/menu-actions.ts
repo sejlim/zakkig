@@ -16,7 +16,7 @@ import {
 } from "@/lib/convex/database";
 import { uploadFileToConvex } from "@/lib/convex/storage";
 import { getUser, requireOwner, requireStaffOrOwner } from "@/lib/convex/auth";
-import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
+import { MAX_IMAGE_SIZE_BYTES, isAllowedImageFile } from "@/lib/constants";
 import type { CustomizationStep, MenuItem } from "@/lib/types";
 
 export interface MenuActionState {
@@ -220,11 +220,11 @@ export async function createMenuItemAction(
   }
 
   if (imageFile && imageFile.size > 0) {
+    if (!isAllowedImageFile(imageFile)) {
+      return { error: "Nur Bilder im JPG- oder PNG-Format sind erlaubt." };
+    }
     if (imageFile.size > MAX_IMAGE_SIZE_BYTES) {
       return { error: "Das Bild darf maximal 10 MB groß sein." };
-    }
-    if (!imageFile.type.startsWith("image/")) {
-      return { error: "Ungültiges Dateiformat. Bitte laden Sie ein Bild hoch." };
     }
   }
 
@@ -297,11 +297,11 @@ export async function updateMenuItemAction(
   }
 
   if (imageFile && imageFile.size > 0) {
+    if (!isAllowedImageFile(imageFile)) {
+      return { error: "Nur Bilder im JPG- oder PNG-Format sind erlaubt." };
+    }
     if (imageFile.size > MAX_IMAGE_SIZE_BYTES) {
       return { error: "Das Bild darf maximal 10 MB groß sein." };
-    }
-    if (!imageFile.type.startsWith("image/")) {
-      return { error: "Ungültiges Dateiformat. Bitte laden Sie ein Bild hoch." };
     }
   }
 

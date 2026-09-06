@@ -18,7 +18,7 @@ import {
 import { useTranslation } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/convex/client";
 import { cn } from "@/lib/utils";
-import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
+import { MAX_IMAGE_SIZE_BYTES, isAllowedImageFile } from "@/lib/constants";
 import {
   updateBusinessAction,
   requestAccountDeletionAction,
@@ -106,11 +106,16 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   }, [organization.address]);
 
   const handleLogoFile = (file: File) => {
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      toast.error(t("imageTooLarge"));
+    if (!isAllowedImageFile(file)) {
+      toast.error(t("invalidImageFormat"));
+      if (logoInputRef.current) logoInputRef.current.value = "";
       return;
     }
-    if (!file.type.startsWith("image/")) return;
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error(t("imageTooLarge"));
+      if (logoInputRef.current) logoInputRef.current.value = "";
+      return;
+    }
 
     setRemoveLogo(false);
     const url = URL.createObjectURL(file);
@@ -127,11 +132,16 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
   };
 
   const handleBannerFile = (file: File) => {
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      toast.error(t("imageTooLarge"));
+    if (!isAllowedImageFile(file)) {
+      toast.error(t("invalidImageFormat"));
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
       return;
     }
-    if (!file.type.startsWith("image/")) return;
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error(t("imageTooLarge"));
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
+      return;
+    }
 
     setRemoveBanner(false);
     const url = URL.createObjectURL(file);
@@ -200,7 +210,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 id="business-logo"
                 name="logo"
                 type="file"
-                accept="image/png, image/jpeg, image/webp"
+                accept="image/jpeg,image/png"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -212,7 +222,7 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                 id="business-banner"
                 name="banner"
                 type="file"
-                accept="image/png, image/jpeg, image/webp"
+                accept="image/jpeg,image/png"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];

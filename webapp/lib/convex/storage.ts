@@ -1,8 +1,11 @@
 import { convexServer } from "@/lib/convex/server";
 import { api } from "@/convex/_generated/api";
-import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
+import { MAX_IMAGE_SIZE_BYTES, isAllowedImageFile } from "@/lib/constants";
 
 export async function uploadFileToConvex(file: File): Promise<string> {
+  if (!isAllowedImageFile(file)) {
+    throw new Error("Only JPG and PNG images are allowed.");
+  }
   if (file.size > MAX_IMAGE_SIZE_BYTES) {
     throw new Error(`File exceeds maximum allowed size of 10 MB`);
   }

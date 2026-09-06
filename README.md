@@ -115,7 +115,7 @@ Das Gesamtsystem erzwingt standardisierte Ablaufzeiten für maximale Datensparsa
 
 Für alle visuellen Medien (Restaurant-Logo, Restaurant-Banner, Speisen- und Getränkebilder) gilt ein einheitlicher, serverseitig geschützter Standard:
 - **Maximale Dateigröße:** 10 MB pro Datei (`MAX_IMAGE_SIZE_MB = 10`).
-- **Unterstützte Formate:** JPG, PNG, WebP (`image/*`).
+- **Unterstützte Formate:** Exklusiv JPG und PNG (`image/jpeg`, `image/png`). Andere Formate werden sowohl im Browser mit einem Fehler-Toast als auch serverseitig strikt abgewiesen.
 - **Clientseitige Validierung:** Sofortige Prüfung im Browser (Drag-and-Drop sowie Dateidialog) mit benutzerfreundlichen Hinweisen ("JPG, PNG bis 10 MB").
 - **Serverseitige Enforcierung:** Prüfung von Dateigröße und MIME-Type in den Server Actions (`createMenuItemAction`, `updateMenuItemAction`, `updateBusinessAction`) sowie vor Übertragung in den Convex Storage (`uploadFileToConvex`).
 - **Anti-IDOR Schutz:** Strikte Überprüfung der Organisationszugehörigkeit vor dem Speichern oder Überschreiben von Bildern.

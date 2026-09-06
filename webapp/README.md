@@ -86,11 +86,11 @@ Um höchste Sicherheit, Speicher-Hygiene und eine transparente Nutzererfahrung z
 Logos, Restaurant-Banner und Speisekarten-Bilder werden im nativen Convex File Storage gespeichert und unterliegen strengen Sicherheits- und Größenbegrenzungen:
 
 - **Maximale Dateigröße:** Einheitlich 10 MB pro Datei (`MAX_IMAGE_SIZE_MB = 10`, `MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024`).
-- **Erlaubte Dateitypen:** JPG, PNG, WebP (`image/jpeg`, `image/png`, `image/webp`).
-- **Clientseitige Validierung:** Sofortiges Feedback bei Überschreiten von 10 MB via Toast-Meldung ("Das Bild darf maximal 10 MB groß sein.") und transparente Kennzeichnung im UI ("JPG, PNG bis 10 MB", "max. 10 MB").
+- **Erlaubte Dateitypen:** Exklusiv JPG und PNG (`image/jpeg`, `image/png`).
+- **Clientseitige Validierung:** Sofortiges Feedback bei ungültigen Dateitypen ("Nur Bilder im JPG- oder PNG-Format sind erlaubt.") oder bei Überschreiten von 10 MB ("Das Bild darf maximal 10 MB groß sein.") via Toast-Meldung, sowie transparente Kennzeichnung im UI ("JPG, PNG bis 10 MB", "im Format JPG oder PNG", "max. 10 MB").
 - **Serverseitige Enforcierung (Defense-in-Depth):**
-  - Vor dem Upload in Convex File Storage validiert `lib/convex/storage.ts` (`uploadFileToConvex`) die Dateigröße.
-  - Alle Server Actions (`createMenuItemAction`, `updateMenuItemAction`, `updateBusinessAction`) prüfen Dateigröße und Dateityp (`file.type.startsWith("image/")`) serverseitig ab, bevor eine Speicheroperation angestoßen wird.
+  - Vor dem Upload in Convex File Storage validiert `lib/convex/storage.ts` (`uploadFileToConvex`) sowohl Dateityp (`isAllowedImageFile`) als auch die Dateigröße.
+  - Alle Server Actions (`createMenuItemAction`, `updateMenuItemAction`, `updateBusinessAction`) prüfen Dateityp und Dateigröße serverseitig ab, bevor eine Speicheroperation angestoßen wird.
 - **Speicherbereinigung:** Beim Aktualisieren oder Löschen von Artikeln und Logos werden alte Dateien automatisch über `ctx.storage.delete` aus dem Speicher entfernt.
 
 ---

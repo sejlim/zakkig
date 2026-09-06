@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { getImagePreviewUrl } from "@/lib/convex/client";
 import { toast } from "sonner";
-import { MAX_IMAGE_SIZE_BYTES } from "@/lib/constants";
+import { MAX_IMAGE_SIZE_BYTES, isAllowedImageFile } from "@/lib/constants";
 
 interface ImageUploadProps {
   existingImageId?: string;
@@ -50,11 +50,16 @@ export function ImageUpload({
     (file: File | null) => {
       if (preview) URL.revokeObjectURL(preview);
       if (file) {
-        if (file.size > MAX_IMAGE_SIZE_BYTES) {
-          toast.error(t("imageTooLarge"));
+        if (!isAllowedImageFile(file)) {
+          toast.error(t("invalidImageFormat"));
+          if (inputRef.current) inputRef.current.value = "";
           return;
         }
-        if (!file.type.startsWith("image/")) return;
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+          toast.error(t("imageTooLarge"));
+          if (inputRef.current) inputRef.current.value = "";
+          return;
+        }
         const url = URL.createObjectURL(file);
         setPreview(url);
         setIsRemoved(false);
@@ -164,7 +169,7 @@ export function ImageUpload({
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0] ?? null;
