@@ -1138,11 +1138,11 @@ const SortableCategoryCard = memo(function SortableCategoryCard({
           <CardContent className="pt-2 flex flex-col gap-3">
             <SortableContext
               items={categoryItems.map((i) => i.$id)}
-              strategy={verticalListSortingStrategy}
+              strategy={rectSortingStrategy}
             >
-              <div className="flex flex-col gap-2.5 min-h-[60px] p-1.5 transition-colors rounded-lg">
+              <div className="grid grid-cols-1 min-[1900px]:grid-cols-2 gap-2.5 min-h-[60px] p-1.5 transition-colors rounded-lg">
                 {categoryItems.length === 0 ? (
-                  <div className="py-6 text-center flex flex-col items-center justify-center gap-1 border border-dashed rounded-lg bg-muted/10">
+                  <div className="col-span-full py-6 text-center flex flex-col items-center justify-center gap-1 border border-dashed rounded-lg bg-muted/10">
                     <p className="text-sm font-medium text-muted-foreground">
                       {t("noItems")}
                     </p>
@@ -1220,7 +1220,7 @@ const ItemRowView = memo(function ItemRowView({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col rounded-xl border overflow-hidden touch-none shadow-sm transition-all",
+        "flex flex-col h-full rounded-xl border overflow-hidden touch-none shadow-sm transition-all",
         isDragging
           ? "opacity-20 bg-muted/30 border-border/40"
           : !item.available
@@ -1230,7 +1230,7 @@ const ItemRowView = memo(function ItemRowView({
     >
       {/* Top Image */}
       {imageUrl && (
-        <div className="relative w-full h-40 sm:h-48 bg-muted border-b border-border/40">
+        <div className="relative w-full h-40 sm:h-48 bg-muted border-b border-border/40 shrink-0">
           <Image
             src={imageUrl}
             alt={item.name}
@@ -1246,7 +1246,7 @@ const ItemRowView = memo(function ItemRowView({
       )}
 
       {/* Content Area */}
-      <div className="flex items-start p-3 sm:p-4 gap-3">
+      <div className="flex items-start p-3 sm:p-4 gap-3 flex-1">
         {/* Drag Handle */}
         <button
           type="button"
@@ -1260,45 +1260,48 @@ const ItemRowView = memo(function ItemRowView({
         </button>
 
         {/* Content Column to right of handle */}
-        <div className="flex flex-col flex-1 min-w-0 gap-2">
-          {/* Row 1: Title on left, Badge & Switch on right */}
-          <div className="flex items-center justify-between gap-2.5">
-            <span
-              className={cn(
-                "font-semibold text-base leading-snug break-words min-w-0 flex-1",
-                item.available ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {item.name}
-            </span>
+        <div className="flex flex-col flex-1 min-w-0 justify-between h-full gap-2">
+          {/* Top section: Title, Switch, Description */}
+          <div className="flex flex-col gap-2">
+            {/* Row 1: Title on left, Badge & Switch on right */}
+            <div className="flex items-start justify-between gap-2.5">
+              <span
+                className={cn(
+                  "font-semibold text-base leading-snug break-words min-w-0 flex-1",
+                  item.available ? "text-foreground" : "text-muted-foreground",
+                )}
+              >
+                {item.name}
+              </span>
 
-            <div className="flex items-center gap-2 shrink-0">
-              {customizationStepCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0 px-2 py-0.5"
-                >
-                  <SlidersHorizontal className="w-3 h-3" weight="bold" />
-                  <span>{customizationStepCount}</span>
-                </Badge>
-              )}
-              <Switch
-                checked={item.available}
-                onCheckedChange={(checked) => onToggleAvailability(checked)}
-                title={item.available ? t("itemAvailable") : t("itemSoldOut")}
-              />
+              <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                {customizationStepCount > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0 px-2 py-0.5"
+                  >
+                    <SlidersHorizontal className="w-3 h-3" weight="bold" />
+                    <span>{customizationStepCount}</span>
+                  </Badge>
+                )}
+                <Switch
+                  checked={item.available}
+                  onCheckedChange={(checked) => onToggleAvailability(checked)}
+                  title={item.available ? t("itemAvailable") : t("itemSoldOut")}
+                />
+              </div>
             </div>
+
+            {/* Description */}
+            {item.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
+                {item.description}
+              </p>
+            )}
           </div>
 
-          {/* Description */}
-          {item.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
-              {item.description}
-            </p>
-          )}
-
           {/* Row 2: Price on left, Actions on right */}
-          <div className="flex items-center justify-between gap-3 pt-0.5">
+          <div className="flex items-center justify-between gap-3 pt-2 mt-auto">
             <span className="text-sm font-bold text-foreground shrink-0">
               {hasPaidCustomizations(item.customizations)
                 ? t("fromPrice", { price: formatPrice(item.price) })

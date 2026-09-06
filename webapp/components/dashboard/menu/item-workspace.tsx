@@ -239,9 +239,14 @@ export function ItemWorkspace({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column (Bild) */}
                   <div className="flex flex-col gap-2 h-full">
-                    <Label className="text-sm font-semibold text-primary-foreground">
-                      {t("imageSection")}
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold text-primary-foreground">
+                        {t("imageSection")}
+                      </Label>
+                      <span className="text-xs text-primary-foreground/60 font-medium">
+                        {t("itemImageRecommended")}
+                      </span>
+                    </div>
                     <ImageUpload
                       className="flex-1"
                       existingImageId={editingItem?.imageId}

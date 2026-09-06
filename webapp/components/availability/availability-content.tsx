@@ -356,7 +356,7 @@ function ItemsList({
   ) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="grid grid-cols-1 min-[1900px]:grid-cols-2 gap-3">
       {items.map((item) => (
         <ItemCardView
           key={item.$id}
@@ -395,7 +395,7 @@ function ItemCardView({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border overflow-hidden transition-all duration-200 shadow-xs",
+        "flex flex-col h-full rounded-xl border overflow-hidden transition-all duration-200 shadow-xs",
         item.available
           ? "bg-background border-border"
           : "bg-muted/40 border-dashed border-border/70 opacity-65"
@@ -403,7 +403,7 @@ function ItemCardView({
     >
       {/* Top Image Banner matching menu & ordering page */}
       {imageUrl && (
-        <div className="relative w-full h-40 sm:h-48 bg-muted border-b border-border/40">
+        <div className="relative w-full h-40 sm:h-48 bg-muted border-b border-border/40 shrink-0">
           <Image
             src={imageUrl}
             alt={item.name}
@@ -419,7 +419,7 @@ function ItemCardView({
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-col p-3.5 sm:p-4 gap-3">
+      <div className="flex flex-col flex-1 justify-between p-3.5 sm:p-4 gap-3">
         <div className="flex items-start justify-between gap-3 min-w-0">
           <div className="flex flex-col gap-1 min-w-0 flex-1">
             <span

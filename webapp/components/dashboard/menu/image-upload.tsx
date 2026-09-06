@@ -162,7 +162,7 @@ export function ImageUpload({
               {t("dragOrClick")}
             </p>
             <p className="text-xs text-primary-foreground/60">
-              {t("maxFileSize")}
+              {t("itemImageRecommended")} • {t("maxFileSize")}
             </p>
           </div>
         )}
