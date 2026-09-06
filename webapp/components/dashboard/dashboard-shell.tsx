@@ -14,6 +14,7 @@ import {
   CaretLeft,
   CaretRight,
   Archive,
+  X,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -114,27 +115,30 @@ export function DashboardShell({
             "max-lg:justify-end max-lg:px-4",
           )}
         >
-          {/* Desktop Logo */}
-          {isExpanded && (
-            <div className="hidden lg:flex flex-1">
-              <Link
-                href={zakkigUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="overflow-hidden"
-              >
-                <Image
-                  src="https://www.zakkig.de/full.svg"
-                  alt="zakkig logo"
-                  width={100}
-                  height={24}
-                  priority
-                  loading="eager"
-                  className="h-6 w-auto brightness-0 invert"
-                />
-              </Link>
-            </div>
-          )}
+          {/* Logo only on desktop (when expanded) */}
+          <div
+            className={cn(
+              isExpanded ? "lg:flex" : "lg:hidden",
+              "hidden flex-1"
+            )}
+          >
+            <Link
+              href={zakkigUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="overflow-hidden"
+            >
+              <Image
+                src="https://www.zakkig.de/full.svg"
+                alt="zakkig logo"
+                width={100}
+                height={24}
+                priority
+                loading="eager"
+                className="h-6 w-auto brightness-0 invert"
+              />
+            </Link>
+          </div>
 
           {/* Desktop Toggle Button */}
           <Button
@@ -156,8 +160,9 @@ export function DashboardShell({
             size="icon"
             onClick={() => setIsMobileOpen(false)}
             className="lg:hidden shrink-0 h-9 w-9 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            aria-label="Close sidebar"
           >
-            <CaretLeft weight="bold" className="h-5 w-5" />
+            <X weight="bold" className="h-5 w-5" />
           </Button>
         </div>
 
@@ -341,7 +346,7 @@ export function DashboardShell({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background lg:rounded-l-[1.5rem] shadow-sm print:overflow-visible print:block print:bg-white print:shadow-none">
-        <header className="flex h-16 shrink-0 items-center justify-start gap-2 border-b border-primary-foreground/10 px-4 lg:hidden print:hidden bg-primary text-primary-foreground">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-primary-foreground/10 px-4 lg:hidden print:hidden bg-primary text-primary-foreground">
           <Link href={zakkigUrl} target="_blank" rel="noopener noreferrer">
             <Image
               src="https://www.zakkig.de/full.svg"
@@ -358,11 +363,12 @@ export function DashboardShell({
             size="icon"
             onClick={() => setIsMobileOpen(true)}
             className="text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            aria-label="Open menu"
           >
-            <CaretRight weight="bold" className="h-6 w-6" />
+            <List weight="bold" className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 pt-[22px] lg:pt-[22px] print:overflow-visible print:p-0 print:block">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 pt-[22px] lg:pt-[22px] print:overflow-visible print:p-0 print:block">
           {children}
         </main>
       </div>

@@ -74,7 +74,6 @@ export function ItemWorkspace({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [available, setAvailable] = useState(true);
   const selectedFileRef = useRef<File | null>(null);
   const removeImageRef = useRef(false);
   const [enableCustomizations, setEnableCustomizations] = useState(false);
@@ -95,7 +94,6 @@ export function ItemWorkspace({
         setName(editingItem.name);
         setDescription(editingItem.description || "");
         setPrice((editingItem.price / 100).toFixed(2));
-        setAvailable(editingItem.available);
         selectedFileRef.current = null;
         removeImageRef.current = false;
 
@@ -127,7 +125,6 @@ export function ItemWorkspace({
         setName("");
         setDescription("");
         setPrice("");
-        setAvailable(true);
         selectedFileRef.current = null;
         removeImageRef.current = false;
         setCustomizationSteps([]);
@@ -172,7 +169,10 @@ export function ItemWorkspace({
     formData.append("description", description);
     formData.append("price", price);
     formData.append("taxRate", "19.0");
-    formData.append("available", String(available));
+    formData.append(
+      "available",
+      String(editingItem ? editingItem.available : true),
+    );
 
     if (editingItem) {
       formData.append("itemId", editingItem.$id);
@@ -231,40 +231,10 @@ export function ItemWorkspace({
             <div className="p-6 space-y-6">
               {/* SECTION 1: DETAILS */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
-                    <Tag className="w-5 h-5 text-primary-foreground/70" />
-                    {t("basicInfo")}
-                  </h3>
-
-                  {/* Verfügbar Switcher moved to header */}
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="ws-item-available"
-                      className="text-sm font-semibold text-primary-foreground cursor-pointer"
-                    >
-                      {t("availabilitySection")}
-                    </Label>
-                    <Switch
-                      id="ws-item-available"
-                      checked={available}
-                      onCheckedChange={(checked) => {
-                        setAvailable(checked);
-                        setCustomizationSteps((prev) =>
-                          prev.map((step) => ({
-                            ...step,
-                            available: checked,
-                            options: step.options.map((opt) => ({
-                              ...opt,
-                              available: checked,
-                            })),
-                          })),
-                        );
-                      }}
-                      className="data-[checked]:!bg-primary-foreground data-[unchecked]:!bg-primary-foreground/20 [&_[data-slot=switch-thumb]]:data-[checked]:!bg-primary [&_[data-slot=switch-thumb]]:data-[unchecked]:!bg-primary-foreground"
-                    />
-                  </div>
-                </div>
+                <h3 className="text-base font-semibold tracking-tight flex items-center gap-2 text-primary-foreground">
+                  <Tag className="w-5 h-5 text-primary-foreground/70" />
+                  {t("basicInfo")}
+                </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column (Bild) */}
@@ -339,9 +309,7 @@ export function ItemWorkspace({
                         htmlFor="ws-item-price"
                         className={`text-sm font-semibold flex items-center gap-1.5 ${errors.price ? "text-destructive" : "text-primary-foreground"}`}
                       >
-                        <span>
-                          {enableCustomizations ? t("basePrice") : t("price")}
-                        </span>
+                        <span>{t("basePrice")}</span>
                         <span className="text-destructive">*</span>
                         <TooltipProvider delay={100}>
                           <Tooltip>
@@ -430,7 +398,6 @@ export function ItemWorkspace({
                     <CustomizationBuilder
                       steps={customizationSteps}
                       onChange={setCustomizationSteps}
-                      itemAvailable={available}
                     />
                   </div>
                 )}

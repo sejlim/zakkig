@@ -275,7 +275,8 @@ export async function updateMenuItemAction(
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const price = Math.round(parseFloat(formData.get("price") as string) * 100);
-  const available = formData.get("available") === "true";
+  const hasAvailable = formData.has("available");
+  const availableFromForm = formData.get("available") === "true";
   const taxRate = parseFloat(formData.get("taxRate") as string) || 19.0;
   const imageFile = formData.get("image") as File | null;
   const existingImageId = formData.get("existingImageId") as string;
@@ -325,7 +326,7 @@ export async function updateMenuItemAction(
       name,
       description,
       price,
-      available,
+      available: hasAvailable ? availableFromForm : existingItem.available,
       imageStorageId,
       imageId: imageStorageId,
       clearImage: removeExistingImage,

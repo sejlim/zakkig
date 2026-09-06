@@ -476,18 +476,16 @@ export function SettingsContent({ organization, user }: SettingsContentProps) {
                           {t("stripeSettings")}{" "}
                           <span className="text-destructive">*</span>
                         </h4>
-                        {organization.stripeOnboardingComplete ? (
-                          <Badge variant="default" className="bg-primary text-secondary font-semibold px-2.5 py-0.5 rounded-full text-xs">
-                            {t("stripeConnected")}
-                          </Badge>
-                        ) : organization.stripeAccountId ? (
-                          <Badge variant="outline" className="font-semibold px-2.5 py-0.5 rounded-full text-foreground border-border text-xs">
-                            {t("stripeOnboardingIncomplete" as any)}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="font-semibold px-2.5 py-0.5 rounded-full text-xs">
-                            {t("stripeNotConnected")}
-                          </Badge>
+                        {!organization.stripeOnboardingComplete && (
+                          organization.stripeAccountId ? (
+                            <Badge variant="outline" className="font-semibold px-2.5 py-0.5 rounded-full text-foreground border-border text-xs">
+                              {t("stripeOnboardingIncomplete" as any)}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="font-semibold px-2.5 py-0.5 rounded-full text-xs">
+                              {t("stripeNotConnected")}
+                            </Badge>
+                          )
                         )}
                       </div>
 

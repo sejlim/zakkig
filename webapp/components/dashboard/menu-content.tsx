@@ -1246,7 +1246,7 @@ const ItemRowView = memo(function ItemRowView({
       )}
 
       {/* Content Area */}
-      <div className="flex items-start p-4 gap-3">
+      <div className="flex items-start p-3 sm:p-4 gap-3">
         {/* Drag Handle */}
         <button
           type="button"
@@ -1262,10 +1262,10 @@ const ItemRowView = memo(function ItemRowView({
         {/* Content Column to right of handle */}
         <div className="flex flex-col flex-1 min-w-0 gap-2">
           {/* Row 1: Title on left, Badge & Switch on right */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2.5">
             <span
               className={cn(
-                "font-semibold text-base break-words min-w-0",
+                "font-semibold text-base leading-snug break-words min-w-0 flex-1",
                 item.available ? "text-foreground" : "text-muted-foreground",
               )}
             >
@@ -1276,10 +1276,10 @@ const ItemRowView = memo(function ItemRowView({
               {customizationStepCount > 0 && (
                 <Badge
                   variant="outline"
-                  className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0"
+                  className="text-xs gap-1 border-primary/40 text-primary bg-primary/5 shrink-0 px-2 py-0.5"
                 >
                   <SlidersHorizontal className="w-3 h-3" weight="bold" />
-                  {customizationStepCount}
+                  <span>{customizationStepCount}</span>
                 </Badge>
               )}
               <Switch
@@ -1290,20 +1290,20 @@ const ItemRowView = memo(function ItemRowView({
             </div>
           </div>
 
-          {/* Row 2 (unterhalb des Titels): Info on left, Actions on right (vertically centered, right-aligned) */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col gap-1 min-w-0 flex-1">
-              {item.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
-                  {item.description}
-                </p>
-              )}
-              <span className="text-sm font-bold text-foreground">
-                {hasPaidCustomizations(item.customizations)
-                  ? t("fromPrice", { price: formatPrice(item.price) })
-                  : formatPrice(item.price)}
-              </span>
-            </div>
+          {/* Description */}
+          {item.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
+              {item.description}
+            </p>
+          )}
+
+          {/* Row 2: Price on left, Actions on right */}
+          <div className="flex items-center justify-between gap-3 pt-0.5">
+            <span className="text-sm font-bold text-foreground shrink-0">
+              {hasPaidCustomizations(item.customizations)
+                ? t("fromPrice", { price: formatPrice(item.price) })
+                : formatPrice(item.price)}
+            </span>
 
             <div className="flex items-center gap-1.5 shrink-0">
               <Button
@@ -1317,13 +1317,13 @@ const ItemRowView = memo(function ItemRowView({
               </Button>
               <Button
                 variant="outline"
-                size="default"
+                size="icon"
                 onClick={onDelete}
-                className="gap-2 font-medium border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0"
+                className="rounded-full border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shrink-0 sm:w-auto sm:px-3 sm:gap-1.5 sm:rounded-lg"
                 title={t("delete")}
               >
                 <Trash className="h-4 w-4 shrink-0" weight="bold" />
-                <span>{t("delete")}</span>
+                <span className="hidden sm:inline text-xs">{t("delete")}</span>
               </Button>
             </div>
           </div>
